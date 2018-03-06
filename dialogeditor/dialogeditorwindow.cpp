@@ -1,5 +1,6 @@
 #include "dialogeditorwindow.h"
 #include "ui_dialogeditorwindow.h"
+#include "zoomablegraphicsview.h"
 #include "dialogconstructorgraphicsscene.h"
 #include "dialoggraphicsscene.h"
 #include "core/dialogmodel.h"
@@ -74,6 +75,8 @@ DialogEditorWindow::DialogEditorWindow(const Dialog& dialog, QWidget* parent)
 	// TODO: itemsLinked
 
 	m_ui->dialogGraphicsView->setScene(m_dialogGraphicsScene);
+	m_ui->dialogGraphicsView->setMinRatio(50.0);
+	m_ui->dialogGraphicsView->setMaxRatio(150.0);
 
 	updateControls();
 }

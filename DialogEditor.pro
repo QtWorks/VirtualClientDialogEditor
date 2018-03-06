@@ -22,7 +22,6 @@ SOURCES += \
     mainwindow.cpp \
     core/dialog.cpp \
     core/dialogmodel.cpp \
-    core/firebasedialogprovider.cpp \
     core/inmemorybackendconnection.cpp \
     core/phase.cpp \
     core/replica.cpp \
@@ -41,7 +40,8 @@ SOURCES += \
     dialogeditor/clientreplicaeditor.cpp \
     dialogeditor/dialogconstructorgraphicsscene.cpp \
     dialogeditor/nodegraphicsitemmimedata.cpp \
-    dialogeditor/arrowlinegraphicsitemmimedata.cpp
+    dialogeditor/arrowlinegraphicsitemmimedata.cpp \
+    dialogeditor/zoomablegraphicsview.cpp
 
 HEADERS  += \
     authwindow.h \
@@ -51,12 +51,10 @@ HEADERS  += \
     mainwindow.h \
     core/dialog.h \
     core/dialogmodel.h \
-    core/firebasedialogprovider.h \
     core/ibackendconnection.h \
     core/idialogmodel.h \
     core/idialogprovider.h \
     core/inmemorybackendconnection.h \
-    core/itransitioncondition.h \
     core/phase.h \
     core/replica.h \
     core/user.h \
@@ -75,7 +73,8 @@ HEADERS  += \
     dialogeditor/dialogconstructorgraphicsscene.h \
     dialogeditor/nodegraphicsitemmimedata.h \
     dialogeditor/arrowlinegraphicsitemmimedata.h \
-    logger.h
+    logger.h \
+    dialogeditor/zoomablegraphicsview.h
 
 FORMS    += \
     authwindow.ui \
