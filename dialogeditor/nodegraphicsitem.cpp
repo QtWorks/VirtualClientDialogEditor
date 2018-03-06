@@ -116,15 +116,37 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 		isSelected() ? Qt::DotLine : Qt::SolidLine);
 	painter->setPen(pen);
 
-	painter->setBrush(getBrush());
+	painter->setBrush(getHeaderBrush());
 
-	QRectF rect = outlineRect();
-	painter->drawRoundRect(rect, roundness(rect.width()), roundness(rect.height()));
+	const int headerHeight = painter->fontMetrics().height() + padding() * 2;
+	const int roundRadius = 6;
 
-	// TODO: eliding in case of new lines
-	QRectF contentRect = rect.adjusted(+padding(), +padding(), -padding(), -padding());
-	const QString elidedText = elideText(painter->fontMetrics(), getText(), contentRect.width(), contentRect.height());
-	painter->drawText(contentRect, Qt::AlignLeft | Qt::AlignVCenter, elidedText);
+	const QRectF headerRect = QRectF(0, 0, m_width, headerHeight);
+	QPainterPath headerRectPath;
+	headerRectPath.setFillRule(Qt::WindingFill);
+	headerRectPath.addRoundedRect(headerRect, roundRadius, roundRadius);
+	headerRectPath.addRect(QRectF(headerRect.left(), headerRect.bottom() - roundRadius, roundRadius, roundRadius));
+	headerRectPath.addRect(QRectF(headerRect.right() - roundRadius, headerRect.bottom() - roundRadius, roundRadius, roundRadius));
+	painter->drawPath(headerRectPath.simplified());
+
+	QRectF adjustedHeaderRect = headerRect.adjusted(+padding(), +padding(), -padding(), -padding());
+	const QString elidedHeaderText = elideText(painter->fontMetrics(), getHeaderText(), adjustedHeaderRect.width(), adjustedHeaderRect.height());
+	painter->drawText(adjustedHeaderRect, Qt::AlignLeft, elidedHeaderText);
+
+	painter->setBrush(getContentBrush());
+
+	const QRectF contentRect = QRectF(0, headerHeight, m_width, m_height - headerHeight);
+	QPainterPath contentRectPath;
+	contentRectPath.setFillRule(Qt::WindingFill);
+	contentRectPath.addRoundedRect(contentRect, roundRadius, roundRadius);
+	contentRectPath.addRect(QRectF(contentRect.left(), contentRect.top(), roundRadius, roundRadius));
+	contentRectPath.addRect(QRectF(contentRect.right() - roundRadius, contentRect.top(), roundRadius, roundRadius));
+	painter->drawPath(contentRectPath.simplified());
+
+	// TODO: eliding in case of new lines ???
+	QRectF adjustedContentRect = contentRect.adjusted(+padding(), +padding(), -padding(), -padding());
+	const QString elidedContentText = elideText(painter->fontMetrics(), getContentText(), adjustedContentRect.width(), adjustedContentRect.height());
+	painter->drawText(adjustedContentRect, Qt::AlignLeft, elidedContentText);
 }
 
 QRectF NodeGraphicsItem::boundingRect() const
@@ -253,12 +275,6 @@ QVariant NodeGraphicsItem::itemChange(GraphicsItemChange change, const QVariant&
 	return QGraphicsItem::itemChange(change, value);
 }
 
-int NodeGraphicsItem::roundness(double size)
-{
-	static const int s_diameter = 12;
-	return 100 * s_diameter / static_cast<int>(size);
-}
-
 int NodeGraphicsItem::padding()
 {
 	return 8;
@@ -266,7 +282,7 @@ int NodeGraphicsItem::padding()
 
 qreal NodeGraphicsItem::minHeight()
 {
-	static const qreal s_minHeight = qApp->fontMetrics().height() * 2 + padding() * 2;
+	static const qreal s_minHeight = qApp->fontMetrics().height() * 2 + padding() * 4;
 	return s_minHeight;
 }
 
@@ -292,4 +308,9 @@ void NodeGraphicsItem::trackNodes()
 	{
 		link->updatePosition();
 	}
+}
+
+QBrush NodeGraphicsItem::getContentBrush() const
+{
+	return QBrush(Qt::white);
 }

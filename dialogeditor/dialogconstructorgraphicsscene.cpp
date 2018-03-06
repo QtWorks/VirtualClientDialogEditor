@@ -20,11 +20,11 @@ void DialogConstructorGraphicsScene::addConstructorItems()
 	addItem(clientReplicaNode);
 
 	NodeGraphicsItem* expectedWordsNode = new ExpectedWordsNodeGraphicsItem({}, NodeGraphicsItem::Draggable, this);
-	expectedWordsNode->setPos(QPoint(0, 50));
+	expectedWordsNode->setPos(QPoint(0, 90));
 	addItem(expectedWordsNode);
 
 	const qreal arrowLength = expectedWordsNode->sceneBoundingRect().width() / 2;
 	ArrowLineGraphicsItem* link = new ArrowLineGraphicsItem(QPointF(0, 0), QPointF(arrowLength, 0), true);
-	link->setPos(QPoint(0, 110));
+	link->setPos(QPoint(0, 190));
 	addItem(link);
 }

@@ -61,7 +61,6 @@ public:
 	virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
 private:
-	static int roundness(double size);
 	static int padding();
 
 protected:
@@ -73,8 +72,10 @@ private:
 	void trackNodes();
 
 private:
-	virtual QString getText() const = 0;
-	virtual QBrush getBrush() const = 0;
+	virtual QString getHeaderText() const = 0;
+	virtual QString getContentText() const = 0;
+	virtual QBrush getHeaderBrush() const = 0;
+	virtual QBrush getContentBrush() const;
 	virtual NodeGraphicsItem* clone() const = 0;
 
 protected:

@@ -13,22 +13,19 @@ int ClientReplicaNodeGraphicsItem::type() const
 	return Type;
 }
 
-QString ClientReplicaNodeGraphicsItem::getText() const
+QString ClientReplicaNodeGraphicsItem::getHeaderText() const
 {
-	QString result = "Клиент";
-	if (!m_replica.isEmpty())
-	{
-		result += ":\n" + m_replica;
-	}
-	return result;
+	return "Клиент";
 }
 
-QBrush ClientReplicaNodeGraphicsItem::getBrush() const
+QString ClientReplicaNodeGraphicsItem::getContentText() const
 {
-	//FF4081
-	//static const QColor s_lightRed = QColor::fromRgb(0xF4, 0x43, 0x36);
-	static const QColor s_lightRed = QColor::fromRgb(0xFF, 0x52, 0x52);
-	return QBrush(s_lightRed);
+	return m_replica;
+}
+
+QBrush ClientReplicaNodeGraphicsItem::getHeaderBrush() const
+{
+	return QBrush(QColor::fromRgb(0xFF, 0x52, 0x52));
 }
 
 void ClientReplicaNodeGraphicsItem::showNodeEditor()

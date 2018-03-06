@@ -78,7 +78,7 @@ void DialogGraphicsScene::refreshScene()
 
 			NodeGraphicsItem* clientReplicaNode = new ClientReplicaNodeGraphicsItem(replica.clientReplica,
 				NodeGraphicsItem::Resizable | NodeGraphicsItem::Editable | NodeGraphicsItem::Removable, this);
-			addNodeToScene(clientReplicaNode, QPointF(0, 70 * replicaIndex++));
+			addNodeToScene(clientReplicaNode, QPointF(0, 100 * replicaIndex++));
 
 			if (lastInsertedNode != nullptr)
 			{
@@ -89,7 +89,7 @@ void DialogGraphicsScene::refreshScene()
 			{
 				NodeGraphicsItem* expectedWordsNode = new ExpectedWordsNodeGraphicsItem(replica.expectedWords,
 					NodeGraphicsItem::Resizable | NodeGraphicsItem::Editable | NodeGraphicsItem::Removable, this);
-				addNodeToScene(expectedWordsNode, QPointF(0, 70 * replicaIndex++));
+				addNodeToScene(expectedWordsNode, QPointF(0, 100 * replicaIndex++));
 
 				addLineToScene(new ArrowLineGraphicsItem(clientReplicaNode, expectedWordsNode, false));
 

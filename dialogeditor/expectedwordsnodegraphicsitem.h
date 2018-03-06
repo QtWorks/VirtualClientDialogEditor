@@ -19,8 +19,9 @@ public:
 	virtual int type() const override;
 
 private:
-	virtual QString getText() const override;
-	virtual QBrush getBrush() const override;
+	virtual QString getHeaderText() const override;
+	virtual QString getContentText() const override;
+	virtual QBrush getHeaderBrush() const override;
 	virtual void showNodeEditor() override;
 	virtual NodeGraphicsItem* clone() const override;
 

@@ -13,15 +13,13 @@ int ExpectedWordsNodeGraphicsItem::type() const
 	return Type;
 }
 
-QString ExpectedWordsNodeGraphicsItem::getText() const
+QString ExpectedWordsNodeGraphicsItem::getHeaderText() const
 {
-	QString result = "Опорные слова";
+	return "Опорные слова";
+}
 
-	if (m_expectedWords.isEmpty())
-	{
-		return result;
-	}
-
+QString ExpectedWordsNodeGraphicsItem::getContentText() const
+{
 	QStringList prefexedExpectedWords;
 
 	for (int i = 0; i < m_expectedWords.size(); ++i)
@@ -29,17 +27,12 @@ QString ExpectedWordsNodeGraphicsItem::getText() const
 		prefexedExpectedWords << "- " + m_expectedWords[i] + (i == m_expectedWords.size() - 1 ? "." : ";");
 	}
 
-	result += ":\n" + prefexedExpectedWords.join("\n");
-	return result;
+	return prefexedExpectedWords.join("\n");
 }
 
-QBrush ExpectedWordsNodeGraphicsItem::getBrush() const
+QBrush ExpectedWordsNodeGraphicsItem::getHeaderBrush() const
 {
-	//static const QColor s_lightGreen = QColor::fromRgb(0x4C, 0xAF, 0x50);
-	//4FC3F7
-	//81D4FA
-	static const QColor s_lightGreen = QColor::fromRgb(0x4F, 0xC3, 0xF7);
-	return QBrush(s_lightGreen);
+	return QBrush(QColor::fromRgb(0x4F, 0xC3, 0xF7));
 }
 
 void ExpectedWordsNodeGraphicsItem::showNodeEditor()
@@ -51,7 +44,7 @@ void ExpectedWordsNodeGraphicsItem::showNodeEditor()
 
 NodeGraphicsItem* ExpectedWordsNodeGraphicsItem::clone() const
 {
-	return new ExpectedWordsNodeGraphicsItem(m_expectedWords, m_properties);
+	return new ExpectedWordsNodeGraphicsItem(m_expectedWords, m_properties, parent());
 }
 
 void ExpectedWordsNodeGraphicsItem::createEditorIfNeeded()
