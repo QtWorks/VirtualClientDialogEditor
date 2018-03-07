@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <layout class="QFormLayout" name="formLayout">
      <property name="sizeConstraint">
@@ -52,7 +52,53 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QGraphicsView" name="constructorGraphicsView"/>
+
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QGraphicsView" name="constructorGraphicsView">
+         <property name="minimumSize">
+          <size>
+           <width>220</width>
+           <height>300</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>220</width>
+           <height>300</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="connectNodesButton">
+         <property name="maximumSize">
+          <size>
+           <width>220</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Соединить блоки</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
      <widget class="ZoomableGraphicsView" name="dialogGraphicsView">
       <property name="mouseTracking">
        <bool>true</bool>
@@ -66,7 +112,7 @@
        </rectf>
       </property>
       <property name="dragMode">
-       <enum>QGraphicsView::NoDrag</enum>
+       <enum>QGraphicsView::RubberBandDrag</enum>
       </property>
      </widget>
     </widget>

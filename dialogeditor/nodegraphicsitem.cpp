@@ -264,6 +264,12 @@ void NodeGraphicsItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 
 QVariant NodeGraphicsItem::itemChange(GraphicsItemChange change, const QVariant& value)
 {
+	if (change == ItemSelectedChange)
+	{
+		setZValue(value.toUInt());
+		emit selectionChanged(value.toBool());
+	}
+
 	const bool isPositionChanged = change == ItemPositionChange || change == ItemPositionHasChanged;
 	const bool isSizeChanging = m_resizing && (change == ItemCursorChange || change == ItemCursorHasChanged);
 

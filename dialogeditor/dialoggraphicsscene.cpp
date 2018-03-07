@@ -37,8 +37,6 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 		item->updatePosition(lineStart, lineEnd);
 
 		addLineToScene(item);
-
-		//LOG << "ArrowLineGraphicsItem " << ARG(event->scenePos()) << ARG(item->line());
 	}
 	else if (const auto* mimeData = qobject_cast<const NodeGraphicsItemMimeData*>(event->mimeData()))
 	{
@@ -48,8 +46,6 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 		addNodeToScene(item, event->scenePos());
 
 		item->showNodeEditor();
-
-		//LOG << "NodeGraphicsItem -> " << sceneRect();
 	}
 	else
 	{
@@ -108,9 +104,14 @@ void DialogGraphicsScene::addNodeToScene(NodeGraphicsItem* node, const QPointF& 
 		removeNodeFromScene(node);
 	});
 
+	QObject::connect(node, &NodeGraphicsItem::selectionChanged, [this, node](bool value)
+	{
+		emit nodeSelectionChanged(node, value);
+	});
+
 	addItem(node);
 
-	emit nodeAdded();
+	emit nodeAdded(node);
 }
 
 void DialogGraphicsScene::addLineToScene(ArrowLineGraphicsItem* line)
@@ -122,7 +123,7 @@ void DialogGraphicsScene::addLineToScene(ArrowLineGraphicsItem* line)
 
 	addItem(line);
 
-	emit linkAdded();
+	emit linkAdded(line);
 }
 
 void DialogGraphicsScene::removeNodeFromScene(NodeGraphicsItem* node)
@@ -139,7 +140,7 @@ void DialogGraphicsScene::removeNodeFromScene(NodeGraphicsItem* node)
 
 	removeItem(node);
 
-	emit nodeRemoved();
+	emit nodeRemoved(node);
 }
 
 void DialogGraphicsScene::removeLinkFromScene(ArrowLineGraphicsItem* link)
@@ -151,5 +152,6 @@ void DialogGraphicsScene::removeLinkFromScene(ArrowLineGraphicsItem* link)
 
 	removeItem(link);
 
-	emit linkRemoved();
+	delete link;
+	//emit linkRemoved(link);
 }

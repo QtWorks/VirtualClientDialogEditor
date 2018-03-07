@@ -23,9 +23,18 @@ signals:
 	void dialogChanged(Dialog dialog);
 
 public slots:
-	void updateControls();
+	void onNodeAdded(NodeGraphicsItem* node);
+	void onNodeRemoved(NodeGraphicsItem* node);
+	void onNodeSelectionChanged(NodeGraphicsItem* node, bool value);
+	void onLinkAdded(ArrowLineGraphicsItem* link);
+	void onLinkRemoved(ArrowLineGraphicsItem* link);
+
+	void updateSaveControls();
 	void showError(QString text);
 	void hideError();
+
+	void onConnectNodesClicked();
+	void updateConnectControls();
 
 private:
 	Ui::DialogEditorWindow* m_ui;
@@ -33,6 +42,8 @@ private:
 	QGraphicsScene* m_dialogConstructorGraphicsScene;
 	DialogGraphicsScene* m_dialogGraphicsScene;
 	std::unique_ptr<IDialogModel> m_dialogModel;
+
+	QVector<NodeGraphicsItem*> m_selectedNodes;
 };
 
 #endif // DIALOGEDITORWINDOW_H

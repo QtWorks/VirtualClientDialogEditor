@@ -5,9 +5,12 @@
 #include "dialoggraphicsscene.h"
 #include "core/dialogmodel.h"
 
-#include <QPushButton>
 #include "clientreplicanodegraphicsitem.h"
 #include "expectedwordsnodegraphicsitem.h"
+#include "arrowlinegraphicsitem.h"
+
+#include "logger.h"
+#include <QPushButton>
 
 template<typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args&&... args)
@@ -67,18 +70,27 @@ DialogEditorWindow::DialogEditorWindow(const Dialog& dialog, QWidget* parent)
 	constructorSceneRect.setX(constructorSceneRect.x() - padding);
 	m_ui->constructorGraphicsView->setSceneRect(constructorSceneRect);
 
+	connect(m_ui->connectNodesButton, &QPushButton::clicked, this, &DialogEditorWindow::onConnectNodesClicked);
+
 	m_dialogGraphicsScene->setModel(m_dialogModel.get());
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeAdded, this, &DialogEditorWindow::updateControls);
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::updateControls);
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::linkAdded, this, &DialogEditorWindow::updateControls);
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::linkRemoved, this, &DialogEditorWindow::updateControls);
-	// TODO: itemsLinked
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeAdded, this, &DialogEditorWindow::updateSaveControls);
+
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::onNodeRemoved);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::updateSaveControls);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::updateConnectControls);
+
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeSelectionChanged, this, &DialogEditorWindow::onNodeSelectionChanged);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeSelectionChanged, this, &DialogEditorWindow::updateConnectControls);
+
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::linkAdded, this, &DialogEditorWindow::updateSaveControls);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::linkRemoved, this, &DialogEditorWindow::updateSaveControls);
 
 	m_ui->dialogGraphicsView->setScene(m_dialogGraphicsScene);
 	m_ui->dialogGraphicsView->setMinRatio(50.0);
 	m_ui->dialogGraphicsView->setMaxRatio(150.0);
 
-	updateControls();
+	updateSaveControls();
+	updateConnectControls();
 }
 
 DialogEditorWindow::~DialogEditorWindow()
@@ -86,7 +98,41 @@ DialogEditorWindow::~DialogEditorWindow()
 	delete m_ui;
 }
 
-void DialogEditorWindow::updateControls()
+void DialogEditorWindow::onNodeAdded(NodeGraphicsItem* /*node*/)
+{
+}
+
+void DialogEditorWindow::onNodeRemoved(NodeGraphicsItem* node)
+{
+	m_selectedNodes.removeOne(node);
+}
+
+void DialogEditorWindow::onNodeSelectionChanged(NodeGraphicsItem* node, bool value)
+{
+	const auto it = std::find(m_selectedNodes.begin(), m_selectedNodes.end(), node);
+	if (it == m_selectedNodes.end())
+	{
+		Q_ASSERT(value);
+		m_selectedNodes.append(node);
+	}
+	else
+	{
+		Q_ASSERT(!value);
+		m_selectedNodes.erase(it);
+	}
+
+	LOG << ARG(m_selectedNodes.size());
+}
+
+void DialogEditorWindow::onLinkAdded(ArrowLineGraphicsItem* /*link*/)
+{
+}
+
+void DialogEditorWindow::onLinkRemoved(ArrowLineGraphicsItem* /*link*/)
+{
+}
+
+void DialogEditorWindow::updateSaveControls()
 {
 	QList<QGraphicsItem*> items = m_dialogGraphicsScene->items();
 
@@ -152,4 +198,45 @@ void DialogEditorWindow::hideError()
 	m_ui->errorTextLabel->setText("");
 	m_ui->errorTextLabel->setVisible(false);
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(true);
+}
+
+void DialogEditorWindow::onConnectNodesClicked()
+{
+	Q_ASSERT(m_selectedNodes.size() == 2);
+
+	NodeGraphicsItem* startItem = m_selectedNodes[0];
+	NodeGraphicsItem* endItem = m_selectedNodes[1];
+
+	m_dialogGraphicsScene->addLineToScene(new ArrowLineGraphicsItem(startItem, endItem, false));
+
+	startItem->setSelected(false);
+	endItem->setSelected(false);
+}
+
+void DialogEditorWindow::updateConnectControls()
+{
+	if (m_selectedNodes.size() != 2)
+	{
+		m_ui->connectNodesButton->setEnabled(false);
+		return;
+	}
+
+	NodeGraphicsItem* startItem = m_selectedNodes[0];
+	NodeGraphicsItem* endItem = m_selectedNodes[1];
+
+	if (startItem->type() == endItem->type())
+	{
+		m_ui->connectNodesButton->setEnabled(false);
+		return;
+	}
+
+	if (m_dialogModel->difficulty() == Dialog::Difficulty::Hard)
+	{
+		m_ui->connectNodesButton->setEnabled(false);
+		return;
+	}
+
+	const bool nodesHasNoLinks = startItem->outcomingLinks().isEmpty() && endItem->incomingLinks().isEmpty();
+
+	m_ui->connectNodesButton->setEnabled(nodesHasNoLinks);
 }

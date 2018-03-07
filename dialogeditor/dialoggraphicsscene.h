@@ -21,14 +21,17 @@ public:
 
 	void setModel(IDialogModel* model);
 
+	void addNodeToScene(NodeGraphicsItem* node, const QPointF& position);
+	void addLineToScene(ArrowLineGraphicsItem* line);
+
 signals:
-	void nodeAdded();
-	void nodeRemoved();
+	void nodeAdded(NodeGraphicsItem* node);
+	void nodeRemoved(NodeGraphicsItem* node);
 
-	void nodesConnected();
+	void nodeSelectionChanged(NodeGraphicsItem* node, bool value);
 
-	void linkAdded();
-	void linkRemoved();
+	void linkAdded(ArrowLineGraphicsItem* link);
+	void linkRemoved(ArrowLineGraphicsItem* link);
 
 private:
 	// Just to remove red cursor
@@ -39,9 +42,6 @@ private:
 private:
 	void refreshScene();
 
-	void addNodeToScene(NodeGraphicsItem* node, const QPointF& position);
-	//void addLineToScene(NodeGraphicsItem* parent, NodeGraphicsItem* child);
-	void addLineToScene(ArrowLineGraphicsItem* line);
 	void removeNodeFromScene(NodeGraphicsItem* node);
 	void removeLinkFromScene(ArrowLineGraphicsItem* line);
 

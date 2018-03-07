@@ -44,6 +44,7 @@ public:
 
 signals:
 	void removeRequested();
+	void selectionChanged(bool value);
 
 public:
 	virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
