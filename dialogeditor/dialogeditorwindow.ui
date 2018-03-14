@@ -52,7 +52,6 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-
      <widget class="QWidget" name="verticalLayoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
@@ -102,6 +101,12 @@
      <widget class="ZoomableGraphicsView" name="dialogGraphicsView">
       <property name="mouseTracking">
        <bool>true</bool>
+      </property>
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOn</enum>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOn</enum>
       </property>
       <property name="sceneRect">
        <rectf>
