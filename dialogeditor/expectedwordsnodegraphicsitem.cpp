@@ -6,6 +6,7 @@ ExpectedWordsNodeGraphicsItem::ExpectedWordsNodeGraphicsItem(const QStringList& 
 	, m_expectedWords(expectedWords)
 	, m_editor(nullptr)
 {
+	setZValue(3.0);
 }
 
 int ExpectedWordsNodeGraphicsItem::type() const

@@ -27,6 +27,10 @@ public:
 	~NodeGraphicsItem();
 
 	void setProperties(Properties properties);
+	void resize(qreal width, qreal height);
+
+	QPointF position() const;
+	void setPosition(const QPointF& position);
 
 	void addIncomingLink(ArrowLineGraphicsItem* link);
 	void removeIncomingLink(ArrowLineGraphicsItem* link);
@@ -45,6 +49,7 @@ public:
 signals:
 	void removeRequested();
 	void selectionChanged(bool value);
+	void positionChanged(QPointF oldPosition, QPointF newPosition);
 
 public:
 	virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -61,12 +66,12 @@ public:
 
 	virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
+protected:
+	virtual qreal minHeight() const;
+	virtual qreal minWidth() const;
+
 private:
 	static int padding();
-
-protected:
-	static qreal minHeight();
-	static qreal minWidth();
 
 private:
 	QRectF outlineRect() const;
@@ -88,6 +93,7 @@ private:
 
 	qreal m_width;
 	qreal m_height;
+	QPointF m_position;
 
 	bool m_resizing;
 };

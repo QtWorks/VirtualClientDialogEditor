@@ -14,6 +14,7 @@ NodeGraphicsItem::NodeGraphicsItem(Properties properties, QObject* parent)
 	: m_width(minWidth())
 	, m_height(minHeight())
 	, m_resizing(false)
+	, m_position(pos())
 {
 	setFlags(ItemIsMovable | ItemSendsGeometryChanges);
 
@@ -54,6 +55,27 @@ void NodeGraphicsItem::setProperties(Properties properties)
 	{
 		setFlag(ItemIsSelectable, true);
 	}
+}
+
+void NodeGraphicsItem::resize(qreal width, qreal height)
+{
+	Q_ASSERT(width >= minWidth());
+	Q_ASSERT(height >= minHeight());
+
+	prepareGeometryChange();
+	m_width = width;
+	m_height = height;
+}
+
+QPointF NodeGraphicsItem::position() const
+{
+	return m_position;
+}
+
+void NodeGraphicsItem::setPosition(const QPointF& position)
+{
+	m_position = position;
+	setPos(m_position);
 }
 
 void NodeGraphicsItem::addIncomingLink(ArrowLineGraphicsItem* link)
@@ -222,6 +244,9 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		setCursor(Qt::OpenHandCursor);
 	}
 
+	emit positionChanged(m_position, pos());
+	m_position = pos();
+
 	QGraphicsItem::mouseReleaseEvent(event);
 }
 
@@ -256,7 +281,7 @@ void NodeGraphicsItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 		const QPointF eventScenePos = event->scenePos();
 
 		const bool atResizeRect = NodeGraphicsItem::atResizeRect(eventScenePos, sceneBoundingRect());
-		setCursor(atResizeRect ? Qt::SizeFDiagCursor : Qt::ArrowCursor);
+		setCursor(atResizeRect ? Qt::SizeFDiagCursor : Qt::OpenHandCursor);
 	}
 
 	QGraphicsItem::hoverMoveEvent(event);
@@ -266,13 +291,15 @@ QVariant NodeGraphicsItem::itemChange(GraphicsItemChange change, const QVariant&
 {
 	if (change == ItemSelectedChange)
 	{
-		setZValue(value.toUInt());
-		emit selectionChanged(value.toBool());
+		const bool selected = value.toBool();
+
+		setZValue(selected ? zValue() * 10 : zValue() / 10);
+
+		emit selectionChanged(selected);
 	}
 
 	const bool isPositionChanged = change == ItemPositionChange || change == ItemPositionHasChanged;
 	const bool isSizeChanging = m_resizing && (change == ItemCursorChange || change == ItemCursorHasChanged);
-
 	if (isPositionChanged || isSizeChanging)
 	{
 		trackNodes();
@@ -286,13 +313,13 @@ int NodeGraphicsItem::padding()
 	return 8;
 }
 
-qreal NodeGraphicsItem::minHeight()
+qreal NodeGraphicsItem::minHeight() const
 {
 	static const qreal s_minHeight = qApp->fontMetrics().height() * 2 + padding() * 4;
 	return s_minHeight;
 }
 
-qreal NodeGraphicsItem::minWidth()
+qreal NodeGraphicsItem::minWidth() const
 {
 	static const qreal s_minWidth = 177.0;
 	return s_minWidth;

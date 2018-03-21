@@ -29,6 +29,8 @@ public:
 	void updatePosition(const QPointF& p1, const QPointF& p2, bool updateItems = true);
 	void setDraggable(bool value);
 
+	virtual void keyPressEvent(QKeyEvent* event) override;
+
 signals:
 	void removeRequested();
 
@@ -38,7 +40,6 @@ protected:
 	virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 	virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
 	virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-	virtual void keyPressEvent(QKeyEvent* event) override;
 	virtual void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
 
 private:

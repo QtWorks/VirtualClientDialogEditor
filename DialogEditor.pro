@@ -41,7 +41,9 @@ SOURCES += \
     dialogeditor/dialogconstructorgraphicsscene.cpp \
     dialogeditor/nodegraphicsitemmimedata.cpp \
     dialogeditor/arrowlinegraphicsitemmimedata.cpp \
-    dialogeditor/zoomablegraphicsview.cpp
+	dialogeditor/zoomablegraphicsview.cpp \
+	dialogeditor/phasegraphicsitem.cpp \
+    dialogeditor/phaseeditorwindow.cpp
 
 HEADERS  += \
     authwindow.h \
@@ -59,6 +61,7 @@ HEADERS  += \
     core/replica.h \
     core/user.h \
     core/websocket.h \
+	logger.h \
     dialogeditor/arrowlinegraphicsitem.h \
     dialogeditor/clientreplicanodegraphicsitem.h \
     dialogeditor/dialogeditorwindow.h \
@@ -73,8 +76,10 @@ HEADERS  += \
     dialogeditor/dialogconstructorgraphicsscene.h \
     dialogeditor/nodegraphicsitemmimedata.h \
     dialogeditor/arrowlinegraphicsitemmimedata.h \
-    logger.h \
-    dialogeditor/zoomablegraphicsview.h
+	dialogeditor/zoomablegraphicsview.h \
+	dialogeditor/phasegraphicsitem.h \
+    dialogeditor/phaseeditorwindow.h \
+    dialogeditor/zordervalues.h
 
 FORMS    += \
     authwindow.ui \
@@ -86,4 +91,5 @@ FORMS    += \
     usereditor/usereditordialog.ui \
     dialogeditor/expectedwordseditorwindow.ui \
     dialogeditor/expectedwordeditor.ui \
-    dialogeditor/clientreplicaeditor.ui
+    dialogeditor/clientreplicaeditor.ui \
+    dialogeditor/phaseeditorwindow.ui

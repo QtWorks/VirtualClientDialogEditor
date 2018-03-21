@@ -281,7 +281,7 @@ ArrowLineGraphicsItem::ArrowLineGraphicsItem(const Item& startItem, const Item& 
 
 	setAcceptHoverEvents(true);
 
-	setZValue(-1.0);
+	setZValue(20.0);
 
 	m_startItem.addOutcomingLink(this);
 	m_endItem.addIncomingLink(this);
@@ -406,7 +406,7 @@ void ArrowLineGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			m_moveMode = MoveMode::MoveWholeArrow;
 		}
 
-		setZValue(1.0);
+		setZValue(200.0);
 	}
 
 	QGraphicsLineItem::mousePressEvent(event);
@@ -497,7 +497,7 @@ void ArrowLineGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 		setSelected(false);
 
-		setZValue(-1.0);
+		setZValue(20.0);
 		m_moveMode = MoveMode::NoMove;
 	}
 

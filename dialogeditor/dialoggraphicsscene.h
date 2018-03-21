@@ -9,6 +9,7 @@
 
 class NodeGraphicsItem;
 class ArrowLineGraphicsItem;
+class PhaseGraphicsItem;
 
 class DialogGraphicsScene
 	: public QGraphicsScene
@@ -38,12 +39,17 @@ private:
 	virtual void dragMoveEvent(QGraphicsSceneDragDropEvent*) override { }
 
 	virtual void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+	virtual void keyPressEvent(QKeyEvent *event) override;
 
 private:
 	void refreshScene();
 
 	void removeNodeFromScene(NodeGraphicsItem* node);
 	void removeLinkFromScene(ArrowLineGraphicsItem* line);
+
+	void onPhasePositionChanged(PhaseGraphicsItem* phaseItem, const QPointF& from, const QPointF& to);
+	void onReplicaPositionChanged(NodeGraphicsItem* replicaItem, const QPointF& from, const QPointF& to);
+	QList<PhaseGraphicsItem*> phaseItems(const QRectF& rect) const;
 
 private:
 	IDialogModel* m_model;

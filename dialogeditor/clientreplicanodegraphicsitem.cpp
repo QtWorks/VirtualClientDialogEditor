@@ -6,6 +6,7 @@ ClientReplicaNodeGraphicsItem::ClientReplicaNodeGraphicsItem(const QString& repl
 	, m_replica(replica)
 	, m_editor(nullptr)
 {
+	setZValue(3.0);
 }
 
 int ClientReplicaNodeGraphicsItem::type() const
