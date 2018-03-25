@@ -12,13 +12,15 @@ public:
 
 private:
 	virtual QString name() const override;
+	virtual void setName(const QString& name) override;
+
 	virtual Dialog::Difficulty difficulty() const override;
+	virtual void setDifficulty(Dialog::Difficulty difficulty) override;
+
 	virtual QList<Phase> phases() const override;
 
 private:
 	Dialog m_dialog;
-	//Node m_node;
-	//Node m_errorNode;
 };
 
 #endif // DIALOGMODEL_H

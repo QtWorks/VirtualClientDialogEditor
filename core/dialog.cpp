@@ -44,12 +44,12 @@ QString Dialog::difficultyToString(Difficulty difficulty)
 
 Dialog::Difficulty Dialog::difficultyFromString(const QString& string)
 {
-	if (string.compare(difficultyToString(Difficulty::Easy), Qt::CaseInsensitive))
+	if (string.compare(difficultyToString(Difficulty::Easy), Qt::CaseInsensitive) == 0)
 	{
 		return Difficulty::Easy;
 	}
 
-	if (string.compare(difficultyToString(Difficulty::Hard), Qt::CaseInsensitive))
+	if (string.compare(difficultyToString(Difficulty::Hard), Qt::CaseInsensitive) == 0)
 	{
 		return Difficulty::Hard;
 	}

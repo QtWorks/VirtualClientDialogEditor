@@ -32,10 +32,20 @@ DialogEditorWindow::DialogEditorWindow(const Dialog& dialog, QWidget* parent)
 	setAttribute(Qt::WA_DeleteOnClose, true);
 
 	m_ui->nameEdit->setText(dialog.name);
+	connect(m_ui->nameEdit, &QLineEdit::textEdited,
+		[this](const QString& name)
+		{
+			m_dialogModel->setName(name);
+		});
 
 	m_ui->difficultyComboBox->addItems(Dialog::availableDifficulties());
 	const int index = m_ui->difficultyComboBox->findText(Dialog::difficultyToString(dialog.difficulty), Qt::MatchCaseSensitive);
 	m_ui->difficultyComboBox->setCurrentIndex(index);
+	connect(m_ui->difficultyComboBox, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
+		[this](const QString& difficulty)
+		{
+			m_dialogModel->setDifficulty(Dialog::difficultyFromString(difficulty));
+		});
 
 	QIcon warningIcon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
 	QPixmap warningPixmap = warningIcon.pixmap(QSize(16, 16));
@@ -44,13 +54,10 @@ DialogEditorWindow::DialogEditorWindow(const Dialog& dialog, QWidget* parent)
 	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, [this]()
 	{
 		// TODO: emptiness validation, trims
-		const QString username = m_ui->nameEdit->text();
-		const Dialog::Difficulty difficulty = Dialog::difficultyFromString(m_ui->difficultyComboBox->currentText());
+		const QString name = m_dialogModel->name();
+		const Dialog::Difficulty difficulty = m_dialogModel->difficulty();
 
-		// TODO: collect that shit together - nodes, transitions, etc.
-
-		emit dialogChanged({ username, difficulty, { }});
-		//accept();
+		emit dialogChanged({ name, difficulty, m_dialogModel->phases() });
 		close();
 	});
 
@@ -232,7 +239,7 @@ void DialogEditorWindow::updateConnectControls()
 
 	if (m_dialogModel->difficulty() == Dialog::Difficulty::Hard)
 	{
-		m_ui->connectNodesButton->setEnabled(false);
+		m_ui->connectNodesButton->setEnabled(true);
 		return;
 	}
 
