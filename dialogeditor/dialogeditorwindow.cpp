@@ -149,7 +149,7 @@ void DialogEditorWindow::updateSaveControls()
 				node->type() == ExpectedWordsNodeGraphicsItem::Type)
 			{
 				NodeGraphicsItem* nodeItem = dynamic_cast<NodeGraphicsItem*>(node);
-				LOG << ARG2(nodeItem->type(), "type") << ARG2(nodeItem->incomingLinks().size(), "incomingLinks");
+				//LOG << ARG2(nodeItem->type(), "type") << ARG2(nodeItem->incomingLinks().size(), "incomingLinks");
 				return nodeItem->incomingLinks().isEmpty();
 			}
 			return false;
