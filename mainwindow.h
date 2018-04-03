@@ -26,8 +26,8 @@ private:
 private slots:
 	void onLoginDialogFinished(int code);
 
-	void onUsersReaded(const QList<User>& users);
-	void onDialogsReaded(const QList<Dialog>& dialogs);
+	void onUsersReaded(const QList<Core::User>& users);
+	void onDialogsReaded(const QList<Core::Dialog>& dialogs);
 
 	void onUserEditRequested(QString username);
 	void onUserRemoveRequested(QString username);
@@ -43,10 +43,10 @@ private:
 	IBackendConnectionSharedPtr m_backendConnection;
 	LoginDialog* m_loginDialog;
 
-	QList<User> m_users;
+	QList<Core::User> m_users;
 	ListEditorWidget* m_usersListEditorWidget;
 
-	QList<Dialog> m_dialogs;
+	QList<Core::Dialog> m_dialogs;
 	ListEditorWidget* m_dialogsListEditorWidget;
 };
 

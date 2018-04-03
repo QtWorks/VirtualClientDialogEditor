@@ -1,5 +1,8 @@
 #include "websocket.h"
 
+namespace Core
+{
+
 WebSocket::WebSocket(QObject* parent)
 	: QObject(parent)
 	, m_webSocket(new QWebSocket("ws://vcappdemo.herokuapp.com/", QWebSocketProtocol::VersionLatest, parent))
@@ -52,4 +55,6 @@ WebSocket::WebSocket(QObject* parent)
 	{
 		qDebug() << "bytesWritten " << bytes;
 	});*/
+}
+
 }

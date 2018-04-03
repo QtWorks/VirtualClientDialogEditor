@@ -20,12 +20,12 @@ LoginDialog::LoginDialog(IBackendConnectionSharedPtr backendConnection, QWidget*
 		m_backendConnection->open("", m_ui->usernameEdit->text(), m_ui->passwordEdit->text());
 	});
 
-	connect(m_backendConnection.get(), &IBackendConnection::onAuth, [this]()
+	connect(m_backendConnection.get(), &Core::IBackendConnection::onAuth, [this]()
 	{
 		accept();
 	});
 
-	connect(m_backendConnection.get(), &IBackendConnection::onError, [this](const QString& message)
+	connect(m_backendConnection.get(), &Core::IBackendConnection::onError, [this](const QString& message)
 	{
 		QMessageBox::critical(this, "Ошибка авторизации", message);
 		m_ui->loginButton->setDisabled(false);

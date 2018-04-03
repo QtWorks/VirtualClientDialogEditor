@@ -1,7 +1,7 @@
 #include "expectedwordsnodegraphicsitem.h"
 #include "expectedwordseditorwindow.h"
 
-ExpectedWordsNodeGraphicsItem::ExpectedWordsNodeGraphicsItem(const QStringList& expectedWords, Properties properties, QObject* parent)
+ExpectedWordsNodeGraphicsItem::ExpectedWordsNodeGraphicsItem(const Core::ExpectedWordsNode& expectedWords, Properties properties, QObject* parent)
 	: NodeGraphicsItem(properties, parent)
 	, m_expectedWords(expectedWords)
 	, m_editor(nullptr)
@@ -23,9 +23,9 @@ QString ExpectedWordsNodeGraphicsItem::getContentText() const
 {
 	QStringList prefexedExpectedWords;
 
-	for (int i = 0; i < m_expectedWords.size(); ++i)
+	for (int i = 0; i < m_expectedWords.expectedWords.size(); ++i)
 	{
-		prefexedExpectedWords << "- " + m_expectedWords[i] + (i == m_expectedWords.size() - 1 ? "." : ";");
+		prefexedExpectedWords << "- " + m_expectedWords.expectedWords[i].words + (i == m_expectedWords.expectedWords.size() - 1 ? "." : ";");
 	}
 
 	return prefexedExpectedWords.join("\n");
@@ -57,7 +57,7 @@ void ExpectedWordsNodeGraphicsItem::createEditorIfNeeded()
 
 	m_editor = new ExpectedWordsEditorWindow(m_expectedWords);
 
-	QObject::connect(m_editor, &ExpectedWordsEditorWindow::accepted, [this](QStringList expectedWords)
+	QObject::connect(m_editor, &ExpectedWordsEditorWindow::accepted, [this](Core::ExpectedWordsNode expectedWords)
 	{
 		m_expectedWords = expectedWords;
 

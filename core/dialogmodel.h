@@ -4,6 +4,9 @@
 #include "idialogmodel.h"
 #include "dialog.h"
 
+namespace Core
+{
+
 class DialogModel
 	: public IDialogModel
 {
@@ -17,10 +20,12 @@ private:
 	virtual Dialog::Difficulty difficulty() const override;
 	virtual void setDifficulty(Dialog::Difficulty difficulty) override;
 
-	virtual QList<Phase> phases() const override;
+	virtual QList<PhaseNode> phases() const override;
 
 private:
 	Dialog m_dialog;
 };
+
+}
 
 #endif // DIALOGMODEL_H

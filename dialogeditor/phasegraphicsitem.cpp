@@ -7,7 +7,7 @@
 #include <QKeyEvent>
 #include <QGraphicsScene>
 
-PhaseGraphicsItem::PhaseGraphicsItem(const Phase& phase, Properties properties, QObject* parent)
+PhaseGraphicsItem::PhaseGraphicsItem(const Core::PhaseNode& phase, Properties properties, QObject* parent)
 	: NodeGraphicsItem(properties, parent)
 	, m_phase(phase)
 	, m_editor(nullptr)
@@ -80,7 +80,7 @@ QVariant PhaseGraphicsItem::itemChange(GraphicsItemChange change, const QVariant
 
 QString PhaseGraphicsItem::getHeaderText() const
 {
-	return "Фаза: " + m_phase.name;
+	return "Фаза: " + m_phase.name + " (" + QString::number(m_phase.score) + ")";
 }
 
 QString PhaseGraphicsItem::getContentText() const
@@ -159,7 +159,7 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 
 	m_editor = new PhaseEditorWindow(m_phase);
 
-	QObject::connect(m_editor, &PhaseEditorWindow::accepted, [this](Phase phase)
+	QObject::connect(m_editor, &PhaseEditorWindow::accepted, [this](Core::PhaseNode phase)
 	{
 		m_phase = phase;
 

@@ -92,7 +92,6 @@ private:
 	void updatePosition(Item&& item);
 	void updateArrowHead();
 	QList<QGraphicsItem*> nodesAtPosition(const QPointF& position) const;
-	// itemAtPosition && canMoveTo must be const, beat those compile errors!
 	Item itemAtPosition(const QPointF& position, const bool link);
 	bool canMoveTo(const QPointF& position);
 

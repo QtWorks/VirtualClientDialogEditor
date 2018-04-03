@@ -4,6 +4,9 @@
 #include <QString>
 #include <QList>
 
+namespace Core
+{
+
 class IDialogProvider
 {
 public:
@@ -55,3 +58,5 @@ public:
 	virtual const Dialog& getDialogByPosition(int position) = 0;
 	virtual const Dialog& getDialogByName(const QString& name, Dialog::Difficulty difficulty) = 0;
 };
+
+}

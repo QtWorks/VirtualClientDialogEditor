@@ -2,7 +2,7 @@
 #define PHASEGRAPHICSITEM_H
 
 #include "nodegraphicsitem.h"
-#include "core/phase.h"
+#include "core/dialog.h"
 
 class PhaseEditorWindow;
 
@@ -17,7 +17,7 @@ public:
 		Type = UserType + 4
 	};
 
-	PhaseGraphicsItem(const Phase& phase, Properties properties, QObject* parent = 0);
+	PhaseGraphicsItem(const Core::PhaseNode& phase, Properties properties, QObject* parent = 0);
 
 	void addItem(NodeGraphicsItem* item);
 	void removeItem(NodeGraphicsItem* item);
@@ -42,7 +42,7 @@ private:
 	void closeEditor();
 
 private:
-	Phase m_phase;
+	Core::PhaseNode m_phase;
 	PhaseEditorWindow* m_editor;
 	QList<NodeGraphicsItem*> m_items;
 };

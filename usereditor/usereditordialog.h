@@ -14,16 +14,16 @@ class UserEditorDialog
 	Q_OBJECT
 
 public:
-	explicit UserEditorDialog(const User& user, QWidget* parent = 0);
+	explicit UserEditorDialog(const Core::User& user, QWidget* parent = 0);
 	~UserEditorDialog();
 
 signals:
-	void userChanged(User user);
+	void userChanged(Core::User user);
 	void canceled();
 
 private:
 	Ui::UserEditorDialog* m_ui;
-	User m_user;
+	Core::User m_user;
 };
 
 #endif // USEREDITORWIDGET_H

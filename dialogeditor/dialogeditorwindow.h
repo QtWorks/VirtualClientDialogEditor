@@ -16,11 +16,11 @@ class DialogEditorWindow
 	Q_OBJECT
 
 public:
-	explicit DialogEditorWindow(const Dialog& dialog, QWidget* parent = 0);
+	explicit DialogEditorWindow(const Core::Dialog& dialog, QWidget* parent = 0);
 	~DialogEditorWindow();
 
 signals:
-	void dialogChanged(Dialog dialog);
+	void dialogChanged(Core::Dialog dialog);
 
 public slots:
 	void onNodeAdded(NodeGraphicsItem* node);
@@ -36,12 +36,22 @@ public slots:
 	void onConnectNodesClicked();
 	void updateConnectControls();
 
+	void nodeAdded(NodeGraphicsItem* node, Core::AbstractDialogNode* nodeData);
+	void nodeRemoved(NodeGraphicsItem* node);
+	void nodeChanged(NodeGraphicsItem* node, Core::AbstractDialogNode* nodeData);
+
+	void nodesConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
+	void nodesDisconnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
+
+	void nodeAddedToPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase);
+	void nodeRemovedFromPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase);
+
 private:
 	Ui::DialogEditorWindow* m_ui;
 
 	QGraphicsScene* m_dialogConstructorGraphicsScene;
 	DialogGraphicsScene* m_dialogGraphicsScene;
-	std::unique_ptr<IDialogModel> m_dialogModel;
+	std::unique_ptr<Core::IDialogModel> m_dialogModel;
 
 	QVector<NodeGraphicsItem*> m_selectedNodes;
 };

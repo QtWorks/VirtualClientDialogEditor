@@ -2,6 +2,7 @@
 #define EXPECTEDWORDSNODEGRAPHICSITEM_H
 
 #include "nodegraphicsitem.h"
+#include "core/dialog.h"
 
 class ExpectedWordsEditorWindow;
 
@@ -14,7 +15,7 @@ public:
 		Type = UserType + 3
 	};
 
-	ExpectedWordsNodeGraphicsItem(const QStringList& expectedWords, Properties properties, QObject* parent = 0);
+	ExpectedWordsNodeGraphicsItem(const Core::ExpectedWordsNode& expectedWords, Properties properties, QObject* parent = 0);
 
 	virtual int type() const override;
 
@@ -31,7 +32,7 @@ private:
 	void closeEditor();
 
 private:
-	QStringList m_expectedWords;
+	Core::ExpectedWordsNode m_expectedWords;
 	ExpectedWordsEditorWindow* m_editor;
 };
 

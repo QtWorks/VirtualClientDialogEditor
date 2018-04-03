@@ -10,6 +10,9 @@
 
 #include <memory>
 
+namespace Core
+{
+
 class IBackendConnection
 	: public QObject
 {
@@ -50,9 +53,11 @@ signals:
 	void onError(const QString& message);
 };
 
-Q_DECLARE_INTERFACE(IBackendConnection, "IBackendConnection")
+}
 
-typedef std::unique_ptr<IBackendConnection> IBackendConnectionUniquePtr;
-typedef std::shared_ptr<IBackendConnection> IBackendConnectionSharedPtr;
+Q_DECLARE_INTERFACE(Core::IBackendConnection, "IBackendConnection")
+
+typedef std::unique_ptr<Core::IBackendConnection> IBackendConnectionUniquePtr;
+typedef std::shared_ptr<Core::IBackendConnection> IBackendConnectionSharedPtr;
 
 #endif // IBACKENDCONNECTION_H

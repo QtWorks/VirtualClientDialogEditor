@@ -3,6 +3,9 @@
 
 #include <QString>
 
+namespace Core
+{
+
 class User
 {
 public:
@@ -35,5 +38,7 @@ private:
 	UsernameType m_name;
 	Permissions m_permissions;
 };
+
+}
 
 #endif // USER_H

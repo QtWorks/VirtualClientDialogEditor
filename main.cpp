@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
 
-	IBackendConnectionSharedPtr backendConection = std::make_shared<InMemoryBackendConnection>();
+	IBackendConnectionSharedPtr backendConection = std::make_shared<Core::InMemoryBackendConnection>();
 
 	MainWindow window(backendConection);
 	window.show();

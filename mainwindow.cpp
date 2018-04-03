@@ -25,8 +25,8 @@ MainWindow::MainWindow(IBackendConnectionSharedPtr backendConnection, QWidget* p
 
 	connect(m_loginDialog, &QDialog::finished, this, &MainWindow::onLoginDialogFinished);
 
-	connect(m_backendConnection.get(), &IBackendConnection::onUsersReaded, this, &MainWindow::onUsersReaded);
-	connect(m_backendConnection.get(), &IBackendConnection::onDialogsReaded, this, &MainWindow::onDialogsReaded);
+	connect(m_backendConnection.get(), &Core::IBackendConnection::onUsersReaded, this, &MainWindow::onUsersReaded);
+	connect(m_backendConnection.get(), &Core::IBackendConnection::onDialogsReaded, this, &MainWindow::onDialogsReaded);
 
 	connect(m_usersListEditorWidget, &ListEditorWidget::itemEditRequested, this, &MainWindow::onUserEditRequested);
 	connect(m_usersListEditorWidget, &ListEditorWidget::itemRemoveRequested, this, &MainWindow::onUserRemoveRequested);
@@ -68,12 +68,12 @@ void MainWindow::onLoginDialogFinished(int code)
 	}
 }
 
-void MainWindow::onUsersReaded(const QList<User>& users)
+void MainWindow::onUsersReaded(const QList<Core::User>& users)
 {
 	m_users = users;
 
 	QStringList userList;
-	for (const User& user : users)
+	for (const Core::User& user : users)
 	{
 		userList.append(user.name());
 	}
@@ -81,12 +81,12 @@ void MainWindow::onUsersReaded(const QList<User>& users)
 	m_usersListEditorWidget->setItems(userList);
 }
 
-void MainWindow::onDialogsReaded(const QList<Dialog>& dialogs)
+void MainWindow::onDialogsReaded(const QList<Core::Dialog>& dialogs)
 {
 	m_dialogs = dialogs;
 
 	QStringList dialogList;
-	for (const Dialog& dialog : dialogs)
+	for (const Core::Dialog& dialog : dialogs)
 	{
 		dialogList.append(dialog.printableName());
 	}
@@ -97,7 +97,7 @@ void MainWindow::onDialogsReaded(const QList<Dialog>& dialogs)
 void MainWindow::onUserEditRequested(QString username)
 {
 	const auto it = std::find_if(m_users.begin(), m_users.end(),
-		[&username](const User& user)
+		[&username](const Core::User& user)
 		{
 			return user.name() == username;
 		});
@@ -105,7 +105,7 @@ void MainWindow::onUserEditRequested(QString username)
 
 	UserEditorDialog* dialog = new UserEditorDialog(*it, this);
 
-	connect(dialog, &UserEditorDialog::userChanged, [this, it, username](User user)
+	connect(dialog, &UserEditorDialog::userChanged, [this, it, username](Core::User user)
 	{
 		*it = user;
 		m_usersListEditorWidget->updateItem(username, user.name());
@@ -117,7 +117,7 @@ void MainWindow::onUserEditRequested(QString username)
 void MainWindow::onUserRemoveRequested(QString username)
 {
 	const auto it = std::find_if(m_users.begin(), m_users.end(),
-		[&username](const User& user)
+		[&username](const Core::User& user)
 		{
 			return user.name() == username;
 		});
@@ -131,7 +131,7 @@ void MainWindow::onUserCreateRequested()
 {
 	UserEditorDialog* dialog = new UserEditorDialog({ }, this);
 
-	connect(dialog, &UserEditorDialog::userChanged, [this](User user)
+	connect(dialog, &UserEditorDialog::userChanged, [this](Core::User user)
 	{
 		// TODO: same name
 		m_users.append(user);
@@ -144,7 +144,7 @@ void MainWindow::onUserCreateRequested()
 void MainWindow::onDialogEditRequested(QString dialogName)
 {
 	const auto it = std::find_if(m_dialogs.begin(), m_dialogs.end(),
-		[&dialogName](const Dialog& dialog)
+		[&dialogName](const Core::Dialog& dialog)
 		{
 			return dialog.printableName() == dialogName;
 		});
@@ -154,7 +154,7 @@ void MainWindow::onDialogEditRequested(QString dialogName)
 	DialogEditorWindow* window = new DialogEditorWindow(*it);
 
 	connect(window, &DialogEditorWindow::dialogChanged,
-		[this, it, dialogName](Dialog dialog)
+		[this, it, dialogName](Core::Dialog dialog)
 		{
 			*it = dialog;
 			m_dialogsListEditorWidget->updateItem(dialogName, dialog.printableName());
@@ -166,7 +166,7 @@ void MainWindow::onDialogEditRequested(QString dialogName)
 void MainWindow::onDialogRemoveRequested(QString dialogName)
 {
 	const auto it = std::find_if(m_dialogs.begin(), m_dialogs.end(),
-		[&dialogName](const Dialog& dialog)
+		[&dialogName](const Core::Dialog& dialog)
 		{
 			return dialog.printableName() == dialogName;
 		});
@@ -178,10 +178,10 @@ void MainWindow::onDialogRemoveRequested(QString dialogName)
 
 void MainWindow::onDialogCreateRequested()
 {
-	DialogEditorWindow* window = new DialogEditorWindow({ "", Dialog::Difficulty::Easy, { } });
+	DialogEditorWindow* window = new DialogEditorWindow({ "", Core::Dialog::Difficulty::Easy, { } });
 
 	connect(window, &DialogEditorWindow::dialogChanged,
-		[this](Dialog dialog)
+		[this](Core::Dialog dialog)
 		{
 			// TODO: same name
 			m_dialogs.append(dialog);

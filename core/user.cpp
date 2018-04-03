@@ -1,5 +1,8 @@
 #include "user.h"
 
+namespace Core
+{
+
 User::User()
 {
 }
@@ -18,4 +21,6 @@ User::UsernameType User::name() const
 const User::Permissions& User::permissions() const
 {
 	return m_permissions;
+}
+
 }

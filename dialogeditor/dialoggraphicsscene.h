@@ -20,19 +20,26 @@ public:
 	DialogGraphicsScene(QObject* parent = nullptr);
 	~DialogGraphicsScene();
 
-	void setModel(IDialogModel* model);
+	void setModel(Core::IDialogModel* model);
 
 	void addNodeToScene(NodeGraphicsItem* node, const QPointF& position);
 	void addLineToScene(ArrowLineGraphicsItem* line);
 
 signals:
-	void nodeAdded(NodeGraphicsItem* node);
-	void nodeRemoved(NodeGraphicsItem* node);
-
 	void nodeSelectionChanged(NodeGraphicsItem* node, bool value);
 
 	void linkAdded(ArrowLineGraphicsItem* link);
 	void linkRemoved(ArrowLineGraphicsItem* link);
+
+	void nodeAdded(NodeGraphicsItem* node, Core::AbstractDialogNode* nodeData);
+	void nodeRemoved(NodeGraphicsItem* node);
+	void nodeChanged(NodeGraphicsItem* node, Core::AbstractDialogNode* nodeData);
+
+	void nodesConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
+	void nodesDisconnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
+
+	void nodeAddedToPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase);
+	void nodeRemovedFromPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase);
 
 private:
 	// Just to remove red cursor
@@ -52,7 +59,7 @@ private:
 	QList<PhaseGraphicsItem*> phaseItems(const QRectF& rect) const;
 
 private:
-	IDialogModel* m_model;
+	Core::IDialogModel* m_model;
 };
 
 #endif // DIALOGVIEW_H

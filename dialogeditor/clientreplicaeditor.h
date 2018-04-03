@@ -1,6 +1,7 @@
 #ifndef CLIENTREPLICAEDITOR_H
 #define CLIENTREPLICAEDITOR_H
 
+#include "core/dialog.h"
 #include <QWidget>
 
 namespace Ui {
@@ -13,11 +14,11 @@ class ClientReplicaEditor
 	Q_OBJECT
 
 public:
-	explicit ClientReplicaEditor(const QString& replica, QWidget* parent = 0);
+	explicit ClientReplicaEditor(const Core::ClientReplicaNode& replica, QWidget* parent = 0);
 	~ClientReplicaEditor();
 
 signals:
-	void accepted(QString replica);
+	void accepted(Core::ClientReplicaNode replica);
 	void rejected();
 
 private slots:
@@ -29,7 +30,7 @@ private:
 
 private:
 	Ui::ClientReplicaEditor* m_ui;
-	QString m_replica;
+	Core::ClientReplicaNode m_replica;
 };
 
 #endif // CLIENTREPLICAEDITOR_H

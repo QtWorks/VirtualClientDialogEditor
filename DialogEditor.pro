@@ -20,11 +20,8 @@ SOURCES += \
     logindialog.cpp \
     main.cpp \
     mainwindow.cpp \
-    core/dialog.cpp \
     core/dialogmodel.cpp \
     core/inmemorybackendconnection.cpp \
-    core/phase.cpp \
-    core/replica.cpp \
     core/user.cpp \
     core/websocket.cpp \
     dialogeditor/arrowlinegraphicsitem.cpp \
@@ -43,7 +40,9 @@ SOURCES += \
     dialogeditor/arrowlinegraphicsitemmimedata.cpp \
 	dialogeditor/zoomablegraphicsview.cpp \
 	dialogeditor/phasegraphicsitem.cpp \
-    dialogeditor/phaseeditorwindow.cpp
+    dialogeditor/phaseeditorwindow.cpp \
+    core/dialogjsonreader.cpp \
+    core/dialogjsonwriter.cpp
 
 HEADERS  += \
     authwindow.h \
@@ -57,8 +56,6 @@ HEADERS  += \
     core/idialogmodel.h \
     core/idialogprovider.h \
     core/inmemorybackendconnection.h \
-    core/phase.h \
-    core/replica.h \
     core/user.h \
     core/websocket.h \
 	logger.h \
@@ -79,7 +76,9 @@ HEADERS  += \
 	dialogeditor/zoomablegraphicsview.h \
 	dialogeditor/phasegraphicsitem.h \
     dialogeditor/phaseeditorwindow.h \
-    dialogeditor/zordervalues.h
+    dialogeditor/zordervalues.h \
+    core/dialogjsonreader.h \
+    core/dialogjsonwriter.h
 
 FORMS    += \
     authwindow.ui \

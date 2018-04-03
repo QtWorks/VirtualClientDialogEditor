@@ -1,7 +1,7 @@
 #include "usereditordialog.h"
 #include "ui_usereditordialog.h"
 
-UserEditorDialog::UserEditorDialog(const User& user, QWidget* parent)
+UserEditorDialog::UserEditorDialog(const Core::User& user, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::UserEditorDialog)
 {
@@ -14,7 +14,7 @@ UserEditorDialog::UserEditorDialog(const User& user, QWidget* parent)
 	{
 		// TODO: emptiness validation, trims
 		const QString username = m_ui->usernameEdit->text();
-		const User::Permissions permissions = { true, m_ui->writePermissionCheckBox->isChecked() };
+		const Core::User::Permissions permissions = { true, m_ui->writePermissionCheckBox->isChecked() };
 
 		emit userChanged({ username, permissions });
 		accept();

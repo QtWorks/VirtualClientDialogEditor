@@ -4,6 +4,9 @@
 #include "dialog.h"
 #include <QList>
 
+namespace Core
+{
+
 class IDialogModel
 {
 public:
@@ -15,7 +18,9 @@ public:
 	virtual Dialog::Difficulty difficulty() const = 0;
 	virtual void setDifficulty(Dialog::Difficulty difficulty) = 0;
 
-	virtual QList<Phase> phases() const = 0;
+	virtual QList<PhaseNode> phases() const = 0;
 };
+
+}
 
 #endif // IDIALOGMODEL_H

@@ -59,9 +59,6 @@ void NodeGraphicsItem::setProperties(Properties properties)
 
 void NodeGraphicsItem::resize(qreal width, qreal height)
 {
-	Q_ASSERT(width >= minWidth());
-	Q_ASSERT(height >= minHeight());
-
 	prepareGeometryChange();
 	m_width = width;
 	m_height = height;

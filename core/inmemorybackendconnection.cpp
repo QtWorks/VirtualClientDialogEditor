@@ -1,93 +1,14 @@
 #include "inmemorybackendconnection.h"
+#include "dialogjsonreader.h"
+#include "logger.h"
 
 #include <QTimer>
+#include <QFile>
+
+namespace Core
+{
 
 static const int c_delayMsecs = 20;
-static const QList<Dialog> c_dialogs = {
-	Dialog("Диалог №1", Dialog::Difficulty::Easy, {
-		Phase("Фаза 1 (открытие)", {
-			Replica(
-				"Здравствуйте! С чем сегодня пожаловали?",
-				{
-					"Здравствуйте, добрый день",
-					"Меня зовут",
-					"Я медицинский представитель",
-					"Я пришел обсудить с Вами варианты по эффективному купированию у пациентов зубной боли различной этиологии и интенсивности"
-				},
-				"...")
-		}),
-		Phase("Фаза 2", {
-			Replica(
-				"Понятно",
-				{
-					"пациентов с зубной болью"
-				},
-				"Я бы хотел начать с пациентов с зубной болью. По статистике это каждый 2-й пациент на приеме у врача-стоматолога. "
-				"Скажите у Вас на приеме такая же ситуация или отличается?"),
-			Replica(
-				"Так же",
-				{
-					"сколько сейчас в среднем на приеме в день человек"
-				},
-				"А сколько сейчас в среднем на приеме в день человек?"),
-			Replica(
-				"20 (если хирург), 40 (если терапевт)",
-				{
-					"зубной болью"
-				},
-				"Таким образом, у Вас примерно 8-10 пациентов с зубной болью"),
-			Replica(
-				"Да",
-				{
-					"боль является серьезной проблемой",
-					"ключевыми критериями выбора препарата эффективность и безопасность"
-				},
-				"Поскольку боль является серьезной проблемой, нарушающей жизнь пациента, то ключевыми критериями выбора"
-				" препарата являются его эффективность и безопасность. Согласитесь?"),
-			Replica(
-				"Да",
-				{
-					"ДЕКСКЕТОПРОФЕН"
-				},
-				"Я бы хотел Вам рассказать про препарат ДЕКСКЕТОПРОФЕН. "
-				"Если сравнивать с другими обезболивающими, то, максимальная концентрация при приеме ДЕКСКЕТОПРОФЕНа достигается гораздо быстрее, "
-				"чем у кеторолака и кетопрофена. Что безусловно важно для пациента, не так ли?"),
-		}),
-		Phase("Фаза 3 (завершение)", {
-			Replica(
-				"Согласен",
-				{
-					"10 пациентам с интенсивной зубной болью"
-				},
-				"Давайте договоримся, что всем 10 пациентам с интенсивной зубной болью, по показаниям, Вы будете назначать ДЕКСКЕТОПРОФЕН."),
-			Replica(
-				"Хорошо",
-				{
-					"необходимость эффективного купирования боли"
-				},
-				"Наверняка Вы также сталкиваетесь с необходимостью эффективного купирования боли после удаления 3-го маляра. У Вас есть немало таких пациентов?"),
-			Replica(
-				"Да, 1-2 в день",
-				{
-					"ДЕКСКЕТОПРОФЕН эффективнее купировал боль, чем кетопрофен"
-				},
-				"Было проведено исследование эффективности купирования боли у пациентов после удаления 3-го моляра. "
-				"Результаты показали, что ДЕКСКЕТОПРОФЕН эффективнее купировал боль, чем кетопрофен. Какой части таких пациентов Вы готовы начать его рекомендацию?"),
-			Replica(
-				"Думаю, половине попробую",
-				{
-					"Спасибо за Ваш интерес, применяют ДЕКСКЕТОПРОФЕН, повторно прийти к Вам"
-				},
-				"Спасибо за Ваш интерес, многие опытные стоматологи применяют именно ДЕКСКЕТОПРОФЕН в период острого болевого синдрома. "
-				"Если Вы не возражаете, я хотел бы повторно прийти к Вам через 2 недели. Вы будете на месте? "
-				"Мне было бы интересно узнать, какому количеству пациентов с болевым синдромом понадобилось назначение препаратов ДЕКСКЕТОПРОФЕН "
-				"и Ваше мнение об эффективности их применения у этих пациентов"),
-		})
-	}),
-	Dialog("Диалог №2", Dialog::Difficulty::Easy, {
-		Phase("...", { Replica("- необходимость эффективного купирования боли.", { }, "") })
-	})
-};
 
 static const QList<User> c_users = {
 	User("test", User::Permissions(true, false)),
@@ -97,8 +18,41 @@ static const QList<User> c_users = {
 #define DELAYED_EMIT(signal) QTimer::singleShot(c_delayMsecs, [this]() { emit (signal)(); });
 #define DELAYED_EMIT_ARGS(signal, args) QTimer::singleShot(c_delayMsecs, [&]() { emit (signal)(args); });
 
+Dialog readTestDialog(const QString& name, bool& ok)
+{
+	QFile file(name);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		LOG << ARG(name) << ARG2(file.errorString(), "error");
+		ok = false;
+		return Dialog();
+	}
+
+	const QByteArray fileContent = file.readAll();
+	return DialogJsonReader().read(fileContent, ok);
+}
+
+QList<Dialog> readTestDialogs()
+{
+	QList<Dialog> results;
+
+	const QVector<QString> files = { "D:\\test_dialog_2.json", "D:\\test_dialog_3.json", "D:\\test_dialog_4.json" };
+
+	bool ok = false;
+	for (const QString& file : files)
+	{
+		Dialog dialog = readTestDialog(file, ok);
+		if (ok)
+		{
+			results << dialog;
+		}
+	}
+
+	return results;
+}
+
 InMemoryBackendConnection::InMemoryBackendConnection()
-	: m_dialogs(c_dialogs)
+	: m_dialogs(readTestDialogs())
 	, m_users(c_users)
 {
 }
@@ -156,4 +110,6 @@ void InMemoryBackendConnection::deleteUser(const User::UsernameType& /*username*
 void InMemoryBackendConnection::triggerError(const QString& message)
 {
 	DELAYED_EMIT_ARGS(onError, message);
+}
+
 }

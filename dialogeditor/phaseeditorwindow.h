@@ -1,7 +1,7 @@
 #ifndef PHASEEDITORWINDOW_H
 #define PHASEEDITORWINDOW_H
 
-#include "core/phase.h"
+#include "core/dialog.h"
 #include <QDialog>
 
 namespace Ui {
@@ -14,23 +14,26 @@ class PhaseEditorWindow
 	Q_OBJECT
 
 public:
-	PhaseEditorWindow(const Phase& phase, QWidget* parent = 0);
+	PhaseEditorWindow(const Core::PhaseNode& phase, QWidget* parent = 0);
 	~PhaseEditorWindow();
 
 signals:
-	void accepted(Phase phase);
+	void accepted(Core::PhaseNode phase);
 	void rejected();
 
 private slots:
 	void onSaveClicked();
 	void onCancelClicked();
+	void onNameChanged();
+	void onScoreChanged();
 
 private:
-	void updateControls();
+	void setError(const QString& message);
+	void removeError();
 
 private:
 	Ui::PhaseEditorWindow* m_ui;
-	Phase m_phase;
+	Core::PhaseNode m_phase;
 };
 
 #endif // PHASEEDITORWINDOW_H

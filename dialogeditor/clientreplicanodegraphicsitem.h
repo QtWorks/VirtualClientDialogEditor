@@ -2,6 +2,7 @@
 #define CLIENTREPLICANODEGRAPHICSITEM_H
 
 #include "nodegraphicsitem.h"
+#include "core/dialog.h"
 
 class ClientReplicaEditor;
 
@@ -14,7 +15,7 @@ public:
 		Type = UserType + 2
 	};
 
-	ClientReplicaNodeGraphicsItem(const QString& replica, Properties properties, QObject* parent = 0);
+	ClientReplicaNodeGraphicsItem(const Core::ClientReplicaNode& replica, Properties properties, QObject* parent = 0);
 
 	virtual int type() const override;
 
@@ -31,7 +32,7 @@ private:
 	void closeEditor();
 
 private:
-	QString m_replica;
+	Core::ClientReplicaNode m_replica;
 	ClientReplicaEditor* m_editor;
 };
 

@@ -4,6 +4,9 @@
 #include <QObject>
 #include <QtWebSockets/QtWebSockets>
 
+namespace Core
+{
+
 class WebSocket
 	: public QObject
 {
@@ -18,5 +21,7 @@ public slots:
 private:
 	QWebSocket* m_webSocket;
 };
+
+}
 
 #endif // WEBSOCKET_H

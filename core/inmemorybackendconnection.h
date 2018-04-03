@@ -3,6 +3,9 @@
 
 #include "ibackendconnection.h"
 
+namespace Core
+{
+
 class InMemoryBackendConnection
 	: public IBackendConnection
 {
@@ -29,5 +32,7 @@ private:
 	QList<Dialog> m_dialogs;
 	QList<User> m_users;
 };
+
+}
 
 #endif // INMEMORYBACKENDCONNECTION_H

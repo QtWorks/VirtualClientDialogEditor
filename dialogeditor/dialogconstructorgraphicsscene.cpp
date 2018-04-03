@@ -16,15 +16,15 @@ DialogConstructorGraphicsScene::~DialogConstructorGraphicsScene()
 
 void DialogConstructorGraphicsScene::addConstructorItems()
 {
-	NodeGraphicsItem* phaseNode = new PhaseGraphicsItem(Phase(), NodeGraphicsItem::Draggable, this);
+	NodeGraphicsItem* phaseNode = new PhaseGraphicsItem(Core::PhaseNode("", 0, nullptr), NodeGraphicsItem::Draggable, this);
 	phaseNode->setPos(QPoint(0, 0));
 	addItem(phaseNode);
 
-	NodeGraphicsItem* clientReplicaNode = new ClientReplicaNodeGraphicsItem("", NodeGraphicsItem::Draggable, this);
+	NodeGraphicsItem* clientReplicaNode = new ClientReplicaNodeGraphicsItem(Core::ClientReplicaNode(""), NodeGraphicsItem::Draggable, this);
 	clientReplicaNode->setPos(QPoint(0, 90));
 	addItem(clientReplicaNode);
 
-	NodeGraphicsItem* expectedWordsNode = new ExpectedWordsNodeGraphicsItem({}, NodeGraphicsItem::Draggable, this);
+	NodeGraphicsItem* expectedWordsNode = new ExpectedWordsNodeGraphicsItem(Core::ExpectedWordsNode({}), NodeGraphicsItem::Draggable, this);
 	expectedWordsNode->setPos(QPoint(0, 180));
 	addItem(expectedWordsNode);
 

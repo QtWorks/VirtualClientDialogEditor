@@ -1,5 +1,8 @@
 #include "dialogmodel.h"
 
+namespace Core
+{
+
 DialogModel::DialogModel(const Dialog& dialog)
 	: m_dialog(dialog)
 {
@@ -27,7 +30,9 @@ void DialogModel::setDifficulty(Dialog::Difficulty difficulty)
 	m_dialog.difficulty = difficulty;
 }
 
-QList<Phase> DialogModel::phases() const
+QList<PhaseNode> DialogModel::phases() const
 {
 	return m_dialog.phases;
+}
+
 }

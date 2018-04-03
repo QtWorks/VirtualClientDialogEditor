@@ -1,8 +1,9 @@
 #include "phaseeditorwindow.h"
 #include "ui_phaseeditorwindow.h"
+
 #include <QPushButton>
 
-PhaseEditorWindow::PhaseEditorWindow(const Phase& phase, QWidget* parent)
+PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::PhaseEditorWindow)
 	, m_phase(phase)
@@ -11,24 +12,19 @@ PhaseEditorWindow::PhaseEditorWindow(const Phase& phase, QWidget* parent)
 
 	setAttribute(Qt::WA_DeleteOnClose, true);
 
-	m_ui->lineEdit->setText(m_phase.name);
-
-	connect(m_ui->lineEdit, &QLineEdit::textChanged, [this]()
-	{
-		m_phase.name = m_ui->lineEdit->text().trimmed();
-
-		updateControls();
-	});
-
 	QIcon warningIcon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
 	QPixmap warningPixmap = warningIcon.pixmap(QSize(16, 16));
 	m_ui->errorIconLabel->setPixmap(warningPixmap);
+	m_ui->errorIconLabel->hide();
+
+	m_ui->nameLineEdit->setText(m_phase.name);
+	connect(m_ui->nameLineEdit, &QLineEdit::textChanged, this, PhaseEditorWindow::onNameChanged);
+
+	m_ui->scoreLineEdit->setText(QString::number(m_phase.score));
+	connect(m_ui->scoreLineEdit, &QLineEdit::textChanged, this, PhaseEditorWindow::onScoreChanged);
 
 	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, PhaseEditorWindow::onSaveClicked);
 	connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, PhaseEditorWindow::onCancelClicked);
-
-	resize(400, m_ui->lineEdit->minimumHeight() + m_ui->buttonBox->height() + m_ui->verticalLayout->spacing());
-	updateControls();
 }
 
 PhaseEditorWindow::~PhaseEditorWindow()
@@ -50,12 +46,57 @@ void PhaseEditorWindow::onCancelClicked()
 	emit rejected();
 }
 
-void PhaseEditorWindow::updateControls()
+void PhaseEditorWindow::onNameChanged()
 {
-	const bool saveAllowed = !m_phase.name.isEmpty();
+	const QString name = m_ui->nameLineEdit->text().trimmed();
+	if (name.isEmpty())
+	{
+		setError("Имя не может быть пустым");
+		return;
+	}
 
-	m_ui->errorIconLabel->setVisible(!saveAllowed);
-	m_ui->errorTextLabel->setVisible(!saveAllowed);
-	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(saveAllowed);
+	removeError();
+	m_phase.name = name;
 }
 
+void PhaseEditorWindow::onScoreChanged()
+{
+	const QString scoreString = m_ui->scoreLineEdit->text().trimmed();
+	if (scoreString.isEmpty())
+	{
+		setError("Кол-во баллов не может быть пустым");
+		return;
+	}
+
+	bool ok = false;
+	const double score = scoreString.toDouble(&ok);
+	if (!ok)
+	{
+		setError("Кол-во баллов должно быть числом");
+		return;
+	}
+
+	// TODO: add check for maximum available score
+
+	removeError();
+	m_phase.score = score;
+}
+
+void PhaseEditorWindow::setError(const QString& message)
+{
+	m_ui->errorIconLabel->show();
+
+	m_ui->errorTextLabel->show();
+	m_ui->errorTextLabel->setText(message);
+
+	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
+}
+
+void PhaseEditorWindow::removeError()
+{
+	m_ui->errorIconLabel->hide();
+
+	m_ui->errorTextLabel->hide();
+
+	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(true);
+}

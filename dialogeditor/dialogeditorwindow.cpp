@@ -5,6 +5,7 @@
 #include "dialoggraphicsscene.h"
 #include "core/dialogmodel.h"
 
+#include "phasegraphicsitem.h"
 #include "clientreplicanodegraphicsitem.h"
 #include "expectedwordsnodegraphicsitem.h"
 #include "arrowlinegraphicsitem.h"
@@ -18,12 +19,12 @@ std::unique_ptr<T> make_unique(Args&&... args)
 	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-DialogEditorWindow::DialogEditorWindow(const Dialog& dialog, QWidget* parent)
+DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* parent)
 	: QWidget(parent)
 	, m_ui(new Ui::DialogEditorWindow)
 	, m_dialogConstructorGraphicsScene(new DialogConstructorGraphicsScene(this))
 	, m_dialogGraphicsScene(new DialogGraphicsScene(this))
-	, m_dialogModel(make_unique<DialogModel>(dialog))
+	, m_dialogModel(make_unique<Core::DialogModel>(dialog))
 {
 	// TODO: set window title to dialog full name
 
@@ -38,13 +39,13 @@ DialogEditorWindow::DialogEditorWindow(const Dialog& dialog, QWidget* parent)
 			m_dialogModel->setName(name);
 		});
 
-	m_ui->difficultyComboBox->addItems(Dialog::availableDifficulties());
-	const int index = m_ui->difficultyComboBox->findText(Dialog::difficultyToString(dialog.difficulty), Qt::MatchCaseSensitive);
+	m_ui->difficultyComboBox->addItems(Core::Dialog::availableDifficulties());
+	const int index = m_ui->difficultyComboBox->findText(Core::Dialog::difficultyToString(dialog.difficulty), Qt::MatchCaseSensitive);
 	m_ui->difficultyComboBox->setCurrentIndex(index);
 	connect(m_ui->difficultyComboBox, QOverload<const QString &>::of(&QComboBox::currentIndexChanged),
 		[this](const QString& difficulty)
 		{
-			m_dialogModel->setDifficulty(Dialog::difficultyFromString(difficulty));
+			m_dialogModel->setDifficulty(Core::Dialog::difficultyFromString(difficulty));
 		});
 
 	QIcon warningIcon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
@@ -55,7 +56,7 @@ DialogEditorWindow::DialogEditorWindow(const Dialog& dialog, QWidget* parent)
 	{
 		// TODO: emptiness validation, trims
 		const QString name = m_dialogModel->name();
-		const Dialog::Difficulty difficulty = m_dialogModel->difficulty();
+		const Core::Dialog::Difficulty difficulty = m_dialogModel->difficulty();
 
 		emit dialogChanged({ name, difficulty, m_dialogModel->phases() });
 		close();
@@ -80,17 +81,19 @@ DialogEditorWindow::DialogEditorWindow(const Dialog& dialog, QWidget* parent)
 	connect(m_ui->connectNodesButton, &QPushButton::clicked, this, &DialogEditorWindow::onConnectNodesClicked);
 
 	m_dialogGraphicsScene->setModel(m_dialogModel.get());
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeAdded, this, &DialogEditorWindow::updateSaveControls);
-
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::onNodeRemoved);
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::updateSaveControls);
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::updateConnectControls);
 
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeSelectionChanged, this, &DialogEditorWindow::onNodeSelectionChanged);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeSelectionChanged, this, &DialogEditorWindow::updateConnectControls);
 
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::linkAdded, this, &DialogEditorWindow::updateSaveControls);
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::linkRemoved, this, &DialogEditorWindow::updateSaveControls);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeAdded, this, &DialogEditorWindow::nodeAdded);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::nodeRemoved);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeChanged, this, &DialogEditorWindow::nodeChanged);
+
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesConnected, this, &DialogEditorWindow::nodesConnected);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesDisconnected, this, &DialogEditorWindow::nodesDisconnected);
+
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeAddedToPhase, this, &DialogEditorWindow::nodeAddedToPhase);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemovedFromPhase, this, &DialogEditorWindow::nodeRemovedFromPhase);
 
 	m_ui->dialogGraphicsView->setScene(m_dialogGraphicsScene);
 	m_ui->dialogGraphicsView->setMinRatio(50.0);
@@ -156,7 +159,6 @@ void DialogEditorWindow::updateSaveControls()
 				node->type() == ExpectedWordsNodeGraphicsItem::Type)
 			{
 				NodeGraphicsItem* nodeItem = dynamic_cast<NodeGraphicsItem*>(node);
-				//LOG << ARG2(nodeItem->type(), "type") << ARG2(nodeItem->incomingLinks().size(), "incomingLinks");
 				return nodeItem->incomingLinks().isEmpty();
 			}
 			return false;
@@ -164,7 +166,6 @@ void DialogEditorWindow::updateSaveControls()
 
 	if (nodesWithoutIncomingLinks != 1)
 	{
-		// TODO: message
 		showError("Должен быть только 1 узел без входящих стрелок (" + QString::number(nodesWithoutIncomingLinks) + ")");
 		return;
 	}
@@ -183,7 +184,6 @@ void DialogEditorWindow::updateSaveControls()
 
 	if (nodesWithoutOutcomingLinks != 1)
 	{
-		// TODO: message
 		showError("Должен быть только 1 узел без выходящих стрелок (" + QString::number(nodesWithoutOutcomingLinks) + ")");
 		return;
 	}
@@ -193,17 +193,21 @@ void DialogEditorWindow::updateSaveControls()
 
 void DialogEditorWindow::showError(QString text)
 {
-	m_ui->errorIconLabel->setVisible(true);
+	m_ui->errorIconLabel->show();
+
 	m_ui->errorTextLabel->setText(text);
-	m_ui->errorTextLabel->setVisible(true);
+	m_ui->errorTextLabel->show();
+
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
 }
 
 void DialogEditorWindow::hideError()
 {
-	m_ui->errorIconLabel->setVisible(false);
+	m_ui->errorIconLabel->hide();
+
 	m_ui->errorTextLabel->setText("");
-	m_ui->errorTextLabel->setVisible(false);
+	m_ui->errorTextLabel->hide();
+
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(true);
 }
 
@@ -231,13 +235,13 @@ void DialogEditorWindow::updateConnectControls()
 	NodeGraphicsItem* startItem = m_selectedNodes[0];
 	NodeGraphicsItem* endItem = m_selectedNodes[1];
 
-	if (startItem->type() == endItem->type())
+	if (startItem->type() == endItem->type() && startItem->type() != PhaseGraphicsItem::Type)
 	{
 		m_ui->connectNodesButton->setEnabled(false);
 		return;
 	}
 
-	if (m_dialogModel->difficulty() == Dialog::Difficulty::Hard)
+	if (m_dialogModel->difficulty() == Core::Dialog::Difficulty::Hard)
 	{
 		m_ui->connectNodesButton->setEnabled(true);
 		return;
@@ -246,4 +250,39 @@ void DialogEditorWindow::updateConnectControls()
 	const bool nodesHasNoLinks = startItem->outcomingLinks().isEmpty() && endItem->incomingLinks().isEmpty();
 
 	m_ui->connectNodesButton->setEnabled(nodesHasNoLinks);
+}
+
+void DialogEditorWindow::nodeAdded(NodeGraphicsItem* /*node*/, Core::AbstractDialogNode* /*nodeData*/)
+{
+	LOG;
+}
+
+void DialogEditorWindow::nodeRemoved(NodeGraphicsItem* /*node*/)
+{
+	LOG;
+}
+
+void DialogEditorWindow::nodeChanged(NodeGraphicsItem* /*node*/, Core::AbstractDialogNode* /*nodeData*/)
+{
+	LOG;
+}
+
+void DialogEditorWindow::nodesConnected(NodeGraphicsItem* /*parent*/, NodeGraphicsItem* /*child*/)
+{
+	LOG;
+}
+
+void DialogEditorWindow::nodesDisconnected(NodeGraphicsItem* /*parent*/, NodeGraphicsItem* /*child*/)
+{
+	LOG;
+}
+
+void DialogEditorWindow::nodeAddedToPhase(NodeGraphicsItem* /*node*/, PhaseGraphicsItem* /*phase*/)
+{
+	LOG;
+}
+
+void DialogEditorWindow::nodeRemovedFromPhase(NodeGraphicsItem* /*node*/, PhaseGraphicsItem* /*phase*/)
+{
+	LOG;
 }

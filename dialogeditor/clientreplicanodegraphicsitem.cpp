@@ -1,7 +1,7 @@
 #include "clientreplicanodegraphicsitem.h"
 #include "clientreplicaeditor.h"
 
-ClientReplicaNodeGraphicsItem::ClientReplicaNodeGraphicsItem(const QString& replica, Properties properties, QObject* parent)
+ClientReplicaNodeGraphicsItem::ClientReplicaNodeGraphicsItem(const Core::ClientReplicaNode& replica, Properties properties, QObject* parent)
 	: NodeGraphicsItem(properties, parent)
 	, m_replica(replica)
 	, m_editor(nullptr)
@@ -21,7 +21,7 @@ QString ClientReplicaNodeGraphicsItem::getHeaderText() const
 
 QString ClientReplicaNodeGraphicsItem::getContentText() const
 {
-	return m_replica;
+	return m_replica.replica;
 }
 
 QBrush ClientReplicaNodeGraphicsItem::getHeaderBrush() const
@@ -50,7 +50,7 @@ void ClientReplicaNodeGraphicsItem::createEditorIfNeeded()
 
 	m_editor = new ClientReplicaEditor(m_replica);
 
-	QObject::connect(m_editor, &ClientReplicaEditor::accepted, [this](QString replica)
+	QObject::connect(m_editor, &ClientReplicaEditor::accepted, [this](Core::ClientReplicaNode replica)
 	{
 		m_replica = replica;
 

@@ -2,7 +2,7 @@
 #include "ui_expectedwordseditorwindow.h"
 #include "expectedwordeditor.h"
 
-ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const QStringList& expectedWords, QWidget* parent)
+ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNode& expectedWords, QWidget* parent)
 	: QWidget(parent)
 	, m_ui(new Ui::ExpectedWordsEditorWindow)
 {
@@ -11,7 +11,7 @@ ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const QStringList& expected
 	m_ui->listWidget->setStyleSheet( "QListWidget::item { border-bottom: 1px solid black; }" );
 	m_ui->listWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-	for (const QString& expectedWord : expectedWords)
+	for (const Core::ExpectedWords& expectedWord : expectedWords.expectedWords)
 	{
 		addItemWidget(expectedWord);
 	}
@@ -35,15 +35,15 @@ ExpectedWordsEditorWindow::~ExpectedWordsEditorWindow()
 
 void ExpectedWordsEditorWindow::onAddItemClicked()
 {	
-	if (m_items.isEmpty() || !m_items.last()->text().isEmpty())
+	if (m_itemEditors.isEmpty() || !m_itemEditors.last()->text().isEmpty())
 	{
-		addItemWidget("");
+		addItemWidget(Core::ExpectedWords("", 0));
 
 		updateControls();
 
 		m_ui->listWidget->scrollToBottom();
 
-		m_items.last()->setFocus();
+		m_itemEditors.last()->setFocus();
 	}
 }
 
@@ -51,10 +51,10 @@ void ExpectedWordsEditorWindow::onSaveClicked()
 {
 	hide();
 
-	QStringList expectedWords;
-	for (const auto& item : m_items)
+	QList<Core::ExpectedWords> expectedWords;
+	for (const auto& item : m_itemEditors)
 	{
-		expectedWords.append(item->text().trimmed());
+		expectedWords << Core::ExpectedWords(item->text().trimmed(), 0);
 	}
 
 	emit accepted(expectedWords);
@@ -66,10 +66,10 @@ void ExpectedWordsEditorWindow::onCancelClicked()
 	emit rejected();
 }
 
-void ExpectedWordsEditorWindow::addItemWidget(const QString& item)
+void ExpectedWordsEditorWindow::addItemWidget(const Core::ExpectedWords& item)
 {
 	ExpectedWordEditor* editorItem = new ExpectedWordEditor(item, m_ui->listWidget);
-	m_items.append(editorItem);
+	m_itemEditors.append(editorItem);
 
 	connect(editorItem, &ExpectedWordEditor::changed, [this]()
 	{
@@ -78,9 +78,9 @@ void ExpectedWordsEditorWindow::addItemWidget(const QString& item)
 
 	connect(editorItem, &ExpectedWordEditor::removed, [this, editorItem]()
 	{
-		int itemIndex = m_items.indexOf(editorItem);
+		int itemIndex = m_itemEditors.indexOf(editorItem);
 		Q_ASSERT(m_ui->listWidget->takeItem(itemIndex));
-		m_items.removeAt(itemIndex);
+		m_itemEditors.removeAt(itemIndex);
 
 		updateControls();
 	});
@@ -94,8 +94,8 @@ void ExpectedWordsEditorWindow::addItemWidget(const QString& item)
 
 void ExpectedWordsEditorWindow::updateControls()
 {
-	const bool saveAllowed = !m_items.isEmpty() &&
-		std::none_of(m_items.begin(), m_items.end(), [](ExpectedWordEditor* editor)
+	const bool saveAllowed = !m_itemEditors.isEmpty() &&
+		std::none_of(m_itemEditors.begin(), m_itemEditors.end(), [](ExpectedWordEditor* editor)
 		{
 			return editor->text().trimmed().isEmpty();
 		});

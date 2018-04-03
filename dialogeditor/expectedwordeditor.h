@@ -1,6 +1,7 @@
 #ifndef EXPECTEDWORDEDITOR_H
 #define EXPECTEDWORDEDITOR_H
 
+#include "core/dialog.h"
 #include <QWidget>
 
 namespace Ui {
@@ -13,18 +14,19 @@ class ExpectedWordEditor
 	Q_OBJECT
 
 public:
-	explicit ExpectedWordEditor(const QString& text, QWidget* parent = 0);
+	explicit ExpectedWordEditor(const Core::ExpectedWords& text, QWidget* parent = 0);
 	~ExpectedWordEditor();
 
 	QString text() const;
 	void setFocus();
 
 signals:
-	void changed(QString text);
+	void changed(Core::ExpectedWords expectedWords);
 	void removed();
 
 private:
 	Ui::ExpectedWordEditor* m_ui;
+	Core::ExpectedWords m_expectedWords;
 };
 
 #endif // EXPECTEDWORDEDITOR_H
