@@ -92,7 +92,6 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 			}
 		}
 
-		// TODO: sometimes item not shown on scene
 		item->setParent(this);
 
 		addNodeToScene(item, event->scenePos());

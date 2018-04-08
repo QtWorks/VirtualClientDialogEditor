@@ -52,6 +52,8 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* pare
 	QPixmap warningPixmap = warningIcon.pixmap(QSize(16, 16));
 	m_ui->errorIconLabel->setPixmap(warningPixmap);
 
+	m_ui->buttonBox->button(QDialogButtonBox::Save)->setText("Сохранить");
+	m_ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Отменить");
 	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, [this]()
 	{
 		// TODO: emptiness validation, trims

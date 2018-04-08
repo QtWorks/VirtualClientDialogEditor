@@ -26,6 +26,8 @@ ClientReplicaEditor::ClientReplicaEditor(const Core::ClientReplicaNode& replica,
 	QPixmap warningPixmap = warningIcon.pixmap(QSize(16, 16));
 	m_ui->errorIconLabel->setPixmap(warningPixmap);
 
+	m_ui->buttonBox->button(QDialogButtonBox::Save)->setText("Сохранить");
+	m_ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Отменить");
 	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, ClientReplicaEditor::onSaveClicked);
 	connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, ClientReplicaEditor::onCancelClicked);
 

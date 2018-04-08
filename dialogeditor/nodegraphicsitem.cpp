@@ -13,8 +13,8 @@
 NodeGraphicsItem::NodeGraphicsItem(Properties properties, QObject* parent)
 	: m_width(minWidth())
 	, m_height(minHeight())
-	, m_resizing(false)
 	, m_position(pos())
+	, m_resizing(false)
 {
 	setFlags(ItemIsMovable | ItemSendsGeometryChanges);
 
@@ -105,10 +105,6 @@ void NodeGraphicsItem::removeOutcomingLink(ArrowLineGraphicsItem* link)
 	if (index != -1)
 	{
 		m_outcomingLinks.removeAt(index);
-	}
-	else
-	{
-		LOG << "NodeGraphicsItem::removeOutcomingLink link not found";
 	}
 }
 

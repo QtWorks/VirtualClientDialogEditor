@@ -21,6 +21,10 @@ signals:
 	void userChanged(Core::User user);
 	void canceled();
 
+private slots:
+	void saveChanges();
+	void discardChanges();
+
 private:
 	Ui::UserEditorDialog* m_ui;
 	Core::User m_user;

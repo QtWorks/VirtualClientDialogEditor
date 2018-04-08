@@ -54,7 +54,6 @@ HEADERS  += \
     core/dialogmodel.h \
     core/ibackendconnection.h \
     core/idialogmodel.h \
-    core/idialogprovider.h \
     core/inmemorybackendconnection.h \
     core/user.h \
     core/websocket.h \
@@ -76,7 +75,6 @@ HEADERS  += \
 	dialogeditor/zoomablegraphicsview.h \
 	dialogeditor/phasegraphicsitem.h \
     dialogeditor/phaseeditorwindow.h \
-    dialogeditor/zordervalues.h \
     core/dialogjsonreader.h \
     core/dialogjsonwriter.h
 

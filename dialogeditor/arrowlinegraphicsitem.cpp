@@ -3,7 +3,6 @@
 #include "nodegraphicsitem.h"
 #include "expectedwordsnodegraphicsitem.h"
 #include "clientreplicanodegraphicsitem.h"
-#include "logger.h"
 
 #include <math.h>
 
@@ -42,12 +41,10 @@ ArrowLineGraphicsItem::Item::Item(NodeGraphicsItem* item, ArrowLineGraphicsItem*
 {
 	if (m_isIncomingLink)
 	{
-		LOG << "addIncomingLink";
 		m_item->addIncomingLink(m_lineItem);
 	}
 	else
 	{
-		LOG << "addOutcomingLink";
 		m_item->addOutcomingLink(m_lineItem);
 	}
 }
@@ -76,12 +73,10 @@ ArrowLineGraphicsItem::Item::~Item()
 	{
 		if (m_isIncomingLink)
 		{
-			LOG << "removeIncomingLink";
 			m_item->removeIncomingLink(m_lineItem);
 		}
 		else
 		{
-			LOG << "removeOutcomingLink";
 			m_item->removeOutcomingLink(m_lineItem);
 		}
 	}
@@ -625,8 +620,6 @@ bool ArrowLineGraphicsItem::canMoveTo(const QPointF& position)
 	}
 
 	const bool isIncomingLink = m_moveMode == MoveMode::MoveEndPoint;
-
-	// TODO: there must be check of dialog difficulty
 	if (isIncomingLink && movingItem.m_item->incomingLinks().size() >= 1)
 	{
 		return false;

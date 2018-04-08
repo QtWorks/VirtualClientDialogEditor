@@ -23,6 +23,8 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, QWidget* pare
 	m_ui->scoreLineEdit->setText(QString::number(m_phase.score));
 	connect(m_ui->scoreLineEdit, &QLineEdit::textChanged, this, PhaseEditorWindow::onScoreChanged);
 
+	m_ui->buttonBox->button(QDialogButtonBox::Save)->setText("Сохранить");
+	m_ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Отменить");
 	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, PhaseEditorWindow::onSaveClicked);
 	connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, PhaseEditorWindow::onCancelClicked);
 }
