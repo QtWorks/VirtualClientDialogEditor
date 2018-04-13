@@ -28,10 +28,16 @@ QJsonObject dumpExpectedWordsNode(const ExpectedWordsNode& node)
 		}));
 	}
 
-	return {
-		{ "expectedWords", expectedWords },
-		{ "hint", node.hint }
+	QJsonObject result = {
+		{ "expectedWords", expectedWords }
 	};
+
+	if (node.customHint)
+	{
+		result.insert("hint", node.hint);
+	}
+
+	return result;
 }
 
 QJsonObject dumpNode(const AbstractDialogNode* node)
@@ -81,7 +87,7 @@ DialogJsonWriter::DialogJsonWriter()
 {
 }
 
-QByteArray DialogJsonWriter::write(const Dialog& dialog)
+QString DialogJsonWriter::write(const Dialog& dialog)
 {
 	const QJsonObject object = {
 		{ "name", dialog.name },
@@ -90,7 +96,7 @@ QByteArray DialogJsonWriter::write(const Dialog& dialog)
 	};
 
 	const QJsonDocument document = QJsonDocument(object);
-	return document.toJson((QJsonDocument::Indented));
+	return QString::fromLatin1(document.toJson((QJsonDocument::Indented)));
 }
 
 }

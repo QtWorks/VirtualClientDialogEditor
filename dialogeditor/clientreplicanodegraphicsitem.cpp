@@ -1,7 +1,7 @@
 #include "clientreplicanodegraphicsitem.h"
 #include "clientreplicaeditor.h"
 
-ClientReplicaNodeGraphicsItem::ClientReplicaNodeGraphicsItem(const Core::ClientReplicaNode& replica, Properties properties, QObject* parent)
+ClientReplicaNodeGraphicsItem::ClientReplicaNodeGraphicsItem(Core::ClientReplicaNode* replica, Properties properties, QObject* parent)
 	: NodeGraphicsItem(properties, parent)
 	, m_replica(replica)
 	, m_editor(nullptr)
@@ -14,6 +14,16 @@ int ClientReplicaNodeGraphicsItem::type() const
 	return Type;
 }
 
+Core::AbstractDialogNode* ClientReplicaNodeGraphicsItem::data()
+{
+	return m_replica;
+}
+
+const Core::AbstractDialogNode* ClientReplicaNodeGraphicsItem::data() const
+{
+	return m_replica;
+}
+
 QString ClientReplicaNodeGraphicsItem::getHeaderText() const
 {
 	return "Клиент";
@@ -21,7 +31,7 @@ QString ClientReplicaNodeGraphicsItem::getHeaderText() const
 
 QString ClientReplicaNodeGraphicsItem::getContentText() const
 {
-	return m_replica.replica;
+	return m_replica->replica;
 }
 
 QBrush ClientReplicaNodeGraphicsItem::getHeaderBrush() const
@@ -38,7 +48,7 @@ void ClientReplicaNodeGraphicsItem::showNodeEditor()
 
 NodeGraphicsItem* ClientReplicaNodeGraphicsItem::clone() const
 {
-	return new ClientReplicaNodeGraphicsItem(m_replica, m_properties, parent());
+	return new ClientReplicaNodeGraphicsItem(dynamic_cast<Core::ClientReplicaNode*>(m_replica->shallowCopy()), m_properties, parent());
 }
 
 void ClientReplicaNodeGraphicsItem::createEditorIfNeeded()
@@ -48,11 +58,11 @@ void ClientReplicaNodeGraphicsItem::createEditorIfNeeded()
 		return;
 	}
 
-	m_editor = new ClientReplicaEditor(m_replica);
+	m_editor = new ClientReplicaEditor(*m_replica);
 
-	QObject::connect(m_editor, &ClientReplicaEditor::accepted, [this](Core::ClientReplicaNode replica)
+	QObject::connect(m_editor, &ClientReplicaEditor::accepted, [this](const Core::ClientReplicaNode& replica)
 	{
-		m_replica = replica;
+		m_replica->replica = replica.replica;
 
 		update();
 

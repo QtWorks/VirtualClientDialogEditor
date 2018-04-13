@@ -16,6 +16,13 @@
 namespace
 {
 
+// TODO: move paddings into PhaseGraphicsItem object?
+static const qreal s_nodesInterval = 30.0;
+static const qreal s_phaseTopPadding = 45.0;
+static const qreal s_phaseRightPadding = 15.0;
+static const qreal s_phaseBottomPadding = 15.0;
+static const qreal s_phaseLeftPadding = 15.0;
+
 bool contains(PhaseGraphicsItem* phase, NodeGraphicsItem* node)
 {
 	Q_ASSERT(node->type() != PhaseGraphicsItem::Type);
@@ -28,20 +35,37 @@ bool intersects(PhaseGraphicsItem* phase, NodeGraphicsItem* node)
 	return phase->sceneBoundingRect().intersects(node->sceneBoundingRect());
 }
 
+NodeGraphicsItem* makeGraphicsItem(Core::AbstractDialogNode* node, NodeGraphicsItem::Properties properties, QGraphicsScene* parent)
+{
+	if (dynamic_cast<Core::ClientReplicaNode*>(node))
+	{
+		return new ClientReplicaNodeGraphicsItem(dynamic_cast<Core::ClientReplicaNode*>(node), properties, parent);
+	}
+
+	if (dynamic_cast<Core::ExpectedWordsNode*>(node))
+	{
+		return new ExpectedWordsNodeGraphicsItem(dynamic_cast<Core::ExpectedWordsNode*>(node), properties, parent);
+	}
+
+	return nullptr;
+}
+
 }
 
 DialogGraphicsScene::DialogGraphicsScene(QObject* parent)
 	: QGraphicsScene(parent)
 {
+	LOG;
 }
 
 DialogGraphicsScene::~DialogGraphicsScene()
 {
+	LOG;
 }
 
-void DialogGraphicsScene::setModel(Core::IDialogModel* model)
+void DialogGraphicsScene::setDialog(Core::Dialog* dialog)
 {
-	m_model = model;
+	m_dialog = dialog;
 
 	refreshScene();
 }
@@ -78,6 +102,7 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 				}
 
 				phase->addItem(item);
+				emit nodeAddedToPhase(item, phase);
 			}
 			else if (!phases.empty())
 			{
@@ -125,55 +150,9 @@ void DialogGraphicsScene::keyPressEvent(QKeyEvent* event)
 	}
 }
 
-NodeGraphicsItem* makeGraphicsItem(Core::AbstractDialogNode* node, NodeGraphicsItem::Properties properties, QGraphicsScene* parent)
-{
-	if (dynamic_cast<Core::ClientReplicaNode*>(node))
-	{
-		return new ClientReplicaNodeGraphicsItem(dynamic_cast<Core::ClientReplicaNode&>(*node), properties, parent);
-	}
-
-	if (dynamic_cast<Core::ExpectedWordsNode*>(node))
-	{
-		return new ExpectedWordsNodeGraphicsItem(dynamic_cast<Core::ExpectedWordsNode&>(*node), properties, parent);
-	}
-
-	return nullptr;
-}
-
-// TODO: move paddings into PhaseGraphicsItem object?
-static const qreal s_nodesInterval = 30.0;
-static const qreal s_phaseTopPadding = 45.0;
-static const qreal s_phaseRightPadding = 15.0;
-static const qreal s_phaseBottomPadding = 15.0;
-static const qreal s_phaseLeftPadding = 15.0;
-
-void placeItems(DialogGraphicsScene& scene,
-	PhaseGraphicsItem& phase, const QList<Core::AbstractDialogNode*>& childNodes,
-	NodeGraphicsItem::Properties properties, NodeGraphicsItem*& lastInsertedNode)
-{
-	for (int i = 0; i < childNodes.size(); ++i)
-	{
-		Core::AbstractDialogNode* child = childNodes[i];
-
-		NodeGraphicsItem* graphicsItem = makeGraphicsItem(child, properties, &scene);
-		const QPointF position = QPointF(
-			phase.sceneBoundingRect().left() + s_phaseLeftPadding,
-			lastInsertedNode->sceneBoundingRect().bottom() + s_nodesInterval);
-
-		scene.addNodeToScene(graphicsItem, position);
-		phase.addItem(graphicsItem);
-
-		scene.addLineToScene(new ArrowLineGraphicsItem(lastInsertedNode, graphicsItem, false));
-
-		lastInsertedNode = graphicsItem;
-
-		placeItems(scene, phase, child->childNodes(), properties, lastInsertedNode);
-	}
-}
-
 void DialogGraphicsScene::refreshScene()
 {
-	const QList<Core::PhaseNode>& phases = m_model->phases();
+	QList<Core::PhaseNode>& phases = m_dialog->phases;
 	if (phases.empty())
 	{
 		return;
@@ -184,9 +163,9 @@ void DialogGraphicsScene::refreshScene()
 	const NodeGraphicsItem::Properties nodeProperties = NodeGraphicsItem::Resizable | NodeGraphicsItem::Editable | NodeGraphicsItem::Removable;
 	for (int phaseIndex = 0; phaseIndex < phases.size(); ++phaseIndex)
 	{
-		const Core::PhaseNode& phase = phases[phaseIndex];
+		Core::PhaseNode& phase = phases[phaseIndex];
 
-		PhaseGraphicsItem* phaseItem = new PhaseGraphicsItem(phase, nodeProperties, this);
+		PhaseGraphicsItem* phaseItem = new PhaseGraphicsItem(&phase, nodeProperties, this);
 		// TODO: hide equation if horizontal placement will be in release
 		const QPointF phasePos = QPointF((177.0 + s_phaseLeftPadding + s_phaseRightPadding + s_nodesInterval) * phaseIndex, 0.0);
 		LOG << "Place phase #" << phaseIndex << " at " << phasePos;
@@ -195,17 +174,18 @@ void DialogGraphicsScene::refreshScene()
 		NodeGraphicsItem* rootGraphicsItem = makeGraphicsItem(phase.root, nodeProperties, this);
 		addNodeToScene(rootGraphicsItem, QPointF(phaseItem->sceneBoundingRect().left() + s_phaseLeftPadding, s_phaseTopPadding));
 		phaseItem->addItem(rootGraphicsItem);
+		emit nodeAddedToPhase(rootGraphicsItem, phaseItem);
 
 		if (lastInsertedNode)
 		{
 			// TODO: line with corners can be good here
-			addLineToScene(new ArrowLineGraphicsItem(lastInsertedNode, rootGraphicsItem, false));
+			connectNodes(lastInsertedNode, rootGraphicsItem);
 		}
 
 		lastInsertedNode = rootGraphicsItem;
 
-		const QList<Core::AbstractDialogNode*> childNodes = phase.root->childNodes();
-		placeItems(*this, *phaseItem, childNodes, nodeProperties, lastInsertedNode);
+		const QSet<Core::AbstractDialogNode*> childNodes = phase.root->childNodes();
+		placeItems(*phaseItem, childNodes, nodeProperties, lastInsertedNode);
 
 		const qreal width = lastInsertedNode->boundingRect().width() + s_phaseLeftPadding + s_phaseRightPadding;
 		const qreal height = lastInsertedNode->sceneBoundingRect().bottom() - phaseItem->sceneBoundingRect().top() + s_phaseBottomPadding;
@@ -242,9 +222,14 @@ void DialogGraphicsScene::addNodeToScene(NodeGraphicsItem* node, const QPointF& 
 		}
 	});
 
+	connect(node, &NodeGraphicsItem::changed, [this, node](NodeGraphicsItem* updatedNode)
+	{
+		emit nodeChanged(node, updatedNode);
+	});
+
 	addItem(node);
 
-	emit nodeAdded(node, nullptr);
+	emit nodeAdded(node);
 }
 
 void DialogGraphicsScene::addLineToScene(ArrowLineGraphicsItem* line)
@@ -257,6 +242,13 @@ void DialogGraphicsScene::addLineToScene(ArrowLineGraphicsItem* line)
 	addItem(line);
 
 	emit linkAdded(line);
+}
+
+void DialogGraphicsScene::connectNodes(NodeGraphicsItem* parentNode, NodeGraphicsItem* childNode)
+{
+	addLineToScene(new ArrowLineGraphicsItem(parentNode, childNode, false));
+
+	emit nodesConnected(parentNode, childNode);
 }
 
 void DialogGraphicsScene::removeNodeFromScene(NodeGraphicsItem* node)
@@ -281,6 +273,11 @@ void DialogGraphicsScene::removeLinkFromScene(ArrowLineGraphicsItem* link)
 	if (link->scene() == nullptr)
 	{
 		return;
+	}
+
+	if (link->isConnectingNodes())
+	{
+		emit nodesDisconnected(link->parentNode(), link->childNode());
 	}
 
 	removeItem(link);
@@ -314,7 +311,6 @@ void DialogGraphicsScene::onReplicaPositionChanged(NodeGraphicsItem* replicaItem
 
 	const QList<PhaseGraphicsItem*> phasesAtOldRect = phaseItems(oldRect);
 	const QList<PhaseGraphicsItem*> phasesAtNewRect = phaseItems(newRect);
-	// TODO: assert that both collections has no more that 1 element
 
 	if (phasesAtOldRect.empty() && phasesAtNewRect.empty())
 	{
@@ -328,6 +324,7 @@ void DialogGraphicsScene::onReplicaPositionChanged(NodeGraphicsItem* replicaItem
 		{
 			LOG << "phase.contains -> add";
 			phaseItem->addItem(replicaItem);
+			emit nodeAddedToPhase(replicaItem, phaseItem);
 		}
 		else if (intersects(phaseItem, replicaItem))
 		{
@@ -345,6 +342,7 @@ void DialogGraphicsScene::onReplicaPositionChanged(NodeGraphicsItem* replicaItem
 		{
 			LOG << "!phase.contains -> remove";
 			phaseItem->removeItem(replicaItem);
+			emit nodeRemovedFromPhase(replicaItem, phaseItem);
 		}
 
 		return;
@@ -382,4 +380,73 @@ QList<PhaseGraphicsItem*> DialogGraphicsScene::phaseItems(const QRectF& rect) co
 		}
 	}
 	return result;
+}
+
+/*namespace
+{
+
+QString nodeType(Core::AbstractDialogNode* node)
+{
+	if (node->type() == Core::ClientReplicaNode::Type)
+	{
+		return "ClientReplica";
+	}
+
+	if (node->type() == Core::ExpectedWordsNode::Type)
+	{
+		return "ExpectedWords";
+	}
+
+	return "Phase";
+}
+
+QString nodeType(NodeGraphicsItem* node)
+{
+	return nodeType(node->data());
+}
+
+QString toString(NodeGraphicsItem* graphicsNode)
+{
+	Core::AbstractDialogNode* node = graphicsNode->data();
+
+	if (node->type() == Core::ClientReplicaNode::Type)
+	{
+		return dynamic_cast<Core::ClientReplicaNode*>(node)->replica;
+	}
+
+	if (node->type() == Core::ExpectedWordsNode::Type)
+	{
+		return "ExpectedWordsNode";
+	}
+
+	return "";
+}
+
+}*/
+
+void DialogGraphicsScene::placeItems(PhaseGraphicsItem& phase, const QSet<Core::AbstractDialogNode*>& childNodes,
+	NodeGraphicsItem::Properties properties, NodeGraphicsItem*& lastInsertedNode)
+{
+	//LOG << dynamic_cast<Core::PhaseNode*>(phase.data())->name << ": place " << childNodes.size() << " childs of " << nodeType(lastInsertedNode)
+	//	<< " (" << toString(lastInsertedNode) << ")";
+
+	for (auto it = childNodes.begin(); it != childNodes.end(); ++it)
+	{
+		Core::AbstractDialogNode* child = *it;
+
+		NodeGraphicsItem* graphicsItem = makeGraphicsItem(child, properties, this);
+		const QPointF position = QPointF(
+			phase.sceneBoundingRect().left() + s_phaseLeftPadding,
+			lastInsertedNode->sceneBoundingRect().bottom() + s_nodesInterval);
+
+		addNodeToScene(graphicsItem, position);
+		phase.addItem(graphicsItem);
+		emit nodeAddedToPhase(graphicsItem, &phase);
+
+		connectNodes(lastInsertedNode, graphicsItem);
+
+		lastInsertedNode = graphicsItem;
+
+		placeItems(phase, child->childNodes(), properties, lastInsertedNode);
+	}
 }

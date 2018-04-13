@@ -15,9 +15,11 @@ public:
 		Type = UserType + 2
 	};
 
-	ClientReplicaNodeGraphicsItem(const Core::ClientReplicaNode& replica, Properties properties, QObject* parent = 0);
+	ClientReplicaNodeGraphicsItem(Core::ClientReplicaNode* replica, Properties properties, QObject* parent = 0);
 
 	virtual int type() const override;
+	virtual Core::AbstractDialogNode* data() override;
+	virtual const Core::AbstractDialogNode* data() const override;
 
 private:
 	virtual QString getHeaderText() const override;
@@ -32,7 +34,7 @@ private:
 	void closeEditor();
 
 private:
-	Core::ClientReplicaNode m_replica;
+	Core::ClientReplicaNode* m_replica;
 	ClientReplicaEditor* m_editor;
 };
 

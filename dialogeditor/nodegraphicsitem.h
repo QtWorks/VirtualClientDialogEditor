@@ -1,6 +1,7 @@
 #ifndef NODEGRAPHICSITEM_H
 #define NODEGRAPHICSITEM_H
 
+#include "core/dialog.h"
 #include "logger.h"
 #include <QGraphicsObject>
 #include <QBrush>
@@ -46,10 +47,14 @@ public:
 	virtual QRectF boundingRect() const override;
 	virtual void showNodeEditor() = 0;
 
+	virtual Core::AbstractDialogNode* data() = 0;
+	virtual const Core::AbstractDialogNode* data() const = 0;
+
 signals:
 	void removeRequested();
 	void selectionChanged(bool value);
 	void positionChanged(QPointF oldPosition, QPointF newPosition);
+	void changed(NodeGraphicsItem* newNode);
 
 public:
 	virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

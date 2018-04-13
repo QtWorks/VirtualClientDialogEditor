@@ -15,9 +15,11 @@ public:
 		Type = UserType + 3
 	};
 
-	ExpectedWordsNodeGraphicsItem(const Core::ExpectedWordsNode& expectedWords, Properties properties, QObject* parent = 0);
+	ExpectedWordsNodeGraphicsItem(Core::ExpectedWordsNode* expectedWords, Properties properties, QObject* parent = 0);
 
 	virtual int type() const override;
+	virtual Core::AbstractDialogNode* data() override;
+	virtual const Core::AbstractDialogNode* data() const override;
 
 private:
 	virtual QString getHeaderText() const override;
@@ -32,7 +34,7 @@ private:
 	void closeEditor();
 
 private:
-	Core::ExpectedWordsNode m_expectedWords;
+	Core::ExpectedWordsNode* m_expectedWords;
 	ExpectedWordsEditorWindow* m_editor;
 };
 

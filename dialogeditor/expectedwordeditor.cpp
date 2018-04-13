@@ -8,22 +8,19 @@ ExpectedWordEditor::ExpectedWordEditor(const Core::ExpectedWords& expectedWords,
 {
 	m_ui->setupUi(this);
 
-	m_ui->textEdit->setText(m_expectedWords.words);
+	m_ui->wordsTextEdit->setText(m_expectedWords.words);
 
-	QFontMetrics fontMetrics = QFontMetrics(m_ui->textEdit->font());
-	setMinimumHeight(fontMetrics.lineSpacing() * 3.5);
-	setMaximumHeight(fontMetrics.lineSpacing() * 5.5);
+	QFontMetrics fontMetrics = QFontMetrics(m_ui->wordsTextEdit->font());
+	setMinimumHeight(fontMetrics.lineSpacing() * 5.5);
+	setMaximumHeight(fontMetrics.lineSpacing() * 7.5);
 
-	connect(m_ui->textEdit, &QTextEdit::textChanged, [this]()
-	{
-		m_expectedWords.words = m_ui->textEdit->toPlainText().trimmed();
-		emit changed(m_expectedWords);
-	});
+	connect(m_ui->wordsTextEdit, &QTextEdit::textChanged, this, &ExpectedWordEditor::onWordsChanged);
 
-	connect(m_ui->removeButton, &QPushButton::clicked, [this]()
-	{
-		emit removed();
-	});
+	m_ui->scoreLineEdit->setText(QString::number(m_expectedWords.score));
+	m_ui->scoreLineEdit->setValidator(new QIntValidator(this));
+	connect(m_ui->scoreLineEdit, &QLineEdit::textChanged, this, &ExpectedWordEditor::onScoreChanged);
+
+	connect(m_ui->removeButton, &QPushButton::clicked, this, &ExpectedWordEditor::onRemoveClicked);
 }
 
 ExpectedWordEditor::~ExpectedWordEditor()
@@ -31,12 +28,40 @@ ExpectedWordEditor::~ExpectedWordEditor()
 	delete m_ui;
 }
 
-QString ExpectedWordEditor::text() const
+Core::ExpectedWords ExpectedWordEditor::expectedWords() const
 {
-	return m_expectedWords.words;
+	return m_expectedWords;
 }
 
 void ExpectedWordEditor::setFocus()
 {
-	m_ui->textEdit->setFocus();
+	m_ui->wordsTextEdit->setFocus();
+}
+
+void ExpectedWordEditor::onWordsChanged()
+{
+	m_expectedWords.words = m_ui->wordsTextEdit->toPlainText().trimmed();
+	emit changed();
+}
+
+void ExpectedWordEditor::onScoreChanged()
+{
+	const QString scoreString = m_ui->scoreLineEdit->text().trimmed();
+	if (scoreString.isEmpty())
+	{
+		m_ui->scoreLineEdit->setText("0");
+		return;
+	}
+
+	bool ok = false;
+	const double score = scoreString.toDouble(&ok);
+	Q_ASSERT(ok);
+
+	m_expectedWords.score = score;
+	emit changed();
+}
+
+void ExpectedWordEditor::onRemoveClicked()
+{
+	emit removed();
 }

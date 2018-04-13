@@ -250,6 +250,17 @@ QPointF ArrowLineGraphicsItem::Item::point() const
 	return QPointF();
 }
 
+ArrowLineGraphicsItem::Item::Type ArrowLineGraphicsItem::Item::type() const
+{
+	return m_type;
+}
+
+NodeGraphicsItem* ArrowLineGraphicsItem::Item::node() const
+{
+	Q_ASSERT(m_type == Item::Type::GraphicsItem);
+	return m_item;
+}
+
 ArrowLineGraphicsItem::ArrowLineGraphicsItem(const QPointF& startPoint, const QPointF& endPoint, bool isDraggable, QGraphicsItem* parent)
 	: ArrowLineGraphicsItem(ArrowLineGraphicsItem::Item(startPoint), ArrowLineGraphicsItem::Item(endPoint), isDraggable, parent)
 {
@@ -353,6 +364,23 @@ void ArrowLineGraphicsItem::updatePosition(const QPointF& sceneP1, const QPointF
 void ArrowLineGraphicsItem::setDraggable(bool value)
 {
 	m_isDraggable = value;
+}
+
+NodeGraphicsItem* ArrowLineGraphicsItem::parentNode() const
+{
+	Q_ASSERT(isConnectingNodes());
+	return m_startItem.node();
+}
+
+NodeGraphicsItem* ArrowLineGraphicsItem::childNode() const
+{
+	Q_ASSERT(isConnectingNodes());
+	return m_endItem.node();
+}
+
+bool ArrowLineGraphicsItem::isConnectingNodes() const
+{
+	return m_startItem.type() == Item::Type::GraphicsItem && m_endItem.type() == Item::Type::GraphicsItem;
 }
 
 void ArrowLineGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*)

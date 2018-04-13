@@ -1,7 +1,6 @@
 #ifndef DIALOGEDITORWINDOW_H
 #define DIALOGEDITORWINDOW_H
 
-#include "core/idialogmodel.h"
 #include "dialoggraphicsscene.h"
 #include <QWidget>
 #include <memory>
@@ -26,8 +25,6 @@ public slots:
 	void onNodeAdded(NodeGraphicsItem* node);
 	void onNodeRemoved(NodeGraphicsItem* node);
 	void onNodeSelectionChanged(NodeGraphicsItem* node, bool value);
-	void onLinkAdded(ArrowLineGraphicsItem* link);
-	void onLinkRemoved(ArrowLineGraphicsItem* link);
 
 	void updateSaveControls();
 	void showError(QString text);
@@ -36,9 +33,9 @@ public slots:
 	void onConnectNodesClicked();
 	void updateConnectControls();
 
-	void nodeAdded(NodeGraphicsItem* node, Core::AbstractDialogNode* nodeData);
+	void nodeAdded(NodeGraphicsItem* node);
 	void nodeRemoved(NodeGraphicsItem* node);
-	void nodeChanged(NodeGraphicsItem* node, Core::AbstractDialogNode* nodeData);
+	void nodeChanged(NodeGraphicsItem* originalNode, NodeGraphicsItem* updatedNode);
 
 	void nodesConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
 	void nodesDisconnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
@@ -47,13 +44,21 @@ public slots:
 	void nodeRemovedFromPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase);
 
 private:
+	bool validateDialog() const;
+	bool validateDialog(QString& error) const;
+	void updateDialog();
+
+private:
 	Ui::DialogEditorWindow* m_ui;
 
 	QGraphicsScene* m_dialogConstructorGraphicsScene;
 	DialogGraphicsScene* m_dialogGraphicsScene;
-	std::unique_ptr<Core::IDialogModel> m_dialogModel;
+	Core::Dialog m_dialog;
 
 	QVector<NodeGraphicsItem*> m_selectedNodes;
+
+	QVector<NodeGraphicsItem*> m_nodeItems;
+	QMap<PhaseGraphicsItem*, QList<NodeGraphicsItem*>> m_nodesByPhase;
 };
 
 #endif // DIALOGEDITORWINDOW_H

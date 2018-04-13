@@ -1,7 +1,9 @@
 #ifndef DIALOGCONSTRUCTORGRAPHICSSCENE_H
 #define DIALOGCONSTRUCTORGRAPHICSSCENE_H
 
+#include "core/dialog.h"
 #include <QGraphicsScene>
+
 
 class DialogConstructorGraphicsScene
 	: public QGraphicsScene
@@ -16,6 +18,11 @@ private:
 
 private:
 	void addConstructorItems();
+
+private:
+	Core::PhaseNode m_phase;
+	Core::ClientReplicaNode m_replica;
+	Core::ExpectedWordsNode m_expectedWords;
 };
 
 #endif // DIALOGCONSTRUCTORGRAPHICSSCENE_H

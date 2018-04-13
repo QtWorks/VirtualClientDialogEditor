@@ -20,20 +20,28 @@ public:
 	~ExpectedWordsEditorWindow();
 
 signals:
-	void accepted(Core::ExpectedWordsNode expectedWords);
+	void accepted(const Core::ExpectedWordsNode& expectedWords);
 	void rejected();
 
 private slots:
+	void onUseHintCheckboxChecked(bool checked);
+	void onHintChanged();
 	void onAddItemClicked();
 	void onSaveClicked();
 	void onCancelClicked();
+
+	void validate();
 
 private:
 	void addItemWidget(const Core::ExpectedWords& item);
 	void updateControls();
 
+	void setError(const QString& error);
+	void removeError();
+
 private:
 	Ui::ExpectedWordsEditorWindow* m_ui;
+	Core::ExpectedWordsNode m_expectedWords;
 	QVector<ExpectedWordEditor*> m_itemEditors;
 };
 

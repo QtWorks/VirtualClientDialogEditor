@@ -7,7 +7,7 @@
 #include <QKeyEvent>
 #include <QGraphicsScene>
 
-PhaseGraphicsItem::PhaseGraphicsItem(const Core::PhaseNode& phase, Properties properties, QObject* parent)
+PhaseGraphicsItem::PhaseGraphicsItem(Core::PhaseNode* phase, Properties properties, QObject* parent)
 	: NodeGraphicsItem(properties, parent)
 	, m_phase(phase)
 	, m_editor(nullptr)
@@ -41,6 +41,16 @@ void PhaseGraphicsItem::removeItem(NodeGraphicsItem* item)
 int PhaseGraphicsItem::type() const
 {
 	return PhaseGraphicsItem::Type;
+}
+
+Core::AbstractDialogNode* PhaseGraphicsItem::data()
+{
+	return m_phase;
+}
+
+const Core::AbstractDialogNode* PhaseGraphicsItem::data() const
+{
+	return m_phase;
 }
 
 void PhaseGraphicsItem::keyPressEvent(QKeyEvent* event)
@@ -80,7 +90,7 @@ QVariant PhaseGraphicsItem::itemChange(GraphicsItemChange change, const QVariant
 
 QString PhaseGraphicsItem::getHeaderText() const
 {
-	return "Фаза: " + m_phase.name + " (" + QString::number(m_phase.score) + ")";
+	return "Фаза: " + m_phase->name + " (" + QString::number(m_phase->score) + ")";
 }
 
 QString PhaseGraphicsItem::getContentText() const
@@ -103,7 +113,7 @@ void PhaseGraphicsItem::showNodeEditor()
 
 NodeGraphicsItem* PhaseGraphicsItem::clone() const
 {
-	return new PhaseGraphicsItem(m_phase, m_properties, parent());
+	return new PhaseGraphicsItem(dynamic_cast<Core::PhaseNode*>(m_phase->shallowCopy()), m_properties, parent());
 }
 
 qreal PhaseGraphicsItem::minHeight() const
@@ -122,8 +132,6 @@ qreal PhaseGraphicsItem::minHeight() const
 			mostBottom = bottom;
 		}
 	}
-
-	LOG << ARG(mostBottom);
 
 	return mostBottom + 15.0;
 }
@@ -145,8 +153,6 @@ qreal PhaseGraphicsItem::minWidth() const
 		}
 	}
 
-	LOG << ARG(mostRight);
-
 	return mostRight + 15.0;
 }
 
@@ -157,11 +163,12 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 		return;
 	}
 
-	m_editor = new PhaseEditorWindow(m_phase);
+	m_editor = new PhaseEditorWindow(*m_phase);
 
-	QObject::connect(m_editor, &PhaseEditorWindow::accepted, [this](Core::PhaseNode phase)
+	QObject::connect(m_editor, &PhaseEditorWindow::accepted, [this](const Core::PhaseNode& phase)
 	{
-		m_phase = phase;
+		m_phase->name = phase.name;
+		m_phase->score = phase.score;
 
 		update();
 
@@ -176,6 +183,11 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 	QObject::connect(m_editor, &QWidget::destroyed, [this]()
 	{
 		m_editor = nullptr;
+	});
+
+	QObject::connect(m_editor, &PhaseEditorWindow::changed, [this]()
+	{
+		update();
 	});
 }
 

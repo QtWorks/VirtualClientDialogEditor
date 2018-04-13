@@ -1,13 +1,12 @@
 #ifndef DIALOGVIEW_H
 #define DIALOGVIEW_H
 
-#include "core/idialogmodel.h"
+#include "nodegraphicsitem.h"
 #include <QGraphicsView>
 #include <QGraphicsScene>
 
 #include <QMap>
 
-class NodeGraphicsItem;
 class ArrowLineGraphicsItem;
 class PhaseGraphicsItem;
 
@@ -20,10 +19,11 @@ public:
 	DialogGraphicsScene(QObject* parent = nullptr);
 	~DialogGraphicsScene();
 
-	void setModel(Core::IDialogModel* model);
+	void setDialog(Core::Dialog* dialog);
 
 	void addNodeToScene(NodeGraphicsItem* node, const QPointF& position);
 	void addLineToScene(ArrowLineGraphicsItem* line);
+	void connectNodes(NodeGraphicsItem* parentNode, NodeGraphicsItem* childNode);
 
 signals:
 	void nodeSelectionChanged(NodeGraphicsItem* node, bool value);
@@ -31,9 +31,9 @@ signals:
 	void linkAdded(ArrowLineGraphicsItem* link);
 	void linkRemoved(ArrowLineGraphicsItem* link);
 
-	void nodeAdded(NodeGraphicsItem* node, Core::AbstractDialogNode* nodeData);
+	void nodeAdded(NodeGraphicsItem* node);
 	void nodeRemoved(NodeGraphicsItem* node);
-	void nodeChanged(NodeGraphicsItem* node, Core::AbstractDialogNode* nodeData);
+	void nodeChanged(NodeGraphicsItem* oldNode, NodeGraphicsItem* newNode);
 
 	void nodesConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
 	void nodesDisconnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
@@ -58,8 +58,11 @@ private:
 	void onReplicaPositionChanged(NodeGraphicsItem* replicaItem, const QPointF& from, const QPointF& to);
 	QList<PhaseGraphicsItem*> phaseItems(const QRectF& rect) const;
 
+	void placeItems(PhaseGraphicsItem& phase, const QSet<Core::AbstractDialogNode*>& childNodes,
+		NodeGraphicsItem::Properties properties, NodeGraphicsItem*& lastInsertedNode);
+
 private:
-	Core::IDialogModel* m_model;
+	Core::Dialog* m_dialog;
 };
 
 #endif // DIALOGVIEW_H

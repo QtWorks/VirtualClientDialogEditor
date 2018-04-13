@@ -20,10 +20,12 @@ SOURCES += \
     logindialog.cpp \
     main.cpp \
     mainwindow.cpp \
-    core/dialogmodel.cpp \
     core/inmemorybackendconnection.cpp \
     core/user.cpp \
     core/websocket.cpp \
+    core/dialogjsonreader.cpp \
+    core/dialogjsonwriter.cpp \
+    core/dialog.cpp \
     dialogeditor/arrowlinegraphicsitem.cpp \
     dialogeditor/clientreplicanodegraphicsitem.cpp \
     dialogeditor/dialogeditorwindow.cpp \
@@ -38,26 +40,28 @@ SOURCES += \
     dialogeditor/dialogconstructorgraphicsscene.cpp \
     dialogeditor/nodegraphicsitemmimedata.cpp \
     dialogeditor/arrowlinegraphicsitemmimedata.cpp \
-	dialogeditor/zoomablegraphicsview.cpp \
-	dialogeditor/phasegraphicsitem.cpp \
+    dialogeditor/zoomablegraphicsview.cpp \
+    dialogeditor/phasegraphicsitem.cpp \
     dialogeditor/phaseeditorwindow.cpp \
-    core/dialogjsonreader.cpp \
-    core/dialogjsonwriter.cpp
+    core/abstractdialognode.cpp \
+    core/clientreplicanode.cpp \
+    core/expectedwordsnode.cpp \
+    core/phasenode.cpp
 
 HEADERS  += \
     authwindow.h \
     editablelistitem.h \
     listeditorwidget.h \
     logindialog.h \
+    logger.h \
     mainwindow.h \
     core/dialog.h \
-    core/dialogmodel.h \
     core/ibackendconnection.h \
-    core/idialogmodel.h \
     core/inmemorybackendconnection.h \
     core/user.h \
     core/websocket.h \
-	logger.h \
+    core/dialogjsonreader.h \
+    core/dialogjsonwriter.h \
     dialogeditor/arrowlinegraphicsitem.h \
     dialogeditor/clientreplicanodegraphicsitem.h \
     dialogeditor/dialogeditorwindow.h \
@@ -72,11 +76,13 @@ HEADERS  += \
     dialogeditor/dialogconstructorgraphicsscene.h \
     dialogeditor/nodegraphicsitemmimedata.h \
     dialogeditor/arrowlinegraphicsitemmimedata.h \
-	dialogeditor/zoomablegraphicsview.h \
-	dialogeditor/phasegraphicsitem.h \
+    dialogeditor/zoomablegraphicsview.h \
+    dialogeditor/phasegraphicsitem.h \
     dialogeditor/phaseeditorwindow.h \
-    core/dialogjsonreader.h \
-    core/dialogjsonwriter.h
+	core/abstractdialognode.h \
+    core/clientreplicanode.h \
+    core/expectedwordsnode.h \
+    core/phasenode.h
 
 FORMS    += \
     authwindow.ui \

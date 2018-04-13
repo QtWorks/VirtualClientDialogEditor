@@ -10,7 +10,7 @@ class DialogJsonWriter
 public:
 	DialogJsonWriter();
 
-	QByteArray write(const Dialog& dialog);
+	QString write(const Dialog& dialog);
 };
 
 }

@@ -14,18 +14,24 @@ class ExpectedWordEditor
 	Q_OBJECT
 
 public:
-	explicit ExpectedWordEditor(const Core::ExpectedWords& text, QWidget* parent = 0);
+	explicit ExpectedWordEditor(const Core::ExpectedWords& expectedWords, QWidget* parent = 0);
 	~ExpectedWordEditor();
 
-	QString text() const;
+	Core::ExpectedWords expectedWords() const;
 	void setFocus();
 
 signals:
-	void changed(Core::ExpectedWords expectedWords);
+	void changed();
 	void removed();
+
+private slots:
+	void onWordsChanged();
+	void onScoreChanged();
+	void onRemoveClicked();
 
 private:
 	Ui::ExpectedWordEditor* m_ui;
+	Core::ExpectedWords* m_originalExpectedWords;
 	Core::ExpectedWords m_expectedWords;
 };
 

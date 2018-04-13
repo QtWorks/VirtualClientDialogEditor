@@ -6,6 +6,9 @@
 
 DialogConstructorGraphicsScene::DialogConstructorGraphicsScene(QObject* parent)
 	: QGraphicsScene(parent)
+	, m_phase("", 0, nullptr)
+	, m_replica("")
+	, m_expectedWords({})
 {
 	addConstructorItems();
 }
@@ -16,15 +19,15 @@ DialogConstructorGraphicsScene::~DialogConstructorGraphicsScene()
 
 void DialogConstructorGraphicsScene::addConstructorItems()
 {
-	NodeGraphicsItem* phaseNode = new PhaseGraphicsItem(Core::PhaseNode("", 0, nullptr), NodeGraphicsItem::Draggable, this);
+	NodeGraphicsItem* phaseNode = new PhaseGraphicsItem(&m_phase, NodeGraphicsItem::Draggable, this);
 	phaseNode->setPos(QPoint(0, 0));
 	addItem(phaseNode);
 
-	NodeGraphicsItem* clientReplicaNode = new ClientReplicaNodeGraphicsItem(Core::ClientReplicaNode(""), NodeGraphicsItem::Draggable, this);
+	NodeGraphicsItem* clientReplicaNode = new ClientReplicaNodeGraphicsItem(&m_replica, NodeGraphicsItem::Draggable, this);
 	clientReplicaNode->setPos(QPoint(0, 90));
 	addItem(clientReplicaNode);
 
-	NodeGraphicsItem* expectedWordsNode = new ExpectedWordsNodeGraphicsItem(Core::ExpectedWordsNode({}), NodeGraphicsItem::Draggable, this);
+	NodeGraphicsItem* expectedWordsNode = new ExpectedWordsNodeGraphicsItem(&m_expectedWords, NodeGraphicsItem::Draggable, this);
 	expectedWordsNode->setPos(QPoint(0, 180));
 	addItem(expectedWordsNode);
 

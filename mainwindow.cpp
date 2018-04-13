@@ -4,6 +4,8 @@
 #include "dialogeditor/dialogeditorwindow.h"
 #include "usereditor/usereditordialog.h"
 
+#include "core/dialogjsonwriter.h"
+
 #include <QDesktopWidget>
 #include <QMessageBox>
 
@@ -157,6 +159,10 @@ void MainWindow::onDialogEditRequested(QString dialogName)
 		[this, it, dialogName](Core::Dialog dialog)
 		{
 			*it = dialog;
+
+			Core::DialogJsonWriter writer;
+			LOG << writer.write(dialog);
+
 			m_dialogsListEditorWidget->updateItem(dialogName, dialog.printableName());
 		});
 
@@ -183,8 +189,12 @@ void MainWindow::onDialogCreateRequested()
 	connect(window, &DialogEditorWindow::dialogChanged,
 		[this](Core::Dialog dialog)
 		{
-			// TODO: same name
+			// TODO: dialog is invalid if there is another dialog with the same combination of name and difficulty
 			m_dialogs.append(dialog);
+
+			Core::DialogJsonWriter writer;
+			LOG << writer.write(dialog);
+
 			m_dialogsListEditorWidget->addItem(dialog.printableName());
 		});
 

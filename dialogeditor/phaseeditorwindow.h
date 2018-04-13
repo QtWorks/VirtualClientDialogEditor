@@ -18,8 +18,9 @@ public:
 	~PhaseEditorWindow();
 
 signals:
-	void accepted(Core::PhaseNode phase);
+	void accepted(const Core::PhaseNode& phase);
 	void rejected();
+	void changed();
 
 private slots:
 	void onSaveClicked();

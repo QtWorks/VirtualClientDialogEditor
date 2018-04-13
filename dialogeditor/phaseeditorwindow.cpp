@@ -9,7 +9,6 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, QWidget* pare
 	, m_phase(phase)
 {
 	m_ui->setupUi(this);
-
 	setAttribute(Qt::WA_DeleteOnClose, true);
 
 	QIcon warningIcon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
@@ -21,6 +20,7 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, QWidget* pare
 	connect(m_ui->nameLineEdit, &QLineEdit::textChanged, this, PhaseEditorWindow::onNameChanged);
 
 	m_ui->scoreLineEdit->setText(QString::number(m_phase.score));
+	m_ui->scoreLineEdit->setValidator(new QIntValidator(0, INT_MAX, this));
 	connect(m_ui->scoreLineEdit, &QLineEdit::textChanged, this, PhaseEditorWindow::onScoreChanged);
 
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setText("Сохранить");
@@ -36,7 +36,8 @@ PhaseEditorWindow::~PhaseEditorWindow()
 
 void PhaseEditorWindow::onSaveClicked()
 {
-	Q_ASSERT(!m_phase.name.trimmed().isEmpty());
+	QString error;
+	Q_ASSERT(m_phase.validate(error));
 
 	hide();
 	emit accepted(m_phase);
@@ -50,15 +51,18 @@ void PhaseEditorWindow::onCancelClicked()
 
 void PhaseEditorWindow::onNameChanged()
 {
-	const QString name = m_ui->nameLineEdit->text().trimmed();
-	if (name.isEmpty())
-	{
-		setError("Имя не может быть пустым");
-		return;
-	}
+	m_phase.name = m_ui->nameLineEdit->text().trimmed();
+	emit changed();
 
-	removeError();
-	m_phase.name = name;
+	QString error;
+	if (!m_phase.validate(error))
+	{
+		setError(error);
+	}
+	else
+	{
+		removeError();
+	}
 }
 
 void PhaseEditorWindow::onScoreChanged()
@@ -66,22 +70,26 @@ void PhaseEditorWindow::onScoreChanged()
 	const QString scoreString = m_ui->scoreLineEdit->text().trimmed();
 	if (scoreString.isEmpty())
 	{
-		setError("Кол-во баллов не может быть пустым");
+		m_ui->scoreLineEdit->setText("0");
 		return;
 	}
 
 	bool ok = false;
 	const double score = scoreString.toDouble(&ok);
-	if (!ok)
-	{
-		setError("Кол-во баллов должно быть числом");
-		return;
-	}
+	Q_ASSERT(ok);
 
-	// TODO: add check for maximum available score
-
-	removeError();
 	m_phase.score = score;
+	emit changed();
+
+	QString error;
+	if (!m_phase.validate(error))
+	{
+		setError(error);
+	}
+	else
+	{
+		removeError();
+	}
 }
 
 void PhaseEditorWindow::setError(const QString& message)

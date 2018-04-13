@@ -18,10 +18,12 @@ public:
 	~ClientReplicaEditor();
 
 signals:
-	void accepted(Core::ClientReplicaNode replica);
+	void accepted(const Core::ClientReplicaNode& replica);
 	void rejected();
+	void changed();
 
 private slots:
+	void onReplicaChanged();
 	void onSaveClicked();
 	void onCancelClicked();
 

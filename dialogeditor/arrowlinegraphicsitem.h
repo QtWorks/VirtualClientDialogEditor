@@ -29,6 +29,10 @@ public:
 	void updatePosition(const QPointF& p1, const QPointF& p2, bool updateItems = true);
 	void setDraggable(bool value);
 
+	NodeGraphicsItem* parentNode() const;
+	NodeGraphicsItem* childNode() const;
+	bool isConnectingNodes() const;
+
 	virtual void keyPressEvent(QKeyEvent* event) override;
 
 signals:
@@ -46,6 +50,12 @@ private:
 	class Item
 	{
 	public:
+		enum class Type
+		{
+			Point,
+			GraphicsItem
+		};
+
 		explicit Item(const QPointF& point);
 		Item(NodeGraphicsItem* item);
 		Item(NodeGraphicsItem* item, ArrowLineGraphicsItem* lineItem, bool incomingLink);
@@ -68,16 +78,12 @@ private:
 		QPointF intersectionPoint(const QLineF& line) const;
 
 		QPointF point() const;
+		Type type() const;
+		NodeGraphicsItem* node() const;
 
 		friend class ArrowLineGraphicsItem;
 
 	private:
-		enum class Type
-		{
-			Point,
-			GraphicsItem
-		};
-
 		Type m_type;
 		QPointF m_point;
 

@@ -17,12 +17,14 @@ public:
 		Type = UserType + 4
 	};
 
-	PhaseGraphicsItem(const Core::PhaseNode& phase, Properties properties, QObject* parent = 0);
+	PhaseGraphicsItem(Core::PhaseNode* phase, Properties properties, QObject* parent = 0);
 
 	void addItem(NodeGraphicsItem* item);
 	void removeItem(NodeGraphicsItem* item);
 
 	virtual int type() const override;
+	virtual Core::AbstractDialogNode* data() override;
+	virtual const Core::AbstractDialogNode* data() const override;
 
 	virtual void keyPressEvent(QKeyEvent* event) override;
 	virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
@@ -42,7 +44,7 @@ private:
 	void closeEditor();
 
 private:
-	Core::PhaseNode m_phase;
+	Core::PhaseNode* m_phase;
 	PhaseEditorWindow* m_editor;
 	QList<NodeGraphicsItem*> m_items;
 };

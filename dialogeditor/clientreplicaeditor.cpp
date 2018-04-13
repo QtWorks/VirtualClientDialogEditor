@@ -9,18 +9,12 @@ ClientReplicaEditor::ClientReplicaEditor(const Core::ClientReplicaNode& replica,
 	, m_replica(replica)
 {
 	m_ui->setupUi(this);
-
 	setAttribute(Qt::WA_DeleteOnClose, true);
 
 	m_ui->textEdit->setText(m_replica.replica);
 	m_ui->textEdit->setMinimumHeight(50);
 	m_ui->textEdit->setMinimumWidth(300);
-	connect(m_ui->textEdit, &QTextEdit::textChanged, [this]()
-	{
-		m_replica.replica = m_ui->textEdit->toPlainText().trimmed();
-
-		updateControls();
-	});
+	connect(m_ui->textEdit, &QTextEdit::textChanged, this, &ClientReplicaEditor::onReplicaChanged);
 
 	QIcon warningIcon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
 	QPixmap warningPixmap = warningIcon.pixmap(QSize(16, 16));
@@ -40,9 +34,18 @@ ClientReplicaEditor::~ClientReplicaEditor()
 	delete m_ui;
 }
 
+void ClientReplicaEditor::onReplicaChanged()
+{
+	m_replica.replica = m_ui->textEdit->toPlainText().trimmed();
+
+	updateControls();
+	emit changed();
+}
+
 void ClientReplicaEditor::onSaveClicked()
 {
-	Q_ASSERT(!m_replica.replica.trimmed().isEmpty());
+	QString error;
+	Q_ASSERT(m_replica.validate(error));
 
 	hide();
 	emit accepted(m_replica);
@@ -56,8 +59,13 @@ void ClientReplicaEditor::onCancelClicked()
 
 void ClientReplicaEditor::updateControls()
 {
-	const bool saveAllowed = !m_replica.replica.isEmpty();
+	QString error;
+	const bool saveAllowed = m_replica.validate(error);
+
 	m_ui->errorIconLabel->setVisible(!saveAllowed);
+
 	m_ui->errorTextLabel->setVisible(!saveAllowed);
+	m_ui->errorTextLabel->setText(error);
+
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(saveAllowed);
 }

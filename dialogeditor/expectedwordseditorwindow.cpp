@@ -1,17 +1,38 @@
 #include "expectedwordseditorwindow.h"
 #include "ui_expectedwordseditorwindow.h"
 #include "expectedwordeditor.h"
+#include "logger.h"
 
 ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNode& expectedWords, QWidget* parent)
 	: QWidget(parent)
 	, m_ui(new Ui::ExpectedWordsEditorWindow)
+	, m_expectedWords(expectedWords)
 {
 	m_ui->setupUi(this);
+	setAttribute(Qt::WA_DeleteOnClose, true);
 
-	m_ui->listWidget->setStyleSheet( "QListWidget::item { border-bottom: 1px solid black; }" );
+	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, this, &ExpectedWordsEditorWindow::onUseHintCheckboxChecked);
+	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, this, &ExpectedWordsEditorWindow::validate);
+
+	m_ui->useHintCheckBox->setChecked(expectedWords.customHint);
+	onUseHintCheckboxChecked(expectedWords.customHint);
+
+	if (expectedWords.customHint)
+	{
+		m_ui->hintTextEdit->setText(expectedWords.hint);
+	}
+
+	connect(m_ui->hintTextEdit, &QTextEdit::textChanged, this, &ExpectedWordsEditorWindow::onHintChanged);
+	connect(m_ui->hintTextEdit, &QTextEdit::textChanged, this, &ExpectedWordsEditorWindow::validate);
+
+	QFontMetrics fontMetrics = QFontMetrics(m_ui->hintTextEdit->font());
+	m_ui->hintTextEdit->setMaximumHeight(fontMetrics.lineSpacing() * 4);
+	m_ui->hintTextEdit->setMaximumHeight(fontMetrics.lineSpacing() * 4);
+
+	m_ui->listWidget->setStyleSheet("QListWidget::item { border-bottom: 1px solid black; }");
 	m_ui->listWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-	for (const Core::ExpectedWords& expectedWord : expectedWords.expectedWords)
+	for (const Core::ExpectedWords& expectedWord : m_expectedWords.expectedWords)
 	{
 		addItemWidget(expectedWord);
 	}
@@ -27,7 +48,7 @@ ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNo
 	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, ExpectedWordsEditorWindow::onSaveClicked);
 	connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, ExpectedWordsEditorWindow::onCancelClicked);
 
-	updateControls();
+	validate();
 }
 
 ExpectedWordsEditorWindow::~ExpectedWordsEditorWindow()
@@ -35,31 +56,52 @@ ExpectedWordsEditorWindow::~ExpectedWordsEditorWindow()
 	delete m_ui;
 }
 
+void ExpectedWordsEditorWindow::onUseHintCheckboxChecked(bool checked)
+{
+	m_expectedWords.customHint = checked;
+	m_expectedWords.hint = m_ui->hintTextEdit->toPlainText().trimmed();
+
+	m_ui->hintTextEdit->setDisabled(!checked);
+	m_ui->hintLabel->setDisabled(!checked);
+}
+
+void ExpectedWordsEditorWindow::onHintChanged()
+{
+	m_expectedWords.hint = m_ui->hintTextEdit->toPlainText().trimmed();
+}
+
 void ExpectedWordsEditorWindow::onAddItemClicked()
 {	
-	if (m_itemEditors.isEmpty() || !m_itemEditors.last()->text().isEmpty())
+	if (!m_itemEditors.isEmpty() && m_itemEditors.last()->expectedWords().words.trimmed().isEmpty())
 	{
-		addItemWidget(Core::ExpectedWords("", 0));
-
-		updateControls();
-
-		m_ui->listWidget->scrollToBottom();
-
-		m_itemEditors.last()->setFocus();
+		return;
 	}
+
+	m_expectedWords.expectedWords.append(Core::ExpectedWords("", 0));
+	addItemWidget(m_expectedWords.expectedWords.last());
+
+	validate();
+
+	m_ui->listWidget->scrollToBottom();
+
+	m_itemEditors.last()->setFocus();
 }
 
 void ExpectedWordsEditorWindow::onSaveClicked()
 {
+	QList<Core::ExpectedWords> words;
+	for (ExpectedWordEditor* editor : m_itemEditors)
+	{
+		words.append(editor->expectedWords());
+	}
+	m_expectedWords.expectedWords = words;
+
+	const QString hint = m_ui->hintTextEdit->toPlainText().trimmed();
+	m_expectedWords.hint = hint.isEmpty() ? "" : hint;
+
 	hide();
 
-	QList<Core::ExpectedWords> expectedWords;
-	for (const auto& item : m_itemEditors)
-	{
-		expectedWords << Core::ExpectedWords(item->text().trimmed(), 0);
-	}
-
-	emit accepted(expectedWords);
+	emit accepted(m_expectedWords);
 }
 
 void ExpectedWordsEditorWindow::onCancelClicked()
@@ -75,7 +117,8 @@ void ExpectedWordsEditorWindow::addItemWidget(const Core::ExpectedWords& item)
 
 	connect(editorItem, &ExpectedWordEditor::changed, [this]()
 	{
-		updateControls();
+		// TODO: update internal state
+		validate();
 	});
 
 	connect(editorItem, &ExpectedWordEditor::removed, [this, editorItem]()
@@ -84,7 +127,7 @@ void ExpectedWordsEditorWindow::addItemWidget(const Core::ExpectedWords& item)
 		Q_ASSERT(m_ui->listWidget->takeItem(itemIndex));
 		m_itemEditors.removeAt(itemIndex);
 
-		updateControls();
+		validate();
 	});
 
 	QListWidgetItem* widget = new QListWidgetItem();
@@ -94,15 +137,43 @@ void ExpectedWordsEditorWindow::addItemWidget(const Core::ExpectedWords& item)
 	m_ui->listWidget->setItemWidget(widget, editorItem);
 }
 
-void ExpectedWordsEditorWindow::updateControls()
+void ExpectedWordsEditorWindow::validate()
 {
-	const bool saveAllowed = !m_itemEditors.isEmpty() &&
-		std::none_of(m_itemEditors.begin(), m_itemEditors.end(), [](ExpectedWordEditor* editor)
-		{
-			return editor->text().trimmed().isEmpty();
-		});
+	// TODO: update internal state in changed slot ?
+	Core::ExpectedWordsNode expectedWords = m_expectedWords;
+	expectedWords.expectedWords.clear();
+	for (ExpectedWordEditor* editor : m_itemEditors)
+	{
+		expectedWords.expectedWords.append(editor->expectedWords());
+	}
 
-	m_ui->errorIconLabel->setVisible(!saveAllowed);
-	m_ui->errorTextLabel->setVisible(!saveAllowed);
-	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(saveAllowed);
+	QString error;
+	if (!expectedWords.validate(error))
+	{
+		setError(error);
+	}
+	else
+	{
+		removeError();
+	}
+}
+
+void ExpectedWordsEditorWindow::setError(const QString& error)
+{
+	m_ui->errorIconLabel->show();
+
+	m_ui->errorTextLabel->show();
+	m_ui->errorTextLabel->setText(error);
+
+	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
+}
+
+void ExpectedWordsEditorWindow::removeError()
+{
+	m_ui->errorIconLabel->hide();
+
+	m_ui->errorTextLabel->hide();
+	m_ui->errorTextLabel->setText("");
+
+	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(true);
 }
