@@ -21,7 +21,7 @@ class IBackendConnection
 public:
 	virtual ~IBackendConnection() { }
 
-	virtual void logIn(const QString& url, const QString& login, const QString& password) = 0;
+	virtual void logIn(const QString& login, const QString& password) = 0;
 	virtual void logOut() = 0;
 
 	virtual void readDialogs() = 0;

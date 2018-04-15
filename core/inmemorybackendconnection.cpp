@@ -57,7 +57,7 @@ InMemoryBackendConnection::InMemoryBackendConnection()
 {
 }
 
-void InMemoryBackendConnection::logIn(const QString& /*url*/, const QString& login, const QString& password)
+void InMemoryBackendConnection::logIn(const QString& login, const QString& password)
 {
 	if (login == "admin" && password == "admin")
 	{
@@ -65,7 +65,7 @@ void InMemoryBackendConnection::logIn(const QString& /*url*/, const QString& log
 	}
 	else
 	{
-		DELAYED_EMIT_ARGS(onError, "Неправильное имя пользователя или пароль");
+		DELAYED_EMIT_ARGS(error, "Неправильное имя пользователя или пароль");
 	}
 }
 

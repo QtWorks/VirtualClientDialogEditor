@@ -13,7 +13,7 @@ public:
 	InMemoryBackendConnection();
 
 private:
-	virtual void logIn(const QString& url, const QString& login, const QString& password) override;
+	virtual void logIn(const QString& login, const QString& password) override;
 	virtual void logOut() override;
 
 	virtual void readDialogs() override;
