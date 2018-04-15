@@ -75,7 +75,7 @@ void InMemoryBackendConnection::logOut()
 
 void InMemoryBackendConnection::readDialogs()
 {
-	DELAYED_EMIT_ARGS(onDialogsReaded, m_dialogs);
+	DELAYED_EMIT_ARGS(dialogsReaded, m_dialogs);
 }
 
 void InMemoryBackendConnection::addDialog(const Dialog& /*dialog*/)
@@ -92,7 +92,7 @@ void InMemoryBackendConnection::deleteDialog(const QString& /*name*/, Dialog::Di
 
 void InMemoryBackendConnection::readUsers()
 {
-	DELAYED_EMIT_ARGS(onUsersReaded, m_users);
+	DELAYED_EMIT_ARGS(usersReaded, m_users);
 }
 
 void InMemoryBackendConnection::addUser(const User& /*user*/)
