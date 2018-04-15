@@ -17,10 +17,10 @@ LoginDialog::LoginDialog(IBackendConnectionSharedPtr backendConnection, QWidget*
 	{
 		m_ui->loginButton->setDisabled(true);
 
-		m_backendConnection->open("", m_ui->usernameEdit->text(), m_ui->passwordEdit->text());
+		m_backendConnection->logIn("", m_ui->usernameEdit->text(), m_ui->passwordEdit->text());
 	});
 
-	connect(m_backendConnection.get(), &Core::IBackendConnection::onAuth, [this]()
+	connect(m_backendConnection.get(), &Core::IBackendConnection::loggedIn, [this]()
 	{
 		accept();
 	});

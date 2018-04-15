@@ -57,11 +57,11 @@ InMemoryBackendConnection::InMemoryBackendConnection()
 {
 }
 
-void InMemoryBackendConnection::open(const QString& /*url*/, const QString& login, const QString& password)
+void InMemoryBackendConnection::logIn(const QString& /*url*/, const QString& login, const QString& password)
 {
 	if (login == "admin" && password == "admin")
 	{
-		DELAYED_EMIT(onAuth);
+		DELAYED_EMIT(loggedIn);
 	}
 	else
 	{
@@ -69,7 +69,7 @@ void InMemoryBackendConnection::open(const QString& /*url*/, const QString& logi
 	}
 }
 
-void InMemoryBackendConnection::close()
+void InMemoryBackendConnection::logOut()
 {
 }
 
@@ -105,11 +105,6 @@ void InMemoryBackendConnection::updateUser(const User::UsernameType& /*username*
 
 void InMemoryBackendConnection::deleteUser(const User::UsernameType& /*username*/)
 {
-}
-
-void InMemoryBackendConnection::triggerError(const QString& message)
-{
-	DELAYED_EMIT_ARGS(onError, message);
 }
 
 }

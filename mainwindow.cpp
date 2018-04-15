@@ -27,8 +27,8 @@ MainWindow::MainWindow(IBackendConnectionSharedPtr backendConnection, QWidget* p
 
 	connect(m_loginDialog, &QDialog::finished, this, &MainWindow::onLoginDialogFinished);
 
-	connect(m_backendConnection.get(), &Core::IBackendConnection::onUsersReaded, this, &MainWindow::onUsersReaded);
-	connect(m_backendConnection.get(), &Core::IBackendConnection::onDialogsReaded, this, &MainWindow::onDialogsReaded);
+	connect(m_backendConnection.get(), &Core::IBackendConnection::usersReaded, this, &MainWindow::onUsersReaded);
+	connect(m_backendConnection.get(), &Core::IBackendConnection::dialogsReaded, this, &MainWindow::onDialogsReaded);
 
 	connect(m_usersListEditorWidget, &ListEditorWidget::itemEditRequested, this, &MainWindow::onUserEditRequested);
 	connect(m_usersListEditorWidget, &ListEditorWidget::itemRemoveRequested, this, &MainWindow::onUserRemoveRequested);
