@@ -30,11 +30,11 @@ private slots:
 	void onDialogsReaded(const QList<Core::Dialog>& dialogs);
 
 	void onUserEditRequested(QString username);
-	void onUserRemoveRequested(QString username);
+	void onUsersRemoveRequested(QStringList users);
 	void onUserCreateRequested();
 
 	void onDialogEditRequested(QString dialogName);
-	void onDialogRemoveRequested(QString dialogName);
+	void onDialogsRemoveRequested(QStringList dialogs);
 	void onDialogCreateRequested();
 
 private:

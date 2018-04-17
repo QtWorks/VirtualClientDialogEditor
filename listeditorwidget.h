@@ -4,12 +4,22 @@
 #include <QWidget>
 #include <QStringList>
 #include <QListWidget>
+#include <QStyledItemDelegate>
 
 namespace Ui {
 class ListEditorWidget;
 }
 
-class EditableListItem;
+class CustomFontDelegate
+	: public QStyledItemDelegate
+{
+	Q_OBJECT
+
+public:
+	explicit CustomFontDelegate(QObject* parent = 0);
+
+	virtual QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+};
 
 class ListEditorWidget
 	: public QWidget
@@ -27,18 +37,19 @@ public:
 
 signals:
 	void itemEditRequested(QString item);
-	void itemRemoveRequested(QString item);
+	void itemsRemoveRequested(QStringList items);
 	void itemCreateRequested();
 
-private:
-	void addItemWidget(const QString& item);
-	void bindSignals(EditableListItem* item, QString text);
+private slots:
+	void onAddButtonClicked();
+	void onEditButtonClicked();
+	void onRemoveButtonClicked();
+	void onSelectionChanged();
 
 private:
 	Ui::ListEditorWidget* m_ui;
 
 	QStringList m_items;
-	QListWidget* m_listWidget;
 };
 
 #endif // LISTEDITORWIDGET_H

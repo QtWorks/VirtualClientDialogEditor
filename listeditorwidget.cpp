@@ -1,21 +1,36 @@
 #include "listeditorwidget.h"
 #include "ui_listeditorwidget.h"
-#include "editablelistitem.h"
+
+CustomFontDelegate::CustomFontDelegate(QObject* parent)
+	: QStyledItemDelegate(parent)
+{
+}
+
+QSize CustomFontDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
+{
+	QFontMetrics metrics(option.font);
+
+	QSize size = QStyledItemDelegate::sizeHint(option, index);
+	size.setHeight(metrics.height() * 3);
+
+	return size;
+}
 
 ListEditorWidget::ListEditorWidget(QWidget* parent)
 	: QWidget(parent)
 	, m_ui(new Ui::ListEditorWidget)
-	, m_listWidget(m_ui->listWidget)
 {
 	m_ui->setupUi(this);
 
-	m_listWidget = m_ui->listWidget;
-	m_listWidget->setStyleSheet( "QListWidget::item { border-bottom: 1px solid black; }" );
+	CustomFontDelegate* delegate = new CustomFontDelegate(parent);
+	m_ui->listWidget->setItemDelegate(delegate);
 
-	connect(m_ui->addButton, &QPushButton::clicked, [this]()
-	{
-		emit itemCreateRequested();
-	});
+	connect(m_ui->addButton, &QPushButton::clicked, this, &ListEditorWidget::onAddButtonClicked);
+	connect(m_ui->editButton, &QPushButton::clicked, this, &ListEditorWidget::onEditButtonClicked);
+	connect(m_ui->removeButton, &QPushButton::clicked, this, &ListEditorWidget::onRemoveButtonClicked);
+	onSelectionChanged();
+
+	connect(m_ui->listWidget, &QListWidget::itemSelectionChanged, this, &ListEditorWidget::onSelectionChanged);
 }
 
 ListEditorWidget::~ListEditorWidget()
@@ -25,13 +40,16 @@ ListEditorWidget::~ListEditorWidget()
 
 void ListEditorWidget::setItems(const QStringList& items)
 {
-	m_listWidget->clear();
+	m_ui->listWidget->clear();
 
-	m_items = items;
+	QStringList uniqueItems = items;
+	const int duplicatesCount = uniqueItems.removeDuplicates();
+	Q_ASSERT(duplicatesCount == 0);
+	m_items = uniqueItems;
 
 	for (const QString& item : items)
 	{
-		addItemWidget(item);
+		m_ui->listWidget->addItem(item);
 	}
 }
 
@@ -41,17 +59,15 @@ void ListEditorWidget::updateItem(const QString& oldItem, const QString& newItem
 
 	m_items[index] = newItem;
 
-	QWidget* itemWidget = m_listWidget->itemWidget(m_listWidget->item(index));
-	EditableListItem* editableListItem = dynamic_cast<EditableListItem*>(itemWidget);
-	editableListItem->setLabel(newItem);
-	bindSignals(editableListItem, newItem);
+	QListWidgetItem* listWidgetItem = m_ui->listWidget->item(index);
+	listWidgetItem->setText(newItem);
 }
 
 void ListEditorWidget::addItem(const QString& item)
 {
-	// TODO: same item already exists?
 	m_items.append(item);
-	addItemWidget(item);
+
+	m_ui->listWidget->addItem(item);
 }
 
 void ListEditorWidget::removeItem(const QString& item)
@@ -60,32 +76,40 @@ void ListEditorWidget::removeItem(const QString& item)
 
 	m_items.removeOne(item);
 
-	delete m_listWidget->takeItem(itemIndex);
+	delete m_ui->listWidget->takeItem(itemIndex);
 }
 
-void ListEditorWidget::addItemWidget(const QString& item)
+void ListEditorWidget::onAddButtonClicked()
 {
-	EditableListItem* editableListItem = new EditableListItem(item, m_ui->listWidget);
-	bindSignals(editableListItem, item);
-
-	QListWidgetItem* widget = new QListWidgetItem();
-	widget->setSizeHint(QSize(0, 65));
-
-	m_listWidget->addItem(widget);
-	m_listWidget->setItemWidget(widget, editableListItem);
+	emit itemCreateRequested();
 }
 
-void ListEditorWidget::bindSignals(EditableListItem* item, QString text)
+void ListEditorWidget::onEditButtonClicked()
 {
-	item->disconnect();
+	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
+	Q_ASSERT(selectedItems.size() == 1);
 
-	connect(item, &EditableListItem::editRequested, [this, text]()
-	{
-		emit itemEditRequested(text);
-	});
 
-	connect(item, &EditableListItem::removeRequested, [this, text]()
+	emit itemEditRequested(selectedItems.first()->text());
+}
+
+void ListEditorWidget::onRemoveButtonClicked()
+{
+	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
+	Q_ASSERT(selectedItems.size() >= 1);
+
+	QStringList items;
+	for (const QListWidgetItem* item : selectedItems)
 	{
-		emit itemRemoveRequested(text);
-	});
+		items << item->text();
+	}
+
+	emit itemsRemoveRequested(items);
+}
+
+void ListEditorWidget::onSelectionChanged()
+{
+	const int selectedItemsCount = m_ui->listWidget->selectedItems().size();
+	m_ui->editButton->setEnabled(selectedItemsCount == 1);
+	m_ui->removeButton->setEnabled(selectedItemsCount >= 1);
 }

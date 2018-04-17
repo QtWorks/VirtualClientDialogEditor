@@ -31,11 +31,11 @@ MainWindow::MainWindow(IBackendConnectionSharedPtr backendConnection, QWidget* p
 	connect(m_backendConnection.get(), &Core::IBackendConnection::dialogsReaded, this, &MainWindow::onDialogsReaded);
 
 	connect(m_usersListEditorWidget, &ListEditorWidget::itemEditRequested, this, &MainWindow::onUserEditRequested);
-	connect(m_usersListEditorWidget, &ListEditorWidget::itemRemoveRequested, this, &MainWindow::onUserRemoveRequested);
+	connect(m_usersListEditorWidget, &ListEditorWidget::itemsRemoveRequested, this, &MainWindow::onUsersRemoveRequested);
 	connect(m_usersListEditorWidget, &ListEditorWidget::itemCreateRequested, this, &MainWindow::onUserCreateRequested);
 
 	connect(m_dialogsListEditorWidget, &ListEditorWidget::itemEditRequested, this, &MainWindow::onDialogEditRequested);
-	connect(m_dialogsListEditorWidget, &ListEditorWidget::itemRemoveRequested, this, &MainWindow::onDialogRemoveRequested);
+	connect(m_dialogsListEditorWidget, &ListEditorWidget::itemsRemoveRequested, this, &MainWindow::onDialogsRemoveRequested);
 	connect(m_dialogsListEditorWidget, &ListEditorWidget::itemCreateRequested, this, &MainWindow::onDialogCreateRequested);
 }
 
@@ -116,17 +116,34 @@ void MainWindow::onUserEditRequested(QString username)
 	dialog->show();
 }
 
-void MainWindow::onUserRemoveRequested(QString username)
+void MainWindow::onUsersRemoveRequested(QStringList users)
 {
-	const auto it = std::find_if(m_users.begin(), m_users.end(),
-		[&username](const Core::User& user)
-		{
-			return user.name() == username;
-		});
-	Q_ASSERT(it != m_users.end());
+	QMessageBox messageBox(QMessageBox::Question,
+		"Удаление пользователей",
+		"Вы действительно хотите удалить " + QString(users.size() > 1 ? "выбранных пользователей" : "выбранного пользователя ") + "?",
+		QMessageBox::Yes | QMessageBox::No,
+		this);
+	messageBox.setButtonText(QMessageBox::Yes, tr("Да"));
+	messageBox.setButtonText(QMessageBox::No, tr("Нет"));
 
-	m_users.removeAt(std::distance(m_users.begin(), it));
-	m_usersListEditorWidget->removeItem(username);
+	const int answer = messageBox.exec();
+	if (answer != QMessageBox::Yes)
+	{
+		return;
+	}
+
+	for (const QString& username : users)
+	{
+		const auto it = std::find_if(m_users.begin(), m_users.end(),
+			[&username](const Core::User& user)
+			{
+				return user.name() == username;
+			});
+		Q_ASSERT(it != m_users.end());
+
+		m_users.removeAt(std::distance(m_users.begin(), it));
+		m_usersListEditorWidget->removeItem(username);
+	}
 }
 
 void MainWindow::onUserCreateRequested()
@@ -169,17 +186,33 @@ void MainWindow::onDialogEditRequested(QString dialogName)
 	window->show();
 }
 
-void MainWindow::onDialogRemoveRequested(QString dialogName)
+void MainWindow::onDialogsRemoveRequested(QStringList dialogs)
 {
-	const auto it = std::find_if(m_dialogs.begin(), m_dialogs.end(),
-		[&dialogName](const Core::Dialog& dialog)
-		{
-			return dialog.printableName() == dialogName;
-		});
-	Q_ASSERT(it != m_dialogs.end());
+	QMessageBox messageBox(QMessageBox::Question,
+		"Удаление диалогов",
+		"Вы действительно хотите удалить " + QString(dialogs.size() > 1 ? "выбранные диалоги" : "выбранный диалог") + "?",
+		QMessageBox::Yes | QMessageBox::No,
+		this);
+	messageBox.setButtonText(QMessageBox::Yes, tr("Да"));
+	messageBox.setButtonText(QMessageBox::No, tr("Нет"));
+	const int answer = messageBox.exec();
+	if (answer != QMessageBox::Yes)
+	{
+		return;
+	}
 
-	m_dialogs.removeAt(std::distance(m_dialogs.begin(), it));
-	m_dialogsListEditorWidget->removeItem(dialogName);
+	for (const QString& dialogName : dialogs)
+	{
+		const auto it = std::find_if(m_dialogs.begin(), m_dialogs.end(),
+			[&dialogName](const Core::Dialog& dialog)
+			{
+				return dialog.printableName() == dialogName;
+			});
+		Q_ASSERT(it != m_dialogs.end());
+
+		m_dialogs.removeAt(std::distance(m_dialogs.begin(), it));
+		m_dialogsListEditorWidget->removeItem(dialogName);
+	}
 }
 
 void MainWindow::onDialogCreateRequested()

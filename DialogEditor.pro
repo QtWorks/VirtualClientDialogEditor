@@ -15,7 +15,6 @@ Release:QMAKE_POST_LINK += bin/windeployqt $$OUT_PWD/$$DESTDIR
 
 SOURCES += \
     authwindow.cpp \
-    editablelistitem.cpp \
     listeditorwidget.cpp \
     logindialog.cpp \
     main.cpp \
@@ -50,7 +49,6 @@ SOURCES += \
 
 HEADERS  += \
     authwindow.h \
-    editablelistitem.h \
     listeditorwidget.h \
     logindialog.h \
     logger.h \
@@ -86,7 +84,6 @@ HEADERS  += \
 
 FORMS    += \
     authwindow.ui \
-    editablelistitem.ui \
     listeditorwidget.ui \
     logindialog.ui \
     mainwindow.ui \
