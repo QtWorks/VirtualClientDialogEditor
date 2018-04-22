@@ -27,9 +27,9 @@
       <widget class="QLineEdit" name="usernameEdit"/>
      </item>
      <item row="1" column="1">
-      <widget class="QCheckBox" name="writePermissionCheckBox">
+      <widget class="QCheckBox" name="adminCheckBox">
        <property name="text">
-        <string>Запись</string>
+        <string>Администратор</string>
        </property>
       </widget>
      </item>

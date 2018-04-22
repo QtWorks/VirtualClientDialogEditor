@@ -1,44 +1,30 @@
-#ifndef USER_H
-#define USER_H
+#pragma once
 
 #include <QString>
 
 namespace Core
 {
 
-class User
+struct User
 {
-public:
-	typedef QString UsernameType;
-	struct Permissions
+	User()
+		: admin(false)
 	{
-		Permissions()
-			: read(true)
-			, write(false)
-		{
-		}
+	}
 
-		Permissions(bool read, bool write)
-			: read(read)
-			, write(write)
-		{
-		}
+	User(const QString& name, bool admin)
+		: name(name)
+		, admin(admin)
+	{
+	}
 
-		bool read;
-		bool write;
-	};
-
-	User();
-	User(const UsernameType& name, const Permissions& permissions);
-
-	UsernameType name() const;
-	const Permissions& permissions() const;
-
-private:
-	UsernameType m_name;
-	Permissions m_permissions;
+	QString name;
+	bool admin;
 };
 
+inline bool operator<(const User& left, const User& right)
+{
+	return left.name < right.name;
 }
 
-#endif // USER_H
+}

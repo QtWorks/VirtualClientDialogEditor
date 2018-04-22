@@ -25,7 +25,7 @@ LoginDialog::LoginDialog(IBackendConnectionSharedPtr backendConnection, QWidget*
 		accept();
 	});
 
-	connect(m_backendConnection.get(), &Core::IBackendConnection::error, [this](const QString& message)
+	connect(m_backendConnection.get(), &Core::IBackendConnection::logInFailed, [this](const QString& message)
 	{
 		QMessageBox::critical(this, "Ошибка авторизации", message);
 		m_ui->loginButton->setDisabled(false);

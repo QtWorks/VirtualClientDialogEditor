@@ -8,11 +8,11 @@
 namespace Core
 {
 
-static const int c_delayMsecs = 20;
+static const int c_delayMsecs = 2000;
 
 static const QList<User> c_users = {
-	User("test", User::Permissions(true, false)),
-	User("admin", User::Permissions(true, true)),
+	User("test", false),
+	User("admin", true),
 };
 
 #define DELAYED_EMIT(signal) QTimer::singleShot(c_delayMsecs, [this]() { emit (signal)(); });
@@ -55,6 +55,7 @@ InMemoryBackendConnection::InMemoryBackendConnection()
 	: m_dialogs(readTestDialogs())
 	, m_users(c_users)
 {
+	qsrand(QDateTime::currentMSecsSinceEpoch());
 }
 
 void InMemoryBackendConnection::logIn(const QString& login, const QString& password)
@@ -65,7 +66,7 @@ void InMemoryBackendConnection::logIn(const QString& login, const QString& passw
 	}
 	else
 	{
-		DELAYED_EMIT_ARGS(error, "Неправильное имя пользователя или пароль");
+		DELAYED_EMIT_ARGS(logInFailed, "Неправильное имя пользователя или пароль");
 	}
 }
 
@@ -73,38 +74,54 @@ void InMemoryBackendConnection::logOut()
 {
 }
 
-void InMemoryBackendConnection::readDialogs()
+void InMemoryBackendConnection::loadDialogs()
 {
-	DELAYED_EMIT_ARGS(dialogsReaded, m_dialogs);
+	if (qrand() % 100 < 50)
+	{
+		DELAYED_EMIT_ARGS(dialogsLoaded, m_dialogs);
+	}
+	else
+	{
+		DELAYED_EMIT_ARGS(dialogsLoadFailed, "Какая-то ошибка загрузки диалогов");
+	}
 }
 
-void InMemoryBackendConnection::addDialog(const Dialog& /*dialog*/)
+void InMemoryBackendConnection::updateDialogs(const Update<Dialog>& update)
 {
+	if (qrand() % 100 < 50)
+	{
+		LOG << "Update dialogs: " << update.updated.size() << " updated, " << update.deleted.size() << " deleted, " << update.added.size() << " added";
+		DELAYED_EMIT(dialogsUpdated);
+	}
+	else
+	{
+		DELAYED_EMIT_ARGS(dialogsUpdateFailed, "Какая-то ошибка обновления данных");
+	}
 }
 
-void InMemoryBackendConnection::updateDialog(const QString& /*name*/, Dialog::Difficulty /*difficulty*/, const Dialog& /*dialog*/)
+void InMemoryBackendConnection::loadUsers()
 {
+	if (qrand() % 100 < 50)
+	{
+		DELAYED_EMIT_ARGS(usersLoaded, m_users);
+	}
+	else
+	{
+		DELAYED_EMIT_ARGS(usersLoadFailed, "Какая-то ошибка загрузки пользователей");
+	}
 }
 
-void InMemoryBackendConnection::deleteDialog(const QString& /*name*/, Dialog::Difficulty /*difficulty*/)
+void InMemoryBackendConnection::updateUsers(const Update<User>& update)
 {
-}
-
-void InMemoryBackendConnection::readUsers()
-{
-	DELAYED_EMIT_ARGS(usersReaded, m_users);
-}
-
-void InMemoryBackendConnection::addUser(const User& /*user*/)
-{
-}
-
-void InMemoryBackendConnection::updateUser(const User::UsernameType& /*username*/, const User& /*user*/)
-{
-}
-
-void InMemoryBackendConnection::deleteUser(const User::UsernameType& /*username*/)
-{
+	if (qrand() % 100 < 50)
+	{
+		LOG << "Update users: " << update.updated.size() << " updated, " << update.deleted.size() << " deleted, " << update.added.size() << " added";
+		DELAYED_EMIT(usersUpdated);
+	}
+	else
+	{
+		DELAYED_EMIT_ARGS(usersUpdateFailed, "Какая-то ошибка обновления пользователей");
+	}
 }
 
 }

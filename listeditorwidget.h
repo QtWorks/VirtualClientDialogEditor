@@ -1,10 +1,12 @@
-#ifndef LISTEDITORWIDGET_H
-#define LISTEDITORWIDGET_H
+#pragma once
 
 #include <QWidget>
+#include <QPushButton>
 #include <QStringList>
 #include <QListWidget>
 #include <QStyledItemDelegate>
+#include <QProgressDialog>
+#include <memory>
 
 namespace Ui {
 class ListEditorWidget;
@@ -30,7 +32,8 @@ public:
 	explicit ListEditorWidget(QWidget* parent = 0);
 	~ListEditorWidget();
 
-	void setItems(const QStringList& items);
+	void updateData();
+
 	void updateItem(const QString& oldItem, const QString& newItem);
 	void addItem(const QString& item);
 	void removeItem(const QString& item);
@@ -40,16 +43,41 @@ signals:
 	void itemsRemoveRequested(QStringList items);
 	void itemCreateRequested();
 
+	void revertAllChangesRequested();
+	void revertChangesRequested(QString item);
+	void saveAllChangesRequested();
+
+protected:
+	void showProgressDialog(const QString& title, const QString& label);
+	void hideProgressDialog();
+
+protected:
+	QPushButton* m_saveButton;
+	QPushButton* m_revertButton;
+	QPushButton* m_revertAllButton;
+
 private slots:
 	void onAddButtonClicked();
 	void onEditButtonClicked();
 	void onRemoveButtonClicked();
+
+	void onSaveButtonClicked();
+	void onRevertButtonClicked();
+	void onRevertAllButtonClicked();
+
 	void onSelectionChanged();
+
+private:
+	virtual QStringList items() const = 0;
+	virtual bool itemHasChanges(const QString& item) const = 0;
+	virtual void saveChanges() = 0;
+	virtual void revertChanges(const QString& item) = 0;
+	virtual void revertAllChanges() = 0;
+
+	void setRowBackground(int index, const QColor& color);
 
 private:
 	Ui::ListEditorWidget* m_ui;
 
-	QStringList m_items;
+	std::unique_ptr<QProgressDialog> m_progressDialog;
 };
-
-#endif // LISTEDITORWIDGET_H

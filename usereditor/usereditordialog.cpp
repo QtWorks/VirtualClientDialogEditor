@@ -8,8 +8,8 @@ UserEditorDialog::UserEditorDialog(const Core::User& user, QWidget* parent)
 {
 	m_ui->setupUi(this);
 
-	m_ui->usernameEdit->setText(user.name());
-	m_ui->writePermissionCheckBox->setChecked(user.permissions().write);
+	m_ui->usernameEdit->setText(user.name);
+	m_ui->adminCheckBox->setChecked(user.admin);
 
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setText("Сохранить");
 	m_ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Отменить");
@@ -26,9 +26,9 @@ void UserEditorDialog::saveChanges()
 {
 	// TODO: emptiness validation, trims
 	const QString username = m_ui->usernameEdit->text();
-	const Core::User::Permissions permissions = { true, m_ui->writePermissionCheckBox->isChecked() };
+	const bool admin = m_ui->adminCheckBox->isChecked();
 
-	emit userChanged({ username, permissions });
+	emit userChanged({ username, admin });
 	accept();
 }
 

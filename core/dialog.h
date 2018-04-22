@@ -38,6 +38,8 @@ public:
 	QList<PhaseNode> phases;
 };
 
+bool operator<(const Dialog& left, const Dialog& right);
+
 }
 
 #endif // DIALOG_H

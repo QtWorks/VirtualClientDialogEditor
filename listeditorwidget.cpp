@@ -1,6 +1,18 @@
 #include "listeditorwidget.h"
 #include "ui_listeditorwidget.h"
 
+// TODO: validate items uniqueness before saving
+
+namespace
+{
+
+const QColor c_unchangedColor = QColor::fromRgb(255, 255, 255);
+const QColor c_addedColor = QColor::fromRgb(164, 241, 164);
+const QColor c_deletedColor = QColor::fromRgb(255, 153, 153);
+const QColor c_updatedColor = QColor::fromRgb(87, 206, 250);
+
+}
+
 CustomFontDelegate::CustomFontDelegate(QObject* parent)
 	: QStyledItemDelegate(parent)
 {
@@ -8,11 +20,8 @@ CustomFontDelegate::CustomFontDelegate(QObject* parent)
 
 QSize CustomFontDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-	QFontMetrics metrics(option.font);
-
 	QSize size = QStyledItemDelegate::sizeHint(option, index);
-	size.setHeight(metrics.height() * 3);
-
+	size.setHeight(QFontMetrics(option.font).height() * 3);
 	return size;
 }
 
@@ -22,14 +31,28 @@ ListEditorWidget::ListEditorWidget(QWidget* parent)
 {
 	m_ui->setupUi(this);
 
-	CustomFontDelegate* delegate = new CustomFontDelegate(parent);
-	m_ui->listWidget->setItemDelegate(delegate);
+	m_saveButton = m_ui->saveButton;
+	m_revertButton = m_ui->revertButton;
+	m_revertAllButton = m_ui->revertAllButton;
 
 	connect(m_ui->addButton, &QPushButton::clicked, this, &ListEditorWidget::onAddButtonClicked);
 	connect(m_ui->editButton, &QPushButton::clicked, this, &ListEditorWidget::onEditButtonClicked);
 	connect(m_ui->removeButton, &QPushButton::clicked, this, &ListEditorWidget::onRemoveButtonClicked);
+
+	connect(m_ui->saveButton, &QPushButton::clicked, this, &ListEditorWidget::onSaveButtonClicked);
+	connect(m_ui->revertButton, &QPushButton::clicked, this, &ListEditorWidget::onRevertButtonClicked);
+	connect(m_ui->revertAllButton, &QPushButton::clicked, this, &ListEditorWidget::onRevertAllButtonClicked);
+
+	connect(m_ui->addButton, &QPushButton::clicked, m_ui->listWidget, &QAbstractItemView::clearSelection);
+	connect(m_ui->editButton, &QPushButton::clicked, m_ui->listWidget, &QAbstractItemView::clearSelection);
+	connect(m_ui->removeButton, &QPushButton::clicked, m_ui->listWidget, &QAbstractItemView::clearSelection);
+	connect(m_ui->saveButton, &QPushButton::clicked, m_ui->listWidget, &QAbstractItemView::clearSelection);
+	connect(m_ui->revertButton, &QPushButton::clicked, m_ui->listWidget, &QAbstractItemView::clearSelection);
+	connect(m_ui->revertAllButton, &QPushButton::clicked, m_ui->listWidget, &QAbstractItemView::clearSelection);
+
 	onSelectionChanged();
 
+	m_ui->listWidget->setItemDelegate(new CustomFontDelegate(parent));
 	connect(m_ui->listWidget, &QListWidget::itemSelectionChanged, this, &ListEditorWidget::onSelectionChanged);
 }
 
@@ -38,16 +61,10 @@ ListEditorWidget::~ListEditorWidget()
 	delete m_ui;
 }
 
-void ListEditorWidget::setItems(const QStringList& items)
+void ListEditorWidget::updateData()
 {
 	m_ui->listWidget->clear();
-
-	QStringList uniqueItems = items;
-	const int duplicatesCount = uniqueItems.removeDuplicates();
-	Q_ASSERT(duplicatesCount == 0);
-	m_items = uniqueItems;
-
-	for (const QString& item : items)
+	for (const QString& item : items())
 	{
 		m_ui->listWidget->addItem(item);
 	}
@@ -55,28 +72,38 @@ void ListEditorWidget::setItems(const QStringList& items)
 
 void ListEditorWidget::updateItem(const QString& oldItem, const QString& newItem)
 {
-	const int index = m_items.indexOf(oldItem);
-
-	m_items[index] = newItem;
-
+	const int index = items().indexOf(oldItem);
 	QListWidgetItem* listWidgetItem = m_ui->listWidget->item(index);
 	listWidgetItem->setText(newItem);
+	listWidgetItem->setBackgroundColor(c_updatedColor);
 }
 
 void ListEditorWidget::addItem(const QString& item)
 {
-	m_items.append(item);
-
 	m_ui->listWidget->addItem(item);
+	setRowBackground(items().indexOf(item), c_addedColor);
 }
 
 void ListEditorWidget::removeItem(const QString& item)
 {
-	const auto itemIndex = m_items.indexOf(item);
+	setRowBackground(items().indexOf(item), c_deletedColor);
+}
 
-	m_items.removeOne(item);
+void ListEditorWidget::showProgressDialog(const QString& title, const QString& label)
+{
+	Q_ASSERT(m_progressDialog == nullptr);
+	m_progressDialog.reset(new QProgressDialog(label, QString(), 0, 0, nullptr));
+	m_progressDialog->setWindowTitle(title);
+	m_progressDialog->setWindowFlags(m_progressDialog->windowFlags() & ~Qt::WindowCloseButtonHint);
+	m_progressDialog->setModal(true);
+	m_progressDialog->show();
+}
 
-	delete m_ui->listWidget->takeItem(itemIndex);
+void ListEditorWidget::hideProgressDialog()
+{
+	Q_ASSERT(m_progressDialog != nullptr);
+	m_progressDialog->hide();
+	m_progressDialog.reset();
 }
 
 void ListEditorWidget::onAddButtonClicked()
@@ -88,8 +115,6 @@ void ListEditorWidget::onEditButtonClicked()
 {
 	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
 	Q_ASSERT(selectedItems.size() == 1);
-
-
 	emit itemEditRequested(selectedItems.first()->text());
 }
 
@@ -107,9 +132,41 @@ void ListEditorWidget::onRemoveButtonClicked()
 	emit itemsRemoveRequested(items);
 }
 
+void ListEditorWidget::onSaveButtonClicked()
+{
+	saveChanges();
+}
+
+void ListEditorWidget::onRevertButtonClicked()
+{
+	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
+	Q_ASSERT(selectedItems.size() == 1);
+
+	const QString item = selectedItems[0]->text();
+	revertChanges(item);
+
+	setRowBackground(items().indexOf(item), c_unchangedColor);
+}
+
+void ListEditorWidget::onRevertAllButtonClicked()
+{
+	revertAllChanges();
+
+	for (int i = 0; i < m_ui->listWidget->count(); ++i)
+	{
+		setRowBackground(i, c_unchangedColor);
+	}
+}
+
 void ListEditorWidget::onSelectionChanged()
 {
-	const int selectedItemsCount = m_ui->listWidget->selectedItems().size();
-	m_ui->editButton->setEnabled(selectedItemsCount == 1);
-	m_ui->removeButton->setEnabled(selectedItemsCount >= 1);
+	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
+	m_ui->editButton->setEnabled(selectedItems.size() == 1);
+	m_ui->removeButton->setEnabled(selectedItems.size() >= 1);
+	m_ui->revertButton->setEnabled(selectedItems.size() == 1 && itemHasChanges(selectedItems.first()->text()));
+}
+
+void ListEditorWidget::setRowBackground(int index, const QColor& color)
+{
+	m_ui->listWidget->item(index)->setBackgroundColor(color);
 }

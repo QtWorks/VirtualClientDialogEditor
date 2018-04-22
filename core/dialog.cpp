@@ -60,4 +60,9 @@ QStringList Dialog::availableDifficulties()
 	return { difficultyToString(Difficulty::Easy), difficultyToString(Difficulty::Hard) };
 }
 
+bool operator<(const Dialog& left, const Dialog& right)
+{
+	return left.printableName() < right.printableName();
+}
+
 }

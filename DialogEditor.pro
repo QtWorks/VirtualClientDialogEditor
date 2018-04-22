@@ -20,7 +20,6 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     core/inmemorybackendconnection.cpp \
-    core/user.cpp \
     core/websocket.cpp \
     core/dialogjsonreader.cpp \
     core/dialogjsonwriter.cpp \
@@ -45,7 +44,9 @@ SOURCES += \
     core/abstractdialognode.cpp \
     core/clientreplicanode.cpp \
     core/expectedwordsnode.cpp \
-    core/phasenode.cpp
+	core/phasenode.cpp \
+	dialogeditor/dialoglisteditorwidget.cpp \
+	usereditor/userlisteditorwidget.cpp
 
 HEADERS  += \
     authwindow.h \
@@ -80,7 +81,10 @@ HEADERS  += \
 	core/abstractdialognode.h \
     core/clientreplicanode.h \
     core/expectedwordsnode.h \
-    core/phasenode.h
+    core/phasenode.h \
+    listdatamodel.h \
+	dialogeditor/dialoglisteditorwidget.h \
+	usereditor/userlisteditorwidget.h
 
 FORMS    += \
     authwindow.ui \

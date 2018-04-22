@@ -13,6 +13,14 @@
 namespace Core
 {
 
+template <typename T>
+struct Update
+{
+	QMap<T, T> updated;
+	QList<T> deleted;
+	QList<T> added;
+};
+
 class IBackendConnection
 	: public QObject
 {
@@ -24,31 +32,29 @@ public:
 	virtual void logIn(const QString& login, const QString& password) = 0;
 	virtual void logOut() = 0;
 
-	virtual void readDialogs() = 0;
-	virtual void addDialog(const Dialog& dialog) = 0;
-	virtual void updateDialog(const QString& name, Dialog::Difficulty difficulty, const Dialog& dialog) = 0;
-	virtual void deleteDialog(const QString& name, Dialog::Difficulty difficulty) = 0;
+	virtual void loadDialogs() = 0;
+	virtual void updateDialogs(const Update<Dialog>& update) = 0;
 
-	virtual void readUsers() = 0;
-	virtual void addUser(const User& user) = 0;
-	virtual void updateUser(const QString& username, const User& user) = 0;
-	virtual void deleteUser(const QString& username) = 0;
+	virtual void loadUsers() = 0;
+	virtual void updateUsers(const Update<User>& update) = 0;
 
 signals:
 	void loggedIn();
+	void logInFailed(const QString& error);
+
+	void dialogsLoaded(const QList<Dialog>& dialogs);
+	void dialogsLoadFailed(const QString& error);
+
+	void dialogsUpdated();
+	void dialogsUpdateFailed(const QString& error);
+
+	void usersLoaded(const QList<User>& users);
+	void usersLoadFailed(const QString& error);
+
+	void usersUpdated();
+	void usersUpdateFailed(const QString& error);
+
 	void onConnectionClosed(const QString& reason);
-
-	void dialogsReaded(const QList<Dialog>& dialogs);
-	void dialogAdded();
-	void dialogUpdated();
-	void dialogRemoved();
-
-	void usersReaded(const QList<User>& users);
-	void userAdded();
-	void userUpdated();
-	void userDeleted();
-
-	void error(const QString& message);
 };
 
 }
