@@ -143,7 +143,7 @@ qreal PhaseGraphicsItem::minWidth() const
 		return NodeGraphicsItem::minWidth();
 	}
 
-	qreal mostRight;
+	qreal mostRight = 0.0;
 	for (NodeGraphicsItem* item : m_items)
 	{
 		qreal right = item->sceneBoundingRect().right() - scenePos().x();

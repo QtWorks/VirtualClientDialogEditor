@@ -11,7 +11,7 @@ TEMPLATE = app
 
 #QMAKE_CXXFLAGS += "-include logger.h"
 
-Release:QMAKE_POST_LINK += bin/windeployqt $$OUT_PWD/$$DESTDIR
+#Release:QMAKE_POST_LINK += bin/windeployqt $$OUT_PWD/$$DESTDIR
 
 SOURCES += \
     listeditorwidget.cpp \

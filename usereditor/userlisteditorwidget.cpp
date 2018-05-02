@@ -83,8 +83,11 @@ void UserListEditorWidget::onItemEditRequested(const QString& username)
 	UserEditorDialog* dialog = new UserEditorDialog(m_model.get(index), this);
 	connect(dialog, &UserEditorDialog::userChanged, [this, index, username](Core::User user)
 	{
-		m_model.update(index, user);
-		updateItem(username, user.name);
+		if (user != m_model.get(index))
+		{
+			m_model.update(index, user);
+			updateItem(username, user.name);
+		}
 	});
 
 	dialog->show();
