@@ -87,12 +87,11 @@ void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 	DialogEditorWindow* window = new DialogEditorWindow(m_model.get(index));
 	connect(window, &DialogEditorWindow::dialogChanged, [this, index, dialogName](Core::Dialog dialog)
 	{
-		m_model.update(index, dialog);
-
-		//Core::DialogJsonWriter writer;
-		//LOG << writer.write(dialog);
-
-		updateItem(dialogName, dialog.printableName());
+		if (dialog != m_model.get(index))
+		{
+			m_model.update(index, dialog);
+			updateItem(dialogName, dialog.printableName());
+		}
 	});
 
 	window->show();

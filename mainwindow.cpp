@@ -33,11 +33,10 @@ void MainWindow::show()
 {
 	QMainWindow::show();
 
-	//if (m_loginDialog)
-	//{
-	//	m_loginDialog->show();
-	//}
-	onLoginDialogFinished(QDialog::Accepted);
+	if (m_loginDialog)
+	{
+		m_loginDialog->show();
+	}
 }
 
 void MainWindow::onLoginDialogFinished(int code)
@@ -46,6 +45,7 @@ void MainWindow::onLoginDialogFinished(int code)
 
 	if (code == QDialog::Accepted)
 	{
+		// TODO: merge this calls
 		m_usersListEditorWidget->loadData();
 		m_dialogsListEditorWidget->loadData();
 	}

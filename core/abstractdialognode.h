@@ -6,9 +6,6 @@
 namespace Core
 {
 
-/*class AbstractDialogNode;
-typedef std::unique_ptr<AbstractDialogNode> AbstractDialogNodePtr;*/
-
 class AbstractDialogNode
 {
 public:
@@ -33,11 +30,17 @@ public:
 
 	bool validate() const;
 	virtual bool validate(QString& error) const = 0;
+
+	bool equalTo(AbstractDialogNode* other) const;
+	virtual bool compare(AbstractDialogNode* other) const = 0;
+
 	virtual int type() const = 0;
 
 protected:
 	QSet<AbstractDialogNode*> m_parentNodes;
 	QSet<AbstractDialogNode*> m_childNodes;
 };
+
+bool operator==(const AbstractDialogNode& left, const AbstractDialogNode& right);
 
 }

@@ -61,4 +61,20 @@ bool AbstractDialogNode::validate() const
 	return validate(error);
 }
 
+bool AbstractDialogNode::equalTo(AbstractDialogNode* other) const
+{
+	if (m_childNodes.size() != other->m_childNodes.size())
+	{
+		return false;
+	}
+
+	return std::all_of(m_childNodes.begin(), m_childNodes.end(),
+		[&other](AbstractDialogNode* child)
+		{
+			return std::any_of(other->m_childNodes.begin(), other->m_childNodes.end(),
+				[&child](AbstractDialogNode* anotherChild) { return child->equalTo(anotherChild); });
+		}
+	);
+}
+
 }

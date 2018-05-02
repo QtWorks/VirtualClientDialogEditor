@@ -65,4 +65,14 @@ bool operator<(const Dialog& left, const Dialog& right)
 	return left.printableName() < right.printableName();
 }
 
+bool operator==(const Dialog& left, const Dialog& right)
+{
+	return left.name == right.name && left.difficulty == right.difficulty && left.phases == right.phases;
+}
+
+bool operator!=(const Dialog& left, const Dialog& right)
+{
+	return !(left == right);
+}
+
 }

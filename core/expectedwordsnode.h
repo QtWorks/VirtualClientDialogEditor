@@ -18,6 +18,8 @@ struct ExpectedWords
 	double score;
 };
 
+bool operator==(const ExpectedWords& left, const ExpectedWords& right);
+
 class ExpectedWordsNode
 	: public AbstractDialogNode
 {
@@ -32,11 +34,14 @@ public:
 
 	virtual AbstractDialogNode* shallowCopy() const override;
 	virtual bool validate(QString& error) const override;
+	virtual bool compare(AbstractDialogNode* other) const override;
 	virtual int type() const override;
 
 	QList<ExpectedWords> expectedWords;
 	bool customHint;
 	QString hint;
 };
+
+bool operator==(const ExpectedWordsNode& left, const ExpectedWordsNode& right);
 
 }

@@ -45,9 +45,24 @@ bool PhaseNode::validate(QString& error) const
 	return true;
 }
 
+bool PhaseNode::compare(AbstractDialogNode* other) const
+{
+	if (other->type() != type())
+	{
+		return false;
+	}
+
+	return *this == *dynamic_cast<PhaseNode*>(other);
+}
+
 int PhaseNode::type() const
 {
 	return PhaseNode::Type;
+}
+
+bool operator==(const PhaseNode& left, const PhaseNode& right)
+{
+	return left.name == right.name && left.score == right.score && left.root->equalTo(right.root);
 }
 
 }

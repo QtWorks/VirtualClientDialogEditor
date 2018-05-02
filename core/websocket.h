@@ -11,15 +11,28 @@ class WebSocket
 	: public QObject
 {
 	Q_OBJECT
+
 public:
-	explicit WebSocket(QObject* parent = 0);
+	WebSocket(const QUrl& url, QObject* parent = 0);
+
+	int sendMessage(const QJsonObject& message);
 
 signals:
+	void connected();
+	void disconnected();
+	void messageReceived(const QJsonObject& message);
 
-public slots:
+private slots:
+	void onConnected();
+	void onDisconnected();
+	void onTextFrameReceived(const QString& frame, bool isLastFrame);
 
 private:
-	QWebSocket* m_webSocket;
+	int generateQueryId();
+
+private:
+	QWebSocket m_webSocket;
+	int m_queryId;
 };
 
 }

@@ -14,7 +14,6 @@ TEMPLATE = app
 Release:QMAKE_POST_LINK += bin/windeployqt $$OUT_PWD/$$DESTDIR
 
 SOURCES += \
-    authwindow.cpp \
     listeditorwidget.cpp \
     logindialog.cpp \
     main.cpp \
@@ -46,10 +45,11 @@ SOURCES += \
     core/expectedwordsnode.cpp \
 	core/phasenode.cpp \
 	dialogeditor/dialoglisteditorwidget.cpp \
-	usereditor/userlisteditorwidget.cpp
+	usereditor/userlisteditorwidget.cpp \
+    core/backendconnection.cpp \
+    waitingspinnerwidget.cpp
 
 HEADERS  += \
-    authwindow.h \
     listeditorwidget.h \
     logindialog.h \
     logger.h \
@@ -84,10 +84,11 @@ HEADERS  += \
     core/phasenode.h \
     listdatamodel.h \
 	dialogeditor/dialoglisteditorwidget.h \
-	usereditor/userlisteditorwidget.h
+	usereditor/userlisteditorwidget.h \
+    core/backendconnection.h \
+    waitingspinnerwidget.h
 
 FORMS    += \
-    authwindow.ui \
     listeditorwidget.ui \
     logindialog.ui \
     mainwindow.ui \

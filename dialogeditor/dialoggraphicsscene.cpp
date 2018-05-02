@@ -265,6 +265,12 @@ void DialogGraphicsScene::removeNodeFromScene(NodeGraphicsItem* node)
 
 	removeItem(node);
 
+	const QList<PhaseGraphicsItem*> nodePhase = phaseItems(node->sceneBoundingRect());
+	if (!nodePhase.empty())
+	{
+		Q_ASSERT(nodePhase.size() == 1);
+		emit nodeRemovedFromPhase(node, nodePhase.first());
+	}
 	emit nodeRemoved(node);
 }
 

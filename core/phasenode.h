@@ -22,11 +22,14 @@ public:
 
 	virtual AbstractDialogNode* shallowCopy() const override;
 	virtual bool validate(QString& error) const override;
+	virtual bool compare(AbstractDialogNode* other) const override;
 	virtual int type() const override;
 
 	QString name;
 	double score;
 	AbstractDialogNode* root;
 };
+
+bool operator==(const PhaseNode& left, const PhaseNode& right);
 
 }

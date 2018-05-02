@@ -40,6 +40,9 @@ public:
 
 bool operator<(const Dialog& left, const Dialog& right);
 
+bool operator==(const Dialog& left, const Dialog& right);
+bool operator!=(const Dialog& left, const Dialog& right);
+
 }
 
 #endif // DIALOG_H

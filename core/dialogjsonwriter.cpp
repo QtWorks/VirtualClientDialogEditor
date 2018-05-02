@@ -87,16 +87,20 @@ DialogJsonWriter::DialogJsonWriter()
 {
 }
 
-QString DialogJsonWriter::write(const Dialog& dialog)
+QString DialogJsonWriter::write(const Dialog& dialog, bool compact)
 {
-	const QJsonObject object = {
+	const QJsonObject object = writeToObject(dialog);
+	const QJsonDocument document = QJsonDocument(object);
+	return QString::fromLatin1(document.toJson((compact ? QJsonDocument::Compact : QJsonDocument::Indented)));
+}
+
+QJsonObject DialogJsonWriter::writeToObject(const Dialog& dialog)
+{
+	return QJsonObject{
 		{ "name", dialog.name },
 		{ "difficulty", static_cast<int>(dialog.difficulty) },
 		{ "phases", dumpPhases(dialog.phases) }
 	};
-
-	const QJsonDocument document = QJsonDocument(object);
-	return QString::fromLatin1(document.toJson((QJsonDocument::Indented)));
 }
 
 }

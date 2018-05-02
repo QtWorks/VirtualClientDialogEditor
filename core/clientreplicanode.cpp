@@ -24,9 +24,24 @@ bool ClientReplicaNode::validate(QString& error) const
 	return true;
 }
 
+bool ClientReplicaNode::compare(AbstractDialogNode* other) const
+{
+	if (other->type() != type())
+	{
+		return false;
+	}
+
+	return *this == *dynamic_cast<ClientReplicaNode*>(other);
+}
+
 int ClientReplicaNode::type() const
 {
 	return ClientReplicaNode::Type;
+}
+
+bool operator==(const ClientReplicaNode& left, const ClientReplicaNode& right)
+{
+	return left.replica == right.replica;
 }
 
 }

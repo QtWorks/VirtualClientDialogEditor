@@ -8,6 +8,8 @@ namespace Ui {
 class LoginDialog;
 }
 
+class WaitingSpinnerWidget;
+
 class LoginDialog
 	: public QDialog
 {
@@ -18,8 +20,13 @@ public:
 	~LoginDialog();
 
 private:
+	void showSpinner();
+	void hideSpinner();
+
+private:
 	Ui::LoginDialog* m_ui;
 	IBackendConnectionSharedPtr m_backendConnection;
+	WaitingSpinnerWidget* m_waitingSpinner;
 };
 
 #endif // LOGINWIDGET_H

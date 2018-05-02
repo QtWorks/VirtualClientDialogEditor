@@ -1,60 +1,70 @@
 #include "websocket.h"
+#include "logger.h"
 
 namespace Core
 {
 
-WebSocket::WebSocket(QObject* parent)
-	: QObject(parent)
-	, m_webSocket(new QWebSocket("ws://vcappdemo.herokuapp.com/", QWebSocketProtocol::VersionLatest, parent))
+namespace
 {
-	/*QObject::connect(m_webSocket, &QWebSocket::aboutToClose, []()
-	{
-		qDebug() << "aboutToClose";
-	});
-	QObject::connect(m_webSocket, &QWebSocket::connected, []()
-	{
-		qDebug() << "connected";
-	});
-	QObject::connect(m_webSocket, &QWebSocket::disconnected, []()
-	{
-		qDebug() << "disconnected";
-	});
-	QObject::connect(m_webSocket, &QWebSocket::stateChanged, [](QAbstractSocket::SocketState state)
-	{
-		qDebug() << "stateChanged " << state;
-	});
-	QObject::connect(m_webSocket, &QWebSocket::readChannelFinished, []()
-	{
-		qDebug() << "readChannelFinished";
-	});
-	QObject::connect(m_webSocket, &QWebSocket::textFrameReceived, [](const QString& frame, bool isLastFrame)
-	{
-		qDebug() << "textFrameReceived " << frame << isLastFrame;
-	});
-	QObject::connect(m_webSocket, &QWebSocket::binaryFrameReceived, [](const QByteArray& frame, bool isLastFrame)
-	{
-		qDebug() << "binaryFrameReceived " << frame << isLastFrame;
-	});
-	QObject::connect(m_webSocket, &QWebSocket::textMessageReceived, [](const QString& message)
-	{
-		qDebug() << "textMessageReceived " << message;
-	});
-	QObject::connect(m_webSocket, &QWebSocket::binaryMessageReceived, [](const QByteArray &message)
-	{
-		qDebug() << "binaryMessageReceived " << message;
-	});
-	QObject::connect(m_webSocket, &QWebSocket::error, [](QAbstractSocket::SocketError error)
-	{
-		qDebug() << "error " << error;
-	});
-	QObject::connect(m_webSocket, &QWebSocket::pong, [](quint64 elapsedTime, const QByteArray& payload)
-	{
-		qDebug() << "pong " << elapsedTime << payload;
-	});
-	QObject::connect(m_webSocket, &QWebSocket::bytesWritten, [](qint64 bytes)
-	{
-		qDebug() << "bytesWritten " << bytes;
-	});*/
+
+QString serialize(const QJsonObject& object)
+{
+	return QJsonDocument(object).toJson(QJsonDocument::Compact);
+}
+
+QJsonObject deserialize(const QString& message)
+{
+	return QJsonDocument::fromJson(message.toUtf8()).object();
+}
+
+}
+
+WebSocket::WebSocket(const QUrl& url, QObject* parent)
+	: QObject(parent)
+	, m_queryId(0)
+{
+	connect(&m_webSocket, &QWebSocket::connected, this, &WebSocket::onConnected);
+	connect(&m_webSocket, &QWebSocket::disconnected, this, &WebSocket::onDisconnected);
+
+	m_webSocket.open(url);
+}
+
+int WebSocket::sendMessage(const QJsonObject& originalMessage)
+{
+	const int queryId = generateQueryId();
+
+	QJsonObject message = originalMessage;
+	message["queryId"] = queryId;
+
+	LOG << "Send message: " << serialize(message);
+	m_webSocket.sendTextMessage(serialize(message));
+
+	return queryId;
+}
+
+void WebSocket::onConnected()
+{
+	connect(&m_webSocket, &QWebSocket::textFrameReceived, this, &WebSocket::onTextFrameReceived);
+
+	LOG << "connected";
+	emit connected();
+}
+
+void WebSocket::onDisconnected()
+{
+	LOG << "disconnected";
+	emit disconnected();
+}
+
+void WebSocket::onTextFrameReceived(const QString& frame, bool isLastFrame)
+{
+	LOG << "Received text frame: " << frame << "; isLastFrame: " << isLastFrame;
+	emit messageReceived(deserialize(frame));
+}
+
+int WebSocket::generateQueryId()
+{
+	return m_queryId++;
 }
 
 }

@@ -7,6 +7,7 @@
 #include "phasegraphicsitem.h"
 #include "clientreplicanodegraphicsitem.h"
 #include "expectedwordsnodegraphicsitem.h"
+#include "arrowlinegraphicsitem.h"
 
 #include "logger.h"
 #include <QPushButton>
@@ -35,6 +36,18 @@ QString nodeType(Core::AbstractDialogNode* node)
 QString nodeType(NodeGraphicsItem* node)
 {
 	return nodeType(node->data());
+}
+
+bool nodesAlreadyConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child)
+{
+	const auto outcomingLinks = parent->outcomingLinks();
+	const auto existingLinkIt = std::find_if(outcomingLinks.begin(), outcomingLinks.end(),
+		[parent, child](ArrowLineGraphicsItem* link)
+		{
+			return link->isConnectingNodes() && link->parentNode() == parent && link->childNode() == child;
+		});
+
+	return existingLinkIt != outcomingLinks.end();
 }
 
 DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* parent)
@@ -215,7 +228,8 @@ void DialogEditorWindow::updateConnectControls()
 	NodeGraphicsItem* parentNode = m_selectedNodes[0];
 	NodeGraphicsItem* childNode = m_selectedNodes[1];
 
-	if (parentNode->type() == childNode->type() && parentNode->type() != PhaseGraphicsItem::Type)
+	if (m_dialog.difficulty == Core::Dialog::Difficulty::Easy &&
+		(!parentNode->outcomingLinks().isEmpty() || !childNode->incomingLinks().isEmpty()))
 	{
 		m_ui->connectNodesButton->setEnabled(false);
 		return;
@@ -223,13 +237,19 @@ void DialogEditorWindow::updateConnectControls()
 
 	if (m_dialog.difficulty == Core::Dialog::Difficulty::Hard)
 	{
-		m_ui->connectNodesButton->setEnabled(true);
+		m_ui->connectNodesButton->setEnabled(false);
 		return;
 	}
 
-	const bool nodesHasNoLinks = parentNode->outcomingLinks().isEmpty() && childNode->incomingLinks().isEmpty();
+	if (nodesAlreadyConnected(parentNode, childNode))
+	{
+		m_ui->connectNodesButton->setEnabled(false);
+		return;
+	}
 
-	m_ui->connectNodesButton->setEnabled(nodesHasNoLinks);
+	m_ui->connectNodesButton->setEnabled(
+		(parentNode->type() == ClientReplicaNodeGraphicsItem::Type && childNode->type() == ExpectedWordsNodeGraphicsItem::Type) ||
+		(parentNode->type() == ExpectedWordsNodeGraphicsItem::Type && childNode->type() == ClientReplicaNodeGraphicsItem::Type));
 }
 
 void DialogEditorWindow::nodeAdded(NodeGraphicsItem* node)

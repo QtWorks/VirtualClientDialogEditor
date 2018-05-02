@@ -19,9 +19,12 @@ public:
 
 	virtual AbstractDialogNode* shallowCopy() const override;
 	virtual bool validate(QString& error) const override;
+	virtual bool compare(AbstractDialogNode* other) const override;
 	virtual int type() const override;
 
 	QString replica;
 };
+
+bool operator==(const ClientReplicaNode& left, const ClientReplicaNode& right);
 
 }

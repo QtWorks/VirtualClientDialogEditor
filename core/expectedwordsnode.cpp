@@ -25,6 +25,11 @@ QString join(const QList<ExpectedWords>& expectedWordsList, const QString& delim
 
 }
 
+bool operator==(const ExpectedWords& left, const ExpectedWords& right)
+{
+	return left.words == right.words && left.score == right.score;
+}
+
 ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords)
 	: expectedWords(expectedWords)
 	, customHint(false)
@@ -73,9 +78,24 @@ bool ExpectedWordsNode::validate(QString& error) const
 	return true;
 }
 
+bool ExpectedWordsNode::compare(AbstractDialogNode* other) const
+{
+	if (other->type() != type())
+	{
+		return false;
+	}
+
+	return *this == *dynamic_cast<ExpectedWordsNode*>(other);
+}
+
 int ExpectedWordsNode::type() const
 {
 	return ExpectedWordsNode::Type;
+}
+
+bool operator==(const ExpectedWordsNode& left, const ExpectedWordsNode& right)
+{
+	return left.expectedWords == right.expectedWords && left.customHint == right.customHint && left.hint == right.hint;
 }
 
 }
