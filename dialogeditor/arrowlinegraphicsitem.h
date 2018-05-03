@@ -37,6 +37,8 @@ public:
 
 signals:
 	void removeRequested();
+	void nodesConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
+	void nodesDisconnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
 
 protected:
 	virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0) override;

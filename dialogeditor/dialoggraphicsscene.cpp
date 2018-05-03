@@ -239,6 +239,16 @@ void DialogGraphicsScene::addLineToScene(ArrowLineGraphicsItem* line)
 		removeLinkFromScene(line);
 	});
 
+	QObject::connect(line, &ArrowLineGraphicsItem::nodesConnected, [this, line](NodeGraphicsItem* parent, NodeGraphicsItem* child)
+	{
+		emit nodesConnected(parent, child);
+	});
+
+	QObject::connect(line, &ArrowLineGraphicsItem::nodesDisconnected, [this, line](NodeGraphicsItem* parent, NodeGraphicsItem* child)
+	{
+		emit nodesDisconnected(parent, child);
+	});
+
 	addItem(line);
 
 	emit linkAdded(line);

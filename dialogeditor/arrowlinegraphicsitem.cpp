@@ -501,7 +501,16 @@ void ArrowLineGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		{
 			if (event->buttonDownScenePos(Qt::LeftButton) != event->scenePos())
 			{
+				const bool connectingNodes = isConnectingNodes();
+				NodeGraphicsItem* parent = connectingNodes ? parentNode() : nullptr;
+				NodeGraphicsItem* child = connectingNodes ? childNode() : nullptr;
+
 				updatePosition(mapToScene(line().p1()), mapToScene(line().p2()), true);
+
+				if (connectingNodes && !isConnectingNodes())
+				{
+					emit nodesDisconnected(parent, child);
+				}
 			}
 		}
 		else
@@ -563,6 +572,10 @@ void ArrowLineGraphicsItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 
 void ArrowLineGraphicsItem::updatePosition(Item&& item)
 {
+	const bool connectingNodes = isConnectingNodes();
+	NodeGraphicsItem* parent = connectingNodes ? parentNode() : nullptr;
+	NodeGraphicsItem* child = connectingNodes ? childNode() : nullptr;
+
 	if (m_moveMode == MoveMode::MoveStartPoint)
 	{
 		m_startItem.swap(item);
@@ -575,6 +588,15 @@ void ArrowLineGraphicsItem::updatePosition(Item&& item)
 	{
 		Q_ASSERT(!"updatePosition(const Item& item) must be called only while resizing");
 		return;
+	}
+
+	if (!connectingNodes && isConnectingNodes())
+	{
+		emit nodesConnected(parentNode(), childNode());
+	}
+	else if (connectingNodes && !isConnectingNodes())
+	{
+		emit nodesDisconnected(parent, child);
 	}
 
 	updatePosition();
