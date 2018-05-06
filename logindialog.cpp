@@ -31,7 +31,7 @@ LoginDialog::LoginDialog(IBackendConnectionSharedPtr backendConnection, QWidget*
 
 	connect(m_backendConnection.get(), &Core::IBackendConnection::logInFailed, [this](const QString& message)
 	{
-		QTimer::singleShot(1000, [this, &message]() {
+		QTimer::singleShot(1000, [this, message]() {
 			hideSpinner();
 			QMessageBox::critical(this, "Ошибка авторизации", message);
 		});
