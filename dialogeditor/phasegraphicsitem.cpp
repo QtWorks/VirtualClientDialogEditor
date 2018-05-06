@@ -140,7 +140,7 @@ qreal PhaseGraphicsItem::minWidth() const
 {
 	if (m_items.empty())
 	{
-		return NodeGraphicsItem::minWidth();
+		return NodeGraphicsItem::minWidth() + 30.0;
 	}
 
 	qreal mostRight = 0.0;

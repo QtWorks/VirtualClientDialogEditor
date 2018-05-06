@@ -64,6 +64,11 @@ void NodeGraphicsItem::resize(qreal width, qreal height)
 	m_height = height;
 }
 
+void NodeGraphicsItem::resizeToMinimal()
+{
+	resize(minWidth(), minHeight());
+}
+
 QPointF NodeGraphicsItem::position() const
 {
 	return m_position;

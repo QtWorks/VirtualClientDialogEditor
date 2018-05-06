@@ -86,6 +86,7 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 	else if (const auto* mimeData = qobject_cast<const NodeGraphicsItemMimeData*>(event->mimeData()))
 	{
 		NodeGraphicsItem* item = mimeData->item();
+		item->resizeToMinimal();
 
 		const QRectF itemSceneRect = QRectF(event->scenePos().x(), event->scenePos().y(), item->boundingRect().width(), item->boundingRect().height());
 		const QList<PhaseGraphicsItem*> phases = phaseItems(itemSceneRect);

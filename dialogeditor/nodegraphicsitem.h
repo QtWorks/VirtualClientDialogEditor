@@ -29,6 +29,7 @@ public:
 
 	void setProperties(Properties properties);
 	void resize(qreal width, qreal height);
+	void resizeToMinimal();
 
 	QPointF position() const;
 	void setPosition(const QPointF& position);
