@@ -25,8 +25,14 @@ WebSocket::WebSocket(const QUrl& url, QObject* parent)
 {
 	connect(&m_webSocket, &QWebSocket::connected, this, &WebSocket::onConnected);
 	connect(&m_webSocket, &QWebSocket::disconnected, this, &WebSocket::onDisconnected);
+	connect(&m_webSocket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error), this, &WebSocket::onError);
 
 	m_webSocket.open(url);
+}
+
+WebSocket::~WebSocket()
+{
+	m_webSocket.abort();
 }
 
 int WebSocket::sendMessage(const QJsonObject& originalMessage)
@@ -54,6 +60,11 @@ void WebSocket::onDisconnected()
 {
 	LOG << "disconnected";
 	emit disconnected();
+}
+
+void WebSocket::onError(QAbstractSocket::SocketError error)
+{
+	LOG << "error" << ARG(error) << ARG2(m_webSocket.errorString(), "errorString");
 }
 
 void WebSocket::onTextFrameReceived(const QString& frame, bool isLastFrame)

@@ -14,6 +14,7 @@ class WebSocket
 
 public:
 	WebSocket(const QUrl& url, QObject* parent = 0);
+	~WebSocket();
 
 	int sendMessage(const QJsonObject& message);
 
@@ -25,6 +26,7 @@ signals:
 private slots:
 	void onConnected();
 	void onDisconnected();
+	void onError(QAbstractSocket::SocketError error);
 	void onTextFrameReceived(const QString& frame, bool isLastFrame);
 
 private:
