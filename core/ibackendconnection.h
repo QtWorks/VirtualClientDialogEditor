@@ -29,32 +29,32 @@ class IBackendConnection
 public:
 	virtual ~IBackendConnection() { }
 
-	virtual void logIn(const QString& login, const QString& password) = 0;
-	virtual void logOut() = 0;
+	typedef int QueryId;
 
-	virtual void loadDialogs() = 0;
-	virtual void updateDialogs(const Update<Dialog>& update) = 0;
+	virtual QueryId logIn(const QString& login, const QString& password) = 0;
+	virtual QueryId logOut() = 0;
 
-	virtual void loadUsers() = 0;
-	virtual void updateUsers(const Update<User>& update) = 0;
+	virtual QueryId loadDialogs() = 0;
+	virtual QueryId updateDialogs(const Update<Dialog>& update) = 0;
+
+	virtual QueryId loadUsers() = 0;
+	virtual QueryId updateUsers(const Update<User>& update) = 0;
 
 signals:
-	void loggedIn();
-	void logInFailed(const QString& error);
+	void loggedIn(QueryId queryId);
+	void logInFailed(QueryId queryId, const QString& error);
 
-	void dialogsLoaded(const QList<Dialog>& dialogs);
-	void dialogsLoadFailed(const QString& error);
+	void dialogsLoaded(QueryId queryId, const QList<Dialog>& dialogs);
+	void dialogsLoadFailed(QueryId queryId, const QString& error);
 
-	void dialogsUpdated();
-	void dialogsUpdateFailed(const QString& error);
+	void dialogsUpdated(QueryId queryId);
+	void dialogsUpdateFailed(QueryId queryId, const QString& error);
 
-	void usersLoaded(const QList<User>& users);
-	void usersLoadFailed(const QString& error);
+	void usersLoaded(QueryId queryId, const QList<User>& users);
+	void usersLoadFailed(QueryId queryId, const QString& error);
 
-	void usersUpdated();
-	void usersUpdateFailed(const QString& error);
-
-	void onConnectionClosed(const QString& reason);
+	void usersUpdated(QueryId queryId);
+	void usersUpdateFailed(QueryId queryId, const QString& error);
 };
 
 }

@@ -23,10 +23,16 @@ private:
 	void showSpinner();
 	void hideSpinner();
 
+private slots:
+	void onLoginClicked();
+	void onLoggedIn(Core::IBackendConnection::QueryId queryId);
+	void onLoginFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
+
 private:
 	Ui::LoginDialog* m_ui;
 	IBackendConnectionSharedPtr m_backendConnection;
 	WaitingSpinnerWidget* m_waitingSpinner;
+	Core::IBackendConnection::QueryId m_queryId;
 };
 
 #endif // LOGINWIDGET_H

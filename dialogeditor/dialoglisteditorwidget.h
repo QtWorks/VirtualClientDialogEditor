@@ -27,10 +27,10 @@ private slots:
 
 	void onDiffRecordsCountChanged(int count);
 
-	void onDialogsLoaded(const QList<Core::Dialog>& dialogs);
-	void onDialogsLoadFailed(const QString& error);
-	void onDialogsUpdated();
-	void onDialogsUpdateFailed(const QString& error);
+	void onDialogsLoaded(Core::IBackendConnection::QueryId queryId, const QList<Core::Dialog>& dialogs);
+	void onDialogsLoadFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
+	void onDialogsUpdated(Core::IBackendConnection::QueryId queryId);
+	void onDialogsUpdateFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
 
 private:
 	IBackendConnectionSharedPtr m_backendConnection;

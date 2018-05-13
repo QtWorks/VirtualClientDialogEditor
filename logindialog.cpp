@@ -14,28 +14,9 @@ LoginDialog::LoginDialog(IBackendConnectionSharedPtr backendConnection, QWidget*
 
 	setModal(true);
 
-	connect(m_ui->loginButton, &QPushButton::clicked, [this]()
-	{
-		showSpinner();
-
-		m_backendConnection->logIn(m_ui->usernameEdit->text(), m_ui->passwordEdit->text());
-	});
-
-	connect(m_backendConnection.get(), &Core::IBackendConnection::loggedIn, [this]()
-	{
-		QTimer::singleShot(1000, [this]() {
-			hideSpinner();
-			accept();
-		});
-	});
-
-	connect(m_backendConnection.get(), &Core::IBackendConnection::logInFailed, [this](const QString& message)
-	{
-		QTimer::singleShot(1000, [this, message]() {
-			hideSpinner();
-			QMessageBox::critical(this, "Ошибка авторизации", message);
-		});
-	});
+	connect(m_ui->loginButton, &QPushButton::clicked, this, &LoginDialog::onLoginClicked);
+	connect(m_backendConnection.get(), &Core::IBackendConnection::loggedIn, this, &LoginDialog::onLoggedIn);
+	connect(m_backendConnection.get(), &Core::IBackendConnection::logInFailed, this, &LoginDialog::onLoginFailed);
 }
 
 LoginDialog::~LoginDialog()
@@ -62,4 +43,37 @@ void LoginDialog::hideSpinner()
 {
 	m_waitingSpinner->stop();
 	delete m_waitingSpinner;
+}
+
+void LoginDialog::onLoginClicked()
+{
+	showSpinner();
+
+	m_queryId = m_backendConnection->logIn(m_ui->usernameEdit->text(), m_ui->passwordEdit->text());
+}
+
+void LoginDialog::onLoggedIn(Core::IBackendConnection::QueryId queryId)
+{
+	if (m_queryId != queryId)
+	{
+		return;
+	}
+
+	QTimer::singleShot(1000, [this]() {
+		hideSpinner();
+		accept();
+	});
+}
+
+void LoginDialog::onLoginFailed(Core::IBackendConnection::QueryId queryId, const QString& error)
+{
+	if (m_queryId != queryId)
+	{
+		return;
+	}
+
+	QTimer::singleShot(1000, [this, error]() {
+		hideSpinner();
+		QMessageBox::critical(this, "Ошибка авторизации", error);
+	});
 }

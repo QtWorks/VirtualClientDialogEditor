@@ -147,7 +147,7 @@ void DialogListEditorWidget::onDiffRecordsCountChanged(int count)
 	m_revertAllButton->setEnabled(count > 0);
 }
 
-void DialogListEditorWidget::onDialogsLoaded(const QList<Core::Dialog>& dialogs)
+void DialogListEditorWidget::onDialogsLoaded(Core::IBackendConnection::QueryId queryId, const QList<Core::Dialog>& dialogs)
 {
 	m_model.setData(dialogs);
 
@@ -162,21 +162,21 @@ void DialogListEditorWidget::onDialogsLoaded(const QList<Core::Dialog>& dialogs)
 	}
 }
 
-void DialogListEditorWidget::onDialogsLoadFailed(const QString& error)
+void DialogListEditorWidget::onDialogsLoadFailed(Core::IBackendConnection::QueryId queryId, const QString& error)
 {
 	hideProgressDialog();
 
 	QMessageBox::warning(this, "Загрузка данных", "Загрузка данных завершилась ошибкой: " + toLowerCase(error) + ".");
 }
 
-void DialogListEditorWidget::onDialogsUpdated()
+void DialogListEditorWidget::onDialogsUpdated(Core::IBackendConnection::QueryId queryId)
 {
 	hideProgressDialog();
 
 	loadData();
 }
 
-void DialogListEditorWidget::onDialogsUpdateFailed(const QString& error)
+void DialogListEditorWidget::onDialogsUpdateFailed(Core::IBackendConnection::QueryId queryId, const QString& error)
 {
 	hideProgressDialog();
 

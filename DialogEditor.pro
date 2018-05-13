@@ -9,8 +9,6 @@ QT += core gui widgets network websockets
 TARGET = DialogEditor
 TEMPLATE = app
 
-#QMAKE_CXXFLAGS += "-include logger.h"
-
 #Release:QMAKE_POST_LINK += bin/windeployqt $$OUT_PWD/$$DESTDIR
 
 SOURCES += \
@@ -18,7 +16,6 @@ SOURCES += \
     logindialog.cpp \
     main.cpp \
     mainwindow.cpp \
-    core/inmemorybackendconnection.cpp \
     core/websocket.cpp \
     core/dialogjsonreader.cpp \
     core/dialogjsonwriter.cpp \
@@ -56,7 +53,6 @@ HEADERS  += \
     mainwindow.h \
     core/dialog.h \
     core/ibackendconnection.h \
-    core/inmemorybackendconnection.h \
     core/user.h \
     core/websocket.h \
     core/dialogjsonreader.h \

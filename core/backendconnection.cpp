@@ -32,32 +32,15 @@ QJsonObject toJson(const User& user)
 
 }
 
-// TODO: handle server disconnects - interrupt current queries, display some notifications in interface?
 BackendConnection::BackendConnection(const QUrl& url)
 	: m_webSocket(url)
-	, m_connected(false)
 {
-	connect(&m_webSocket, &WebSocket::connected, this, &BackendConnection::onWebSocketConnected);
 	connect(&m_webSocket, &WebSocket::disconnected, this, &BackendConnection::onWebSocketDisconnected);
 	connect(&m_webSocket, &WebSocket::messageReceived, this, &BackendConnection::onWebSocketMessage);
-
-	m_messageProcessors = {
-		{ "log_in_success", [this](const QJsonObject& message){ onLogInSuccess(message); } },
-		{ "log_in_failure", [this](const QJsonObject& message){ onLogInFailure(message); } },
-		//{ "log_out_success", [this](const QJsonObject& message){ onLogOutSuccess(message); } },
-		//{ "log_out_failure", [this](const QJsonObject& message){ onLogOutFailure(message); } },
-		{ "dialogs_load_success", [this](const QJsonObject& message){ onDialogsLoadSuccess(message); } },
-		{ "dialogs_load_failure", [this](const QJsonObject& message){ onDialogsLoadFailure(message); } },
-		{ "dialogs_update_success", [this](const QJsonObject& message){ onDialogsUpdateSuccess(message); } },
-		{ "dialogs_update_failure", [this](const QJsonObject& message){ onDialogsUpdateFailure(message); } },
-		{ "users_load_success", [this](const QJsonObject& message){ onUsersLoadSuccess(message); } },
-		{ "users_load_failure", [this](const QJsonObject& message){ onUsersLoadFailure(message); } },
-		{ "users_update_success", [this](const QJsonObject& message){ onUsersUpdateSuccess(message); } },
-		{ "users_update_failure", [this](const QJsonObject& message){ onUsersUpdateFailure(message); } }
-	};
+	connect(&m_webSocket, &WebSocket::error, this, &BackendConnection::onWebSocketError);
 }
 
-void BackendConnection::logIn(const QString& username, const QString& password)
+IBackendConnection::QueryId BackendConnection::logIn(const QString& username, const QString& password)
 {
 	const QJsonObject message = {
 		{ "queryId", generateQueryId() },
@@ -67,30 +50,30 @@ void BackendConnection::logIn(const QString& username, const QString& password)
 		{ "role", 1 }
 	};
 
-	sendMessage(message);
+	return sendMessage(message);
 }
 
-void BackendConnection::logOut()
+IBackendConnection::QueryId BackendConnection::logOut()
 {
 	const QJsonObject message = {
 		{ "queryId", generateQueryId() },
 		{ "type", "log_out" }
 	};
 
-	sendMessage(message);
+	return sendMessage(message);
 }
 
-void BackendConnection::loadDialogs()
+IBackendConnection::QueryId BackendConnection::loadDialogs()
 {
 	const QJsonObject message = {
 		{ "queryId", generateQueryId() },
 		{ "type", "dialogs_load" }
 	};
 
-	sendMessage(message);
+	return sendMessage(message);
 }
 
-void BackendConnection::updateDialogs(const Update<Dialog>& update)
+IBackendConnection::QueryId BackendConnection::updateDialogs(const Update<Dialog>& update)
 {
 	QJsonArray updatedDialogs;
 	for (const auto& dialog : update.updated)
@@ -138,20 +121,20 @@ void BackendConnection::updateDialogs(const Update<Dialog>& update)
 		{ "update", updateObject }
 	};
 
-	sendMessage(message);
+	return sendMessage(message);
 }
 
-void BackendConnection::loadUsers()
+IBackendConnection::QueryId BackendConnection::loadUsers()
 {
 	const QJsonObject message = {
 		{ "queryId", generateQueryId() },
 		{ "type", "users_load" }
 	};
 
-	sendMessage(message);
+	return sendMessage(message);
 }
 
-void BackendConnection::updateUsers(const Update<User>& update)
+IBackendConnection::QueryId BackendConnection::updateUsers(const Update<User>& update)
 {
 	QJsonArray updatedUsers;
 	for (const auto& user : update.updated)
@@ -195,23 +178,17 @@ void BackendConnection::updateUsers(const Update<User>& update)
 		{ "update", updateObject }
 	};
 
-	sendMessage(message);
-}
-
-void BackendConnection::onWebSocketConnected()
-{
-	m_connected = true;
-
-	while (!m_pendingMessages.isEmpty())
-	{
-		auto message = m_pendingMessages.takeFirst();
-		sendMessage(message);
-	}
+	return sendMessage(message);
 }
 
 void BackendConnection::onWebSocketDisconnected()
 {
-	m_connected = false;
+	while (!m_activeQueries.empty())
+	{
+		const auto queryId = m_activeQueries.firstKey();
+		auto processor = m_activeQueries.take(queryId);
+		processor.processWebSocketDisconnect(queryId, "Соединение с сервером было закрыто.");
+	}
 }
 
 void BackendConnection::onWebSocketMessage(const QJsonObject& message)
@@ -219,35 +196,50 @@ void BackendConnection::onWebSocketMessage(const QJsonObject& message)
 	const QString type = message["type"].toString();
 	LOG << "Received message" << ARG(type);
 
-	if (m_messageProcessors.contains(type))
+	const IBackendConnection::QueryId queryId = message["queryId"].toInt();
+
+	const auto processor = m_activeQueries.take(queryId);
+
+	const QJsonObject payload = message["payload"].toObject();
+	if (!payload.contains("error"))
 	{
-		const auto processor = m_messageProcessors[type];
-		processor(message);
+		processor.processData(queryId, payload["data"].toObject());
 	}
 	else
 	{
-		LOG << "Unhandled message: " << type;
+		processor.processError(queryId, payload["error"].toObject());
 	}
+
+	LOG << ARG(queryId) << " pop from active, " << m_activeQueries.size() << " active queries left";
 }
 
-void BackendConnection::sendMessage(const QJsonObject& message)
+void BackendConnection::onWebSocketError(const QString& errorMessage)
 {
-	if (!m_connected)
+	while (!m_activeQueries.empty())
 	{
-		m_pendingMessages.append(message);
-	}
-	else
-	{
-		m_webSocket.sendMessage(message);
+		const auto queryId = m_activeQueries.firstKey();
+		auto processor = m_activeQueries.take(queryId);
+		processor.processWebSocketError(queryId, "Соединение с сервером было разорвано: " + errorMessage);
 	}
 }
 
-void BackendConnection::onLogInSuccess(const QJsonObject& /*message*/)
+IBackendConnection::QueryId BackendConnection::sendMessage(const QJsonObject& message)
 {
-	emit loggedIn();
+	const IBackendConnection::QueryId queryId = message["queryId"].toInt();
+
+	m_activeQueries.insert(queryId, makeProcessor(message["type"].toString()));
+
+	LOG << ARG(queryId) << " pushed to active";
+
+	return m_webSocket.sendMessage(message);
 }
 
-void BackendConnection::onLogInFailure(const QJsonObject& message)
+void BackendConnection::onLogInSuccess(IBackendConnection::QueryId queryId)
+{
+	emit loggedIn(queryId);
+}
+
+void BackendConnection::onLogInFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
 {
 	if (!message.contains("error") || message["error"].type() != QJsonValue::String)
 	{
@@ -257,20 +249,11 @@ void BackendConnection::onLogInFailure(const QJsonObject& message)
 
 	const QString error = message["error"].toString();
 	LOG << "Message" << ARG2(message["type"], "type") << ARG(error);
-	emit logInFailed(error);
+
+	emit logInFailed(queryId, error);
 }
 
-/*void BackendConnection::onLogOutSuccess(const QJsonObject& message)
-{
-
-}
-
-void BackendConnection::onLogOutFailure(const QJsonObject& message)
-{
-
-}*/
-
-void BackendConnection::onDialogsLoadSuccess(const QJsonObject& message)
+void BackendConnection::onDialogsLoadSuccess(IBackendConnection::QueryId queryId, const QJsonObject& message)
 {
 	if (!message.contains("dialogs") || message["dialogs"].type() != QJsonValue::Array)
 	{
@@ -302,10 +285,10 @@ void BackendConnection::onDialogsLoadSuccess(const QJsonObject& message)
 		result << dialog;
 	}
 
-	emit dialogsLoaded(result);
+	emit dialogsLoaded(queryId, result);
 }
 
-void BackendConnection::onDialogsLoadFailure(const QJsonObject& message)
+void BackendConnection::onDialogsLoadFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
 {
 	if (!message.contains("error") || message["error"].type() != QJsonValue::String)
 	{
@@ -315,15 +298,15 @@ void BackendConnection::onDialogsLoadFailure(const QJsonObject& message)
 
 	const QString error = message["error"].toString();
 	LOG << "Message" << ARG2(message["type"], "type") << ARG(error);
-	emit dialogsLoadFailed(error);
+	emit dialogsLoadFailed(queryId, error);
 }
 
-void BackendConnection::onDialogsUpdateSuccess(const QJsonObject& /*message*/)
+void BackendConnection::onDialogsUpdateSuccess(IBackendConnection::QueryId queryId)
 {
-	emit dialogsUpdated();
+	emit dialogsUpdated(queryId);
 }
 
-void BackendConnection::onDialogsUpdateFailure(const QJsonObject& message)
+void BackendConnection::onDialogsUpdateFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
 {
 	if (!message.contains("error") || message["error"].type() != QJsonValue::String)
 	{
@@ -333,10 +316,10 @@ void BackendConnection::onDialogsUpdateFailure(const QJsonObject& message)
 
 	const QString error = message["error"].toString();
 	LOG << "Message" << ARG2(message["type"], "type") << ARG(error);
-	emit dialogsUpdateFailed(error);
+	emit dialogsUpdateFailed(queryId, error);
 }
 
-void BackendConnection::onUsersLoadSuccess(const QJsonObject& message)
+void BackendConnection::onUsersLoadSuccess(IBackendConnection::QueryId queryId, const QJsonObject& message)
 {
 	if (!message.contains("users") || message["users"].type() != QJsonValue::Array)
 	{
@@ -372,10 +355,10 @@ void BackendConnection::onUsersLoadSuccess(const QJsonObject& message)
 		result << User(userObject["Username"].toString(), userObject["Admin"].toBool());
 	}
 
-	emit usersLoaded(result);
+	emit usersLoaded(queryId, result);
 }
 
-void BackendConnection::onUsersLoadFailure(const QJsonObject& message)
+void BackendConnection::onUsersLoadFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
 {
 	if (!message.contains("error") || message["error"].type() != QJsonValue::String)
 	{
@@ -385,15 +368,15 @@ void BackendConnection::onUsersLoadFailure(const QJsonObject& message)
 
 	const QString error = message["error"].toString();
 	LOG << "Message" << ARG2(message["type"], "type") << ARG(error);
-	emit usersLoadFailed(error);
+	emit usersLoadFailed(queryId, error);
 }
 
-void BackendConnection::onUsersUpdateSuccess(const QJsonObject& /*message*/)
+void BackendConnection::onUsersUpdateSuccess(IBackendConnection::QueryId queryId)
 {
-	emit usersUpdated();
+	emit usersUpdated(queryId);
 }
 
-void BackendConnection::onUsersUpdateFailure(const QJsonObject& message)
+void BackendConnection::onUsersUpdateFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
 {
 	if (!message.contains("error") || message["error"].type() != QJsonValue::String)
 	{
@@ -403,7 +386,61 @@ void BackendConnection::onUsersUpdateFailure(const QJsonObject& message)
 
 	const QString error = message["error"].toString();
 	LOG << "Message" << ARG2(message["type"], "type") << ARG(error);
-	emit usersUpdateFailed(error);
+	emit usersUpdateFailed(queryId, error);
+}
+
+BackendConnection::Processor BackendConnection::makeProcessor(const QString& queryType)
+{
+	if (queryType == "log_in")
+	{
+		return Processor(
+			[this](IBackendConnection::QueryId queryId, const QJsonObject&) { onLogInSuccess(queryId); },
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onLogInFailure(queryId, error); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit logInFailed(queryId, errorMessage); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit logInFailed(queryId, errorMessage); }
+		);
+	}
+
+	if (queryType == "dialogs_load")
+	{
+		return Processor(
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& data) { onDialogsLoadSuccess(queryId, data); },
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onDialogsLoadFailure(queryId, error); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit dialogsLoadFailed(queryId, errorMessage); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit dialogsLoadFailed(queryId, errorMessage); }
+		);
+	}
+
+	if (queryType == "dialogs_update")
+	{
+		return Processor(
+			[this](IBackendConnection::QueryId queryId, const QJsonObject&) { onDialogsUpdateSuccess(queryId); },
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onDialogsUpdateFailure(queryId, error); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit dialogsUpdateFailed(queryId, errorMessage); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit dialogsUpdateFailed(queryId, errorMessage); }
+		);
+	}
+	if (queryType == "users_load")
+	{
+		return Processor(
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& data) { onUsersLoadSuccess(queryId, data); },
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onUsersLoadFailure(queryId, error); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersLoadFailed(queryId, errorMessage); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersLoadFailed(queryId, errorMessage); }
+		);
+	}
+
+	if (queryType ==  "users_update")
+	{
+		return Processor(
+			[this](IBackendConnection::QueryId queryId, const QJsonObject&) { onUsersUpdateSuccess(queryId); },
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onUsersUpdateFailure(queryId, error); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersUpdateFailed(queryId, errorMessage); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersUpdateFailed(queryId, errorMessage); }
+		);
+	}
+
+	return Processor();
 }
 
 }

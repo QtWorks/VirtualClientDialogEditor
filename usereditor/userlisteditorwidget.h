@@ -27,10 +27,10 @@ private slots:
 
 	void onDiffRecordsCountChanged(int count);
 
-	void onUsersLoaded(const QList<Core::User>& users);
-	void onUsersLoadFailed(const QString& error);
-	void onUsersUpdated();
-	void onUsersUpdateFailed(const QString& error);
+	void onUsersLoaded(Core::IBackendConnection::QueryId queryId, const QList<Core::User>& users);
+	void onUsersLoadFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
+	void onUsersUpdated(Core::IBackendConnection::QueryId queryId);
+	void onUsersUpdateFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
 
 private:
 	IBackendConnectionSharedPtr m_backendConnection;

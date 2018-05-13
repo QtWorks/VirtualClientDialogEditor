@@ -21,13 +21,14 @@ QJsonObject deserialize(const QString& message)
 
 WebSocket::WebSocket(const QUrl& url, QObject* parent)
 	: QObject(parent)
+	, m_url(url)
 	, m_queryId(0)
 {
 	connect(&m_webSocket, &QWebSocket::connected, this, &WebSocket::onConnected);
 	connect(&m_webSocket, &QWebSocket::disconnected, this, &WebSocket::onDisconnected);
 	connect(&m_webSocket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error), this, &WebSocket::onError);
 
-	m_webSocket.open(url);
+	connect(&m_webSocket, &QWebSocket::stateChanged, [](QAbstractSocket::SocketState state) { LOG << "Websocket state changed to " << state; });
 }
 
 WebSocket::~WebSocket()
@@ -37,10 +38,29 @@ WebSocket::~WebSocket()
 
 int WebSocket::sendMessage(const QJsonObject& originalMessage)
 {
-	const int queryId = generateQueryId();
-
 	QJsonObject message = originalMessage;
-	message["queryId"] = queryId;
+
+	if (!originalMessage.contains("queryId"))
+	{
+		const int queryId = generateQueryId();
+		message["queryId"] = queryId;
+	}
+
+	const int queryId = message["queryId"].toInt();
+
+	if (m_webSocket.state() != QAbstractSocket::ConnectedState)
+	{
+		LOG << "Socket is closed, push to pending";
+
+		m_pendingMessages.push_back(message);
+
+		if (m_webSocket.state() != QAbstractSocket::ConnectingState)
+		{
+			LOG << "Socket is closed, open";
+			m_webSocket.open(m_url);
+		}
+		return queryId;
+	}
 
 	LOG << "Send message: " << serialize(message);
 	m_webSocket.sendTextMessage(serialize(message));
@@ -50,21 +70,29 @@ int WebSocket::sendMessage(const QJsonObject& originalMessage)
 
 void WebSocket::onConnected()
 {
+	LOG << "Socket opened, pop all pending queries";
+
 	connect(&m_webSocket, &QWebSocket::textFrameReceived, this, &WebSocket::onTextFrameReceived);
 
-	LOG << "connected";
+	while (!m_pendingMessages.isEmpty())
+	{
+		auto message = m_pendingMessages.takeFirst();
+		sendMessage(message);
+	}
+
 	emit connected();
 }
 
 void WebSocket::onDisconnected()
 {
-	LOG << "disconnected";
+	LOG << "Socket closed, interrupt all active queries";
 	emit disconnected();
 }
 
-void WebSocket::onError(QAbstractSocket::SocketError error)
+void WebSocket::onError(QAbstractSocket::SocketError errorCode)
 {
-	LOG << "error" << ARG(error) << ARG2(m_webSocket.errorString(), "errorString");
+	LOG << "Socket error" << ARG(errorCode) << ARG2(m_webSocket.errorString(), "errorString");
+	emit error(m_webSocket.errorString());
 }
 
 void WebSocket::onTextFrameReceived(const QString& frame, bool isLastFrame)
