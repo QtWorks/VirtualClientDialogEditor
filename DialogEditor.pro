@@ -9,7 +9,12 @@ QT += core gui widgets network websockets
 TARGET = DialogEditor
 TEMPLATE = app
 
-#Release:QMAKE_POST_LINK += bin/windeployqt $$OUT_PWD/$$DESTDIR
+CONFIG(release, debug|release) {
+	DESTDIR = release/bin
+
+	QMAKE_PATH = $$QMAKE_QMAKE
+	QMAKE_POST_LINK += $$dirname(QMAKE_PATH)/windeployqt $$OUT_PWD/$$DESTDIR/DialogEditor.exe
+}
 
 SOURCES += \
     listeditorwidget.cpp \
