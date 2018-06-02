@@ -25,6 +25,7 @@ void PhaseGraphicsItem::addItem(NodeGraphicsItem* item)
 	if (!m_items.contains(item))
 	{
 		m_items.append(item);
+		item->setPhase(this);
 	}
 }
 
@@ -36,6 +37,7 @@ void PhaseGraphicsItem::removeItem(NodeGraphicsItem* item)
 	}
 
 	m_items.removeOne(item);
+	item->setPhase(nullptr);
 }
 
 int PhaseGraphicsItem::type() const
@@ -90,7 +92,7 @@ QVariant PhaseGraphicsItem::itemChange(GraphicsItemChange change, const QVariant
 
 QString PhaseGraphicsItem::getHeaderText() const
 {
-	return "Фаза: " + m_phase->name + " (" + QString::number(m_phase->score) + ")";
+	return "Фаза: " + m_phase->name() + " (" + QString::number(m_phase->score()) + ")";
 }
 
 QString PhaseGraphicsItem::getContentText() const
@@ -113,7 +115,7 @@ void PhaseGraphicsItem::showNodeEditor()
 
 NodeGraphicsItem* PhaseGraphicsItem::clone() const
 {
-	return new PhaseGraphicsItem(dynamic_cast<Core::PhaseNode*>(m_phase->shallowCopy()), m_properties, parent());
+	return new PhaseGraphicsItem(dynamic_cast<Core::PhaseNode*>(m_phase->clone()), m_properties, parent());
 }
 
 qreal PhaseGraphicsItem::minHeight() const
@@ -167,8 +169,8 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 
 	QObject::connect(m_editor, &PhaseEditorWindow::accepted, [this](const Core::PhaseNode& phase)
 	{
-		m_phase->name = phase.name;
-		m_phase->score = phase.score;
+		m_phase->setName(phase.name());
+		m_phase->setScore(phase.score());
 
 		update();
 

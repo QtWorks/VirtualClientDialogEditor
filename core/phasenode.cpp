@@ -3,40 +3,46 @@
 namespace Core
 {
 
-PhaseNode::PhaseNode(const QString& name, double score, AbstractDialogNode* root)
-	: name(name)
-	, score(score)
-	, root(root ? root->deepCopy() : root)
+PhaseNode::PhaseNode(const QString& name, double score, const QList<AbstractDialogNode*>& nodes)
+	: m_name(name)
+	, m_score(score)
+	, m_nodes(nodes)
 {
 }
 
-PhaseNode::PhaseNode(const PhaseNode& other)
-	: name(other.name)
-	, score(other.score)
-	, root(other.root ? other.root->deepCopy() : other.root)
+const QString& PhaseNode::name() const
 {
+	return m_name;
 }
 
-PhaseNode& PhaseNode::operator=(const PhaseNode& other)
+void PhaseNode::setName(const QString& name)
 {
-	if (this != &other)
-	{
-		name = other.name;
-		score = other.score;
-		root = other.root ? other.root->deepCopy() : other.root;
-	}
-
-	return *this;
+	m_name = name;
 }
 
-AbstractDialogNode* PhaseNode::shallowCopy() const
+double PhaseNode::score() const
 {
-	return new PhaseNode(name, score, root ? root->shallowCopy() : nullptr);
+	return m_score;
+}
+
+void PhaseNode::setScore(double score)
+{
+	m_score = score;
+}
+
+const QList<AbstractDialogNode*>& PhaseNode::nodes() const
+{
+	return m_nodes;
+}
+
+int PhaseNode::type() const
+{
+	return PhaseNode::Type;
 }
 
 bool PhaseNode::validate(QString& error) const
 {
-	if (name.trimmed().isEmpty())
+	if (m_name.trimmed().isEmpty())
 	{
 		error = "Имя фазы не может быть пустым";
 		return false;
@@ -45,24 +51,23 @@ bool PhaseNode::validate(QString& error) const
 	return true;
 }
 
-bool PhaseNode::compare(AbstractDialogNode* other) const
+AbstractDialogNode* PhaseNode::shallowCopy() const
 {
-	if (other->type() != type())
-	{
-		return false;
-	}
-
-	return *this == *dynamic_cast<PhaseNode*>(other);
+	return new PhaseNode(m_name, m_score, m_nodes);
 }
 
-int PhaseNode::type() const
+bool PhaseNode::compareData(AbstractDialogNode* other) const
 {
-	return PhaseNode::Type;
+	Q_ASSERT(other->type() == type());
+	return *this == *dynamic_cast<PhaseNode*>(other);
 }
 
 bool operator==(const PhaseNode& left, const PhaseNode& right)
 {
-	return left.name == right.name && left.score == right.score && left.root->equalTo(right.root);
+	return left.name() == right.name() && left.score() == right.score() &&
+		left.nodes().size() == right.nodes().size() &&
+		std::equal(left.nodes().begin(), left.nodes().end(), right.nodes().begin(),
+			[](AbstractDialogNode* left, AbstractDialogNode* right) { return left->compare(right); });
 }
 
 }

@@ -14,12 +14,12 @@ ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNo
 	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, this, &ExpectedWordsEditorWindow::onUseHintCheckboxChecked);
 	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, this, &ExpectedWordsEditorWindow::validate);
 
-	m_ui->useHintCheckBox->setChecked(expectedWords.customHint);
-	onUseHintCheckboxChecked(expectedWords.customHint);
+	m_ui->useHintCheckBox->setChecked(expectedWords.customHint());
+	onUseHintCheckboxChecked(expectedWords.customHint());
 
-	if (expectedWords.customHint)
+	if (expectedWords.customHint())
 	{
-		m_ui->hintTextEdit->setText(expectedWords.hint);
+		m_ui->hintTextEdit->setText(expectedWords.hint());
 	}
 
 	connect(m_ui->hintTextEdit, &QTextEdit::textChanged, this, &ExpectedWordsEditorWindow::onHintChanged);
@@ -32,7 +32,7 @@ ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNo
 	m_ui->listWidget->setStyleSheet("QListWidget::item { border-bottom: 1px solid black; }");
 	m_ui->listWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-	for (const Core::ExpectedWords& expectedWord : m_expectedWords.expectedWords)
+	for (const Core::ExpectedWords& expectedWord : m_expectedWords.expectedWords())
 	{
 		addItemWidget(expectedWord);
 	}
@@ -58,8 +58,11 @@ ExpectedWordsEditorWindow::~ExpectedWordsEditorWindow()
 
 void ExpectedWordsEditorWindow::onUseHintCheckboxChecked(bool checked)
 {
-	m_expectedWords.customHint = checked;
-	m_expectedWords.hint = m_ui->hintTextEdit->toPlainText().trimmed();
+	m_expectedWords.setCustomHint(checked);
+	if (checked)
+	{
+		m_expectedWords.setHint(m_ui->hintTextEdit->toPlainText().trimmed());
+	}
 
 	m_ui->hintTextEdit->setDisabled(!checked);
 	m_ui->hintLabel->setDisabled(!checked);
@@ -67,7 +70,7 @@ void ExpectedWordsEditorWindow::onUseHintCheckboxChecked(bool checked)
 
 void ExpectedWordsEditorWindow::onHintChanged()
 {
-	m_expectedWords.hint = m_ui->hintTextEdit->toPlainText().trimmed();
+	m_expectedWords.setHint(m_ui->hintTextEdit->toPlainText().trimmed());
 }
 
 void ExpectedWordsEditorWindow::onAddItemClicked()
@@ -77,8 +80,11 @@ void ExpectedWordsEditorWindow::onAddItemClicked()
 		return;
 	}
 
-	m_expectedWords.expectedWords.append(Core::ExpectedWords("", 0));
-	addItemWidget(m_expectedWords.expectedWords.last());
+	QList<Core::ExpectedWords> expectedWords = m_expectedWords.expectedWords();
+	expectedWords.append(Core::ExpectedWords("", 0));
+	m_expectedWords.setExpectedWords(expectedWords);
+
+	addItemWidget(m_expectedWords.expectedWords().last());
 
 	validate();
 
@@ -94,10 +100,10 @@ void ExpectedWordsEditorWindow::onSaveClicked()
 	{
 		words.append(editor->expectedWords());
 	}
-	m_expectedWords.expectedWords = words;
+	m_expectedWords.setExpectedWords(words);
 
 	const QString hint = m_ui->hintTextEdit->toPlainText().trimmed();
-	m_expectedWords.hint = hint.isEmpty() ? "" : hint;
+	m_expectedWords.setHint(hint.isEmpty() ? "" : hint);
 
 	hide();
 
@@ -117,7 +123,7 @@ void ExpectedWordsEditorWindow::addItemWidget(const Core::ExpectedWords& item)
 
 	connect(editorItem, &ExpectedWordEditor::changed, [this]()
 	{
-		// TODO: update internal state
+
 		validate();
 	});
 
@@ -139,16 +145,17 @@ void ExpectedWordsEditorWindow::addItemWidget(const Core::ExpectedWords& item)
 
 void ExpectedWordsEditorWindow::validate()
 {
-	// TODO: update internal state in changed slot ?
-	Core::ExpectedWordsNode expectedWords = m_expectedWords;
-	expectedWords.expectedWords.clear();
+	QList<Core::ExpectedWords> expectedWords;
 	for (ExpectedWordEditor* editor : m_itemEditors)
 	{
-		expectedWords.expectedWords.append(editor->expectedWords());
+		expectedWords.append(editor->expectedWords());
 	}
 
 	QString error;
-	if (!expectedWords.validate(error))
+
+	Core::ExpectedWordsNode expectedWordsNode = m_expectedWords;
+	expectedWordsNode.setExpectedWords(expectedWords);
+	if (!expectedWordsNode.validate(error))
 	{
 		setError(error);
 	}

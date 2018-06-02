@@ -11,12 +11,12 @@
 #include <QMimeData>
 #include <QKeyEvent>
 
-// TODO: expectedwords can have only 1 outgoing link
+
 
 namespace
 {
 
-// TODO: move paddings into PhaseGraphicsItem object?
+
 static const qreal s_nodesInterval = 30.0;
 static const qreal s_phaseTopPadding = 45.0;
 static const qreal s_phaseRightPadding = 15.0;
@@ -48,6 +48,75 @@ NodeGraphicsItem* makeGraphicsItem(Core::AbstractDialogNode* node, NodeGraphicsI
 	}
 
 	return nullptr;
+}
+
+GraphLayout::GraphNodeData makeNode(Core::AbstractDialogNode::Id label, int layer)
+{
+	GraphLayout::GraphNodeData node;
+	node.label = label;
+	node.layer = layer;
+	return node;
+}
+
+int calcLayer(const Core::AbstractDialogNode* node, const QList<Core::AbstractDialogNode*>& nodes)
+{
+	if (node->parentNodes().empty())
+	{
+		return 0;
+	}
+
+	std::vector<int> parentLayers;
+	for (const auto& parentNodeId : node->parentNodes())
+	{
+		const auto parentNodeIt = Core::findNodeById(nodes, parentNodeId);
+		if (parentNodeIt == nodes.end())
+		{
+			continue;
+		}
+
+		const int layer = calcLayer(*parentNodeIt, nodes);
+
+		parentLayers.push_back(layer);
+	}
+
+	const auto maxLayerIt = std::max_element(parentLayers.begin(), parentLayers.end());
+	return maxLayerIt == parentLayers.end() ? 0 : (*maxLayerIt + 1);
+}
+
+GraphLayout::GraphData makeGraphData(QList<Core::AbstractDialogNode*> nodes)
+{
+	std::vector<GraphLayout::GraphNodeData> nodeList;
+	for (const auto& node : nodes)
+	{
+		nodeList.push_back(makeNode(node->id(), calcLayer(node, nodes)));
+	}
+
+	std::vector<std::vector<int>> adjList;
+	for (const auto& node : nodes)
+	{
+		std::vector<int> adjacentNodes;
+
+		for (const auto& childId : node->childNodes())
+		{
+			const auto childNodeIt = Core::findNodeById(nodes, childId);
+			if (childNodeIt == nodes.end())
+			{
+				continue;
+			}
+
+			const int nodeIndex = std::distance(nodes.begin(), childNodeIt);
+
+			adjacentNodes.push_back(nodeIndex);
+		}
+
+		adjList.push_back(adjacentNodes);
+	}
+
+	const auto maxLayerIt = std::max_element(nodeList.begin(), nodeList.end(),
+		[](const GraphLayout::GraphNodeData& left, const GraphLayout::GraphNodeData& right) { return left.layer < right.layer; });
+	const int totalLayers = maxLayerIt->layer + 1;
+
+	return { nodeList, adjList, totalLayers };
 }
 
 }
@@ -159,41 +228,174 @@ void DialogGraphicsScene::refreshScene()
 		return;
 	}
 
-	NodeGraphicsItem* lastInsertedNode = nullptr;
+	std::vector<PhaseGraphicsItem*> phaseItems;
+	NodeItemById graphicsItemByLabel;
+	std::vector<std::pair<Core::AbstractDialogNode::Id, Core::AbstractDialogNode::Id>> nodesBetweenPhases;
 
-	const NodeGraphicsItem::Properties nodeProperties = NodeGraphicsItem::Resizable | NodeGraphicsItem::Editable | NodeGraphicsItem::Removable;
+	// place phases
 	for (int phaseIndex = 0; phaseIndex < phases.size(); ++phaseIndex)
 	{
 		Core::PhaseNode& phase = phases[phaseIndex];
 
-		PhaseGraphicsItem* phaseItem = new PhaseGraphicsItem(&phase, nodeProperties, this);
-		// TODO: hide equation if horizontal placement will be in release
-		const QPointF phasePos = QPointF((177.0 + s_phaseLeftPadding + s_phaseRightPadding + s_nodesInterval) * phaseIndex, 0.0);
-		LOG << "Place phase #" << phaseIndex << " at " << phasePos;
-		addNodeToScene(phaseItem, phasePos);
+		const std::pair<PhaseGraphicsItem*, NodeItemById> phaseInfo = renderPhase(phase, phaseIndex);
+		phaseItems.push_back(phaseInfo.first);
+		graphicsItemByLabel.insert(phaseInfo.second.begin(), phaseInfo.second.end());
 
-		NodeGraphicsItem* rootGraphicsItem = makeGraphicsItem(phase.root, nodeProperties, this);
-		addNodeToScene(rootGraphicsItem, QPointF(phaseItem->sceneBoundingRect().left() + s_phaseLeftPadding, s_phaseTopPadding));
-		phaseItem->addItem(rootGraphicsItem);
-		emit nodeAddedToPhase(rootGraphicsItem, phaseItem);
-
-		if (lastInsertedNode)
+		for (const std::pair<QString, NodeGraphicsItem*> nodeByLabel : phaseInfo.second)
 		{
-			// TODO: line with corners can be good here
-			connectNodes(lastInsertedNode, rootGraphicsItem);
+			NodeGraphicsItem* node = nodeByLabel.second;
+
+			for (const Core::AbstractDialogNode::Id childNodeId : node->data()->childNodes())
+			{
+				const auto childIt = std::find_if(phaseInfo.second.begin(), phaseInfo.second.end(),
+					[&childNodeId](const std::pair<QString, NodeGraphicsItem*>& x)
+					{
+						return x.second->data()->id() == childNodeId;
+					});
+
+				if (childIt == phaseInfo.second.end())
+				{
+					nodesBetweenPhases.push_back({ node->data()->id(), childNodeId });
+				}
+			}
 		}
+	}
 
-		lastInsertedNode = rootGraphicsItem;
+	// connect phases
+	for (const auto& nodesPair : nodesBetweenPhases)
+	{
+		NodeGraphicsItem* from = graphicsItemByLabel[nodesPair.first];
+		NodeGraphicsItem* to = graphicsItemByLabel[nodesPair.second];
 
-		const QSet<Core::AbstractDialogNode*> childNodes = phase.root->childNodes();
-		placeItems(*phaseItem, childNodes, nodeProperties, lastInsertedNode);
+		connectNodes(from, to);
+	}
 
-		const qreal width = lastInsertedNode->boundingRect().width() + s_phaseLeftPadding + s_phaseRightPadding;
-		const qreal height = lastInsertedNode->sceneBoundingRect().bottom() - phaseItem->sceneBoundingRect().top() + s_phaseBottomPadding;
+	// align phases
+	for (size_t i = 1; i < phaseItems.size(); ++i)
+	{
+		PhaseGraphicsItem* previousPhase = phaseItems[i - 1];
 
-		LOG << "Resize phase #" << phaseIndex << " to " << ARG(width) << ARG(height) << lastInsertedNode->sceneBoundingRect();
+		QPointF point = previousPhase->sceneBoundingRect().topRight();
+		point.setX(point.x() + s_nodesInterval);
 
-		phaseItem->resize(width, height);
+		PhaseGraphicsItem* currentPhase = phaseItems[i];
+		currentPhase->setPos(point);
+	}
+}
+
+std::pair<PhaseGraphicsItem*, DialogGraphicsScene::NodeItemById> DialogGraphicsScene::renderPhase(Core::PhaseNode& phase, int phaseIndex)
+{
+	const NodeGraphicsItem::Properties nodeProperties = NodeGraphicsItem::Resizable | NodeGraphicsItem::Editable | NodeGraphicsItem::Removable;
+
+	PhaseGraphicsItem* phaseItem = new PhaseGraphicsItem(&phase, nodeProperties, this);
+
+	ClientReplicaNodeGraphicsItem dummy(nullptr, NodeGraphicsItem::NoProperties);
+	const QPointF phasePos = QPointF((dummy.minWidth() + s_phaseLeftPadding + s_phaseRightPadding + s_nodesInterval) * phaseIndex, 0.0);
+
+	LOG << "Place phase #" << phaseIndex << " at " << phasePos;
+	addNodeToScene(phaseItem, phasePos);
+
+	const auto phaseGraph = makeGraphData(phase.nodes());
+	GraphLayout layout(phaseGraph.totalLayers);
+	const GraphLayout::NodesByLayer graph = layout.render(phaseGraph);
+
+	const auto itemByNode = renderNodes(phaseItem, graph, phase.nodes());
+	renderEdges(phaseItem, graph, itemByNode);
+
+	phaseItem->resizeToMinimal();
+
+	return { phaseItem, itemByNode };
+}
+
+QPointF nodePosition(const PhaseGraphicsItem& phase, const GraphLayout::GraphNode& node)
+{
+	const QPointF phasePosition = phase.scenePos();
+
+	const int x = phasePosition.x() + s_phaseLeftPadding + node.lx * 210;
+	const int y = phasePosition.y() + s_phaseTopPadding + node.ly * (60 + s_nodesInterval);
+
+	return QPointF(x, y);
+}
+
+DialogGraphicsScene::NodeItemById DialogGraphicsScene::renderNodes(PhaseGraphicsItem* phaseItem,
+	const GraphLayout::NodesByLayer& nodes, const QList<Core::AbstractDialogNode*>& dataNodes)
+{
+	NodeItemById itemByNode;
+
+	for (const auto& nodesByLayer : nodes)
+	{
+		for (const auto& graphNode : nodesByLayer.second)
+		{
+			if (graphNode.virt)
+			{
+				continue;
+			}
+
+			const NodeGraphicsItem::Properties nodeProperties = NodeGraphicsItem::Resizable | NodeGraphicsItem::Editable | NodeGraphicsItem::Removable;
+
+			const QPointF position = nodePosition(*phaseItem, graphNode);
+			LOG << "Draw node (" << graphNode.lx << ", " << graphNode.ly << ") at " << position.x() << "," << position.y();
+
+			const auto nodeIt = Core::findNodeById(dataNodes, graphNode.label);
+			NodeGraphicsItem* nodeGraphicsItem = makeGraphicsItem(*nodeIt, nodeProperties, this);
+
+			emit nodeAddedToPhase(nodeGraphicsItem, phaseItem);
+
+			phaseItem->addItem(nodeGraphicsItem);
+
+			itemByNode.insert({ graphNode.label, nodeGraphicsItem });
+
+			addNodeToScene(nodeGraphicsItem, position);
+		}
+	}
+
+	return itemByNode;
+}
+
+void DialogGraphicsScene::renderEdges(PhaseGraphicsItem* phaseItem, const GraphLayout::NodesByLayer& nodes, const NodeItemById& itemByNode)
+{
+	for (const auto& nodesByLayer : nodes)
+	{
+		for (const GraphLayout::GraphNode& node : nodesByLayer.second)
+		{
+			if (node.virt)
+			{
+				continue;
+			}
+
+			NodeGraphicsItem* root = itemByNode.at(node.label);
+
+			for (const auto& targetNode : node.trgNodes)
+			{
+				const int x = targetNode[0];
+				const int y = targetNode[1];
+				const GraphLayout::GraphNode* adjNode = &(nodes.at(y)[x]);
+
+				QVector<QPointF> intermediatePoints;
+
+				while (adjNode->virt)
+				{
+					// Not the best way, but...
+					ClientReplicaNodeGraphicsItem dummy(nullptr, NodeGraphicsItem::NoProperties);
+					QPointF position = nodePosition(*phaseItem, *adjNode) + QPointF(dummy.minWidth() / 2, dummy.minHeight() / 2);
+					intermediatePoints.push_back(position);
+
+					Q_ASSERT(adjNode->trgNodes.size() == 1);
+
+					const GraphLayout::Point& targetNode = adjNode->trgNodes[0];
+					const int x = targetNode[0];
+					const int y = targetNode[1];
+					adjNode = &(nodes.at(y)[x]);
+				}
+
+				NodeGraphicsItem* child = itemByNode.at(adjNode->label);
+				connectNodes(root, child, intermediatePoints);
+				LOG << "Connect nodes "
+					<< root->data()->id() << " (" << root->pos() << ")"
+					<< " and " << child->data()->id() << " (" << child->pos() << ")"
+					<< " via intermediate points " << intermediatePoints;
+			}
+		}
 	}
 }
 
@@ -255,9 +457,13 @@ void DialogGraphicsScene::addLineToScene(ArrowLineGraphicsItem* line)
 	emit linkAdded(line);
 }
 
-void DialogGraphicsScene::connectNodes(NodeGraphicsItem* parentNode, NodeGraphicsItem* childNode)
+void DialogGraphicsScene::connectNodes(NodeGraphicsItem* parentNode, NodeGraphicsItem* childNode,
+	const QVector<QPointF>& intermediatePoints)
 {
-	addLineToScene(new ArrowLineGraphicsItem(parentNode, childNode, false));
+	ArrowLineGraphicsItem* line = new ArrowLineGraphicsItem(parentNode, childNode, intermediatePoints);
+	line->setDraggable(false);
+
+	addLineToScene(line);
 
 	emit nodesConnected(parentNode, childNode);
 }
@@ -276,12 +482,11 @@ void DialogGraphicsScene::removeNodeFromScene(NodeGraphicsItem* node)
 
 	removeItem(node);
 
-	const QList<PhaseGraphicsItem*> nodePhase = phaseItems(node->sceneBoundingRect());
-	if (!nodePhase.empty())
+	if (node->type() != PhaseGraphicsItem::Type && node->getPhase())
 	{
-		Q_ASSERT(nodePhase.size() == 1);
-		emit nodeRemovedFromPhase(node, nodePhase.first());
+		emit nodeRemovedFromPhase(node, node->getPhase());
 	}
+
 	emit nodeRemoved(node);
 }
 
@@ -397,73 +602,4 @@ QList<PhaseGraphicsItem*> DialogGraphicsScene::phaseItems(const QRectF& rect) co
 		}
 	}
 	return result;
-}
-
-/*namespace
-{
-
-QString nodeType(Core::AbstractDialogNode* node)
-{
-	if (node->type() == Core::ClientReplicaNode::Type)
-	{
-		return "ClientReplica";
-	}
-
-	if (node->type() == Core::ExpectedWordsNode::Type)
-	{
-		return "ExpectedWords";
-	}
-
-	return "Phase";
-}
-
-QString nodeType(NodeGraphicsItem* node)
-{
-	return nodeType(node->data());
-}
-
-QString toString(NodeGraphicsItem* graphicsNode)
-{
-	Core::AbstractDialogNode* node = graphicsNode->data();
-
-	if (node->type() == Core::ClientReplicaNode::Type)
-	{
-		return dynamic_cast<Core::ClientReplicaNode*>(node)->replica;
-	}
-
-	if (node->type() == Core::ExpectedWordsNode::Type)
-	{
-		return "ExpectedWordsNode";
-	}
-
-	return "";
-}
-
-}*/
-
-void DialogGraphicsScene::placeItems(PhaseGraphicsItem& phase, const QSet<Core::AbstractDialogNode*>& childNodes,
-	NodeGraphicsItem::Properties properties, NodeGraphicsItem*& lastInsertedNode)
-{
-	//LOG << dynamic_cast<Core::PhaseNode*>(phase.data())->name << ": place " << childNodes.size() << " childs of " << nodeType(lastInsertedNode)
-	//	<< " (" << toString(lastInsertedNode) << ")";
-
-	for (auto it = childNodes.begin(); it != childNodes.end(); ++it)
-	{
-		Core::AbstractDialogNode* child = *it;
-
-		NodeGraphicsItem* graphicsItem = makeGraphicsItem(child, properties, this);
-		const QPointF position = QPointF(
-			phase.sceneBoundingRect().left() + s_phaseLeftPadding,
-			lastInsertedNode->sceneBoundingRect().bottom() + s_nodesInterval);
-
-		addNodeToScene(graphicsItem, position);
-		phase.addItem(graphicsItem);
-		emit nodeAddedToPhase(graphicsItem, &phase);
-
-		connectNodes(lastInsertedNode, graphicsItem);
-
-		lastInsertedNode = graphicsItem;
-
-		placeItems(phase, child->childNodes(), properties, lastInsertedNode);
-	}
 }

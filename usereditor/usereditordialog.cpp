@@ -24,7 +24,6 @@ UserEditorDialog::~UserEditorDialog()
 
 void UserEditorDialog::saveChanges()
 {
-	// TODO: emptiness validation, trims
 	const QString username = m_ui->usernameEdit->text();
 	const bool admin = m_ui->adminCheckBox->isChecked();
 

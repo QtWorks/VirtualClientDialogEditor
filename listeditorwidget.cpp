@@ -1,8 +1,6 @@
 #include "listeditorwidget.h"
 #include "ui_listeditorwidget.h"
 
-// TODO: validate items uniqueness before saving
-
 namespace
 {
 

@@ -33,9 +33,9 @@ QString ExpectedWordsNodeGraphicsItem::getContentText() const
 {
 	QStringList prefexedExpectedWords;
 
-	for (int i = 0; i < m_expectedWords->expectedWords.size(); ++i)
+	for (int i = 0; i < m_expectedWords->expectedWords().size(); ++i)
 	{
-		prefexedExpectedWords << "- " + m_expectedWords->expectedWords[i].words + (i == m_expectedWords->expectedWords.size() - 1 ? "." : ";");
+		prefexedExpectedWords << "- " + m_expectedWords->expectedWords()[i].words + (i == m_expectedWords->expectedWords().size() - 1 ? "." : ";");
 	}
 
 	return prefexedExpectedWords.join("\n");
@@ -55,7 +55,7 @@ void ExpectedWordsNodeGraphicsItem::showNodeEditor()
 
 NodeGraphicsItem* ExpectedWordsNodeGraphicsItem::clone() const
 {
-	return new ExpectedWordsNodeGraphicsItem(dynamic_cast<Core::ExpectedWordsNode*>(m_expectedWords->shallowCopy()), m_properties, parent());
+	return new ExpectedWordsNodeGraphicsItem(m_expectedWords->clone()->as<Core::ExpectedWordsNode>(), m_properties, parent());
 }
 
 void ExpectedWordsNodeGraphicsItem::createEditorIfNeeded()
@@ -69,8 +69,8 @@ void ExpectedWordsNodeGraphicsItem::createEditorIfNeeded()
 
 	QObject::connect(m_editor, &ExpectedWordsEditorWindow::accepted, [this](const Core::ExpectedWordsNode& expectedWords)
 	{
-		m_expectedWords->expectedWords = expectedWords.expectedWords;
-		m_expectedWords->hint = expectedWords.hint;
+		m_expectedWords->setExpectedWords(expectedWords.expectedWords());
+		m_expectedWords->setHint(expectedWords.hint());
 
 		update();
 

@@ -16,10 +16,10 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, QWidget* pare
 	m_ui->errorIconLabel->setPixmap(warningPixmap);
 	m_ui->errorIconLabel->hide();
 
-	m_ui->nameLineEdit->setText(m_phase.name);
+	m_ui->nameLineEdit->setText(m_phase.name());
 	connect(m_ui->nameLineEdit, &QLineEdit::textChanged, this, PhaseEditorWindow::onNameChanged);
 
-	m_ui->scoreLineEdit->setText(QString::number(m_phase.score));
+	m_ui->scoreLineEdit->setText(QString::number(m_phase.score()));
 	m_ui->scoreLineEdit->setValidator(new QIntValidator(0, INT_MAX, this));
 	connect(m_ui->scoreLineEdit, &QLineEdit::textChanged, this, PhaseEditorWindow::onScoreChanged);
 
@@ -51,7 +51,7 @@ void PhaseEditorWindow::onCancelClicked()
 
 void PhaseEditorWindow::onNameChanged()
 {
-	m_phase.name = m_ui->nameLineEdit->text().trimmed();
+	m_phase.setName(m_ui->nameLineEdit->text().trimmed());
 	emit changed();
 
 	QString error;
@@ -78,7 +78,7 @@ void PhaseEditorWindow::onScoreChanged()
 	const double score = scoreString.toDouble(&ok);
 	Q_ASSERT(ok);
 
-	m_phase.score = score;
+	m_phase.setScore(score);
 	emit changed();
 
 	QString error;

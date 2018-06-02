@@ -118,6 +118,16 @@ QList<ArrowLineGraphicsItem*> NodeGraphicsItem::outcomingLinks() const
 	return m_outcomingLinks;
 }
 
+PhaseGraphicsItem* NodeGraphicsItem::getPhase() const
+{
+	return m_phase;
+}
+
+void NodeGraphicsItem::setPhase(PhaseGraphicsItem* phase)
+{
+	m_phase = phase;
+}
+
 bool NodeGraphicsItem::atResizeRect(const QPointF& position, const QRectF& rect)
 {
 	const QPointF bottomRight = rect.bottomRight();
@@ -163,7 +173,6 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 	contentRectPath.addRect(QRectF(contentRect.right() - roundRadius, contentRect.top(), roundRadius, roundRadius));
 	painter->drawPath(contentRectPath.simplified());
 
-	// TODO: eliding in case of new lines ???
 	QRectF adjustedContentRect = contentRect.adjusted(+padding(), +padding(), -padding(), -padding());
 	const QString elidedContentText = elideText(painter->fontMetrics(), getContentText(), adjustedContentRect.width(), adjustedContentRect.height());
 	painter->drawText(adjustedContentRect, Qt::AlignLeft, elidedContentText);

@@ -46,7 +46,16 @@ public slots:
 private:
 	bool validateDialog() const;
 	bool validateDialog(QString& error) const;
-	void updateDialog();
+	QList<Core::PhaseNode> getPhases();
+	QList<PhaseGraphicsItem*> getOrderedPhases();
+
+	typedef QList<PhaseGraphicsItem*>::const_iterator PhasesListIterator;
+	PhaseGraphicsItem* findFirstPhase() const;
+	QList<PhaseGraphicsItem*> findNextPhase(PhaseGraphicsItem* currentPhase) const;
+
+	Core::PhaseNode getPhaseNode(PhaseGraphicsItem* phaseItem);
+
+	QList<Core::AbstractDialogNode*> getPhaseNodes(PhaseGraphicsItem* phaseItem);
 
 private:
 	Ui::DialogEditorWindow* m_ui;

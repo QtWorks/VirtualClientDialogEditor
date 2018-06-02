@@ -67,7 +67,9 @@ bool operator<(const Dialog& left, const Dialog& right)
 
 bool operator==(const Dialog& left, const Dialog& right)
 {
-	return left.name == right.name && left.difficulty == right.difficulty && left.phases == right.phases;
+	return left.name == right.name && left.difficulty == right.difficulty &&
+		left.phases.size() == right.phases.size() &&
+		std::equal(left.phases.begin(), left.phases.end(), right.phases.begin());
 }
 
 bool operator!=(const Dialog& left, const Dialog& right)

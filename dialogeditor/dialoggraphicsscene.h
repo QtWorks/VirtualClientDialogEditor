@@ -2,6 +2,7 @@
 #define DIALOGVIEW_H
 
 #include "nodegraphicsitem.h"
+#include "graphlayout.h"
 #include <QGraphicsView>
 #include <QGraphicsScene>
 
@@ -23,7 +24,8 @@ public:
 
 	void addNodeToScene(NodeGraphicsItem* node, const QPointF& position);
 	void addLineToScene(ArrowLineGraphicsItem* line);
-	void connectNodes(NodeGraphicsItem* parentNode, NodeGraphicsItem* childNode);
+	void connectNodes(NodeGraphicsItem* parentNode, NodeGraphicsItem* childNode,
+		const QVector<QPointF>& intermediatePoints = {});
 
 signals:
 	void nodeSelectionChanged(NodeGraphicsItem* node, bool value);
@@ -51,15 +53,18 @@ private:
 private:
 	void refreshScene();
 
+	typedef std::map<QString, NodeGraphicsItem*> NodeItemById;
+
+	std::pair<PhaseGraphicsItem*, NodeItemById> renderPhase(Core::PhaseNode& phase, int phaseIndex);
+	NodeItemById renderNodes(PhaseGraphicsItem* phaseItem, const GraphLayout::NodesByLayer& nodes, const QList<Core::AbstractDialogNode*>& dataNodes);
+	void renderEdges(PhaseGraphicsItem* phaseItem, const GraphLayout::NodesByLayer& nodes, const NodeItemById& itemByNode);
+
 	void removeNodeFromScene(NodeGraphicsItem* node);
 	void removeLinkFromScene(ArrowLineGraphicsItem* line);
 
 	void onPhasePositionChanged(PhaseGraphicsItem* phaseItem, const QPointF& from, const QPointF& to);
 	void onReplicaPositionChanged(NodeGraphicsItem* replicaItem, const QPointF& from, const QPointF& to);
 	QList<PhaseGraphicsItem*> phaseItems(const QRectF& rect) const;
-
-	void placeItems(PhaseGraphicsItem& phase, const QSet<Core::AbstractDialogNode*>& childNodes,
-		NodeGraphicsItem::Properties properties, NodeGraphicsItem*& lastInsertedNode);
 
 private:
 	Core::Dialog* m_dialog;

@@ -1,58 +1,69 @@
 #include "abstractdialognode.h"
+#include <QDateTime>
 
 namespace Core
 {
+
+AbstractDialogNode::AbstractDialogNode()
+	: m_id(QString::number(QDateTime::currentMSecsSinceEpoch()))
+{
+}
 
 AbstractDialogNode::~AbstractDialogNode()
 {
 }
 
-AbstractDialogNode& AbstractDialogNode::appendParent(AbstractDialogNode* parent)
+AbstractDialogNode::Id AbstractDialogNode::id() const
 {
-	m_parentNodes.insert(parent);
-	return *this;
+	return m_id;
 }
 
-AbstractDialogNode& AbstractDialogNode::removeParent(AbstractDialogNode* parent)
+void AbstractDialogNode::setId(Id id)
 {
-	Q_ASSERT(m_parentNodes.contains(parent));
-	m_parentNodes.remove(parent);
-	return *this;
+	m_id = id;
 }
 
-AbstractDialogNode& AbstractDialogNode::appendChild(AbstractDialogNode* child)
-{
-	m_childNodes.insert(child);
-	return *this;
-}
-
-AbstractDialogNode& AbstractDialogNode::removeChild(AbstractDialogNode* child)
-{
-	Q_ASSERT(m_childNodes.contains(child));
-	m_childNodes.remove(child);
-	return *this;
-}
-
-QSet<AbstractDialogNode*> AbstractDialogNode::parentNodes() const
+QSet<AbstractDialogNode::Id> AbstractDialogNode::parentNodes() const
 {
 	return m_parentNodes;
 }
 
-QSet<AbstractDialogNode*> AbstractDialogNode::childNodes() const
+void AbstractDialogNode::appendParent(const Id& id)
+{
+	m_parentNodes.insert(id);
+}
+
+void AbstractDialogNode::removeParent(const Id& id)
+{
+	Q_ASSERT(m_parentNodes.contains(id));
+	m_parentNodes.remove(id);
+}
+
+QSet<AbstractDialogNode::Id> AbstractDialogNode::childNodes() const
 {
 	return m_childNodes;
 }
 
-AbstractDialogNode* AbstractDialogNode::deepCopy() const
+void AbstractDialogNode::appendChild(const Id& id)
 {
-	AbstractDialogNode* copy = shallowCopy();
+	m_childNodes.insert(id);
+}
 
-	for (const AbstractDialogNode* child : m_childNodes)
-	{
-		copy->appendChild(child->deepCopy());
-	}
+void AbstractDialogNode::removeChild(const Id& id)
+{
+	Q_ASSERT(m_childNodes.contains(id));
+	m_childNodes.remove(id);
+}
 
-	return copy;
+AbstractDialogNode* AbstractDialogNode::clone() const
+{
+	AbstractDialogNode* result = shallowCopy();
+
+	result->m_id = m_id;
+	result->m_parentNodes = m_parentNodes;
+	result->m_childNodes = m_childNodes;
+
+	return result;
 }
 
 bool AbstractDialogNode::validate() const
@@ -61,20 +72,14 @@ bool AbstractDialogNode::validate() const
 	return validate(error);
 }
 
-bool AbstractDialogNode::equalTo(AbstractDialogNode* other) const
+bool AbstractDialogNode::compare(AbstractDialogNode* other) const
 {
-	if (m_childNodes.size() != other->m_childNodes.size())
+	const auto rank = [](const AbstractDialogNode* node)
 	{
-		return false;
-	}
+		return std::make_tuple(node->id(), node->type(), node->childNodes(), node->parentNodes());
+	};
 
-	return std::all_of(m_childNodes.begin(), m_childNodes.end(),
-		[&other](AbstractDialogNode* child)
-		{
-			return std::any_of(other->m_childNodes.begin(), other->m_childNodes.end(),
-				[&child](AbstractDialogNode* anotherChild) { return child->equalTo(anotherChild); });
-		}
-	);
+	return rank(this) == rank(other) && compareData(other);
 }
 
 }

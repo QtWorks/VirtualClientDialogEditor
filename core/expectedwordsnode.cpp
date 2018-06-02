@@ -31,33 +31,63 @@ bool operator==(const ExpectedWords& left, const ExpectedWords& right)
 }
 
 ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords)
-	: expectedWords(expectedWords)
-	, customHint(false)
-	, hint(join(expectedWords, "; "))
+	: m_expectedWords(expectedWords)
+	, m_customHint(false)
+	, m_hint(join(expectedWords, "; "))
 {
 }
 
 ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, const QString& hint)
-	: expectedWords(expectedWords)
-	, customHint(true)
-	, hint(hint)
+	: m_expectedWords(expectedWords)
+	, m_customHint(true)
+	, m_hint(hint)
 {
 }
 
-AbstractDialogNode* ExpectedWordsNode::shallowCopy() const
+const QList<ExpectedWords>& ExpectedWordsNode::expectedWords() const
 {
-	return customHint ? new ExpectedWordsNode(expectedWords, hint) : new ExpectedWordsNode(expectedWords);
+	return m_expectedWords;
+}
+
+void ExpectedWordsNode::setExpectedWords(const QList<ExpectedWords>& expectedWords)
+{
+	m_expectedWords = expectedWords;
+}
+
+bool ExpectedWordsNode::customHint() const
+{
+	return m_customHint;
+}
+
+void ExpectedWordsNode::setCustomHint(bool customHint)
+{
+	m_customHint = customHint;
+}
+
+const QString& ExpectedWordsNode::hint() const
+{
+	return m_hint;
+}
+
+void ExpectedWordsNode::setHint(const QString& hint)
+{
+	m_hint = hint;
+}
+
+int ExpectedWordsNode::type() const
+{
+	return ExpectedWordsNode::Type;
 }
 
 bool ExpectedWordsNode::validate(QString& error) const
 {
-	if (expectedWords.isEmpty())
+	if (m_expectedWords.isEmpty())
 	{
 		error = "Список опорных слов не может быть пустым";
 		return false;
 	}
 
-	const bool hasEmptyWords = std::any_of(expectedWords.begin(), expectedWords.end(),
+	const bool hasEmptyWords = std::any_of(m_expectedWords.begin(), m_expectedWords.end(),
 		[](const ExpectedWords& words)
 		{
 			return words.words.trimmed().isEmpty();
@@ -69,7 +99,7 @@ bool ExpectedWordsNode::validate(QString& error) const
 		return false;
 	}
 
-	if (customHint && hint.isEmpty())
+	if (m_customHint && m_hint.isEmpty())
 	{
 		error = "Подсказка не может быть пустой";
 		return false;
@@ -78,24 +108,20 @@ bool ExpectedWordsNode::validate(QString& error) const
 	return true;
 }
 
-bool ExpectedWordsNode::compare(AbstractDialogNode* other) const
+AbstractDialogNode* ExpectedWordsNode::shallowCopy() const
 {
-	if (other->type() != type())
-	{
-		return false;
-	}
-
-	return *this == *dynamic_cast<ExpectedWordsNode*>(other);
+	return m_customHint ? new ExpectedWordsNode(m_expectedWords, m_hint) : new ExpectedWordsNode(m_expectedWords);
 }
 
-int ExpectedWordsNode::type() const
+bool ExpectedWordsNode::compareData(AbstractDialogNode* other) const
 {
-	return ExpectedWordsNode::Type;
+	Q_ASSERT(other->type() == type());
+	return *this == *other->as<ExpectedWordsNode>();
 }
 
 bool operator==(const ExpectedWordsNode& left, const ExpectedWordsNode& right)
 {
-	return left.expectedWords == right.expectedWords && left.customHint == right.customHint && left.hint == right.hint;
+	return left.expectedWords() == right.expectedWords() && left.customHint() == right.customHint() && left.hint() == right.hint();
 }
 
 }

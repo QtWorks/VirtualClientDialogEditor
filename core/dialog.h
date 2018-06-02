@@ -24,10 +24,6 @@ public:
 
 	QString printableName() const;
 
-	// TODO: error replica?
-	// TODO: intro replica?
-	// TODO: outro replica?
-
 	static QString difficultyToString(Difficulty difficulty);
 
 	static Difficulty difficultyFromString(const QString& string);

@@ -32,14 +32,26 @@ public:
 		Type = AbstractDialogNode::Type + 3
 	};
 
-	virtual AbstractDialogNode* shallowCopy() const override;
-	virtual bool validate(QString& error) const override;
-	virtual bool compare(AbstractDialogNode* other) const override;
-	virtual int type() const override;
+	const QList<ExpectedWords>& expectedWords() const;
+	void setExpectedWords(const QList<ExpectedWords>& expectedWords);
 
-	QList<ExpectedWords> expectedWords;
-	bool customHint;
-	QString hint;
+	bool customHint() const;
+	void setCustomHint(bool customHint);
+
+	const QString& hint() const;
+	void setHint(const QString& hint);
+
+	virtual int type() const override;
+	virtual bool validate(QString& error) const override;
+
+private:
+	virtual AbstractDialogNode* shallowCopy() const override;
+	virtual bool compareData(AbstractDialogNode* other) const override;
+
+private:
+	QList<ExpectedWords> m_expectedWords;
+	bool m_customHint;
+	QString m_hint;
 };
 
 bool operator==(const ExpectedWordsNode& left, const ExpectedWordsNode& right);

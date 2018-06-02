@@ -12,6 +12,8 @@
 #include "logger.h"
 #include <QPushButton>
 
+#include <set>
+
 template<typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args&&... args)
 {
@@ -83,7 +85,7 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* pare
 	{
 		Q_ASSERT(validateDialog());
 
-		updateDialog();
+		m_dialog.phases = getPhases();
 
 		emit dialogChanged(m_dialog);
 
@@ -235,11 +237,12 @@ void DialogEditorWindow::updateConnectControls()
 		return;
 	}
 
-	if (m_dialog.difficulty == Core::Dialog::Difficulty::Hard)
+	// remove for Hard dialogs
+	/*if (m_dialog.difficulty == Core::Dialog::Difficulty::Hard)
 	{
 		m_ui->connectNodesButton->setEnabled(false);
 		return;
-	}
+	}*/
 
 	if (nodesAlreadyConnected(parentNode, childNode))
 	{
@@ -298,8 +301,8 @@ void DialogEditorWindow::nodesConnected(NodeGraphicsItem* parent, NodeGraphicsIt
 	Core::AbstractDialogNode* parentNode = parent->data();
 	Core::AbstractDialogNode* childNode = child->data();
 
-	parentNode->appendChild(childNode);
-	childNode->appendParent(parentNode);
+	parentNode->appendChild(childNode->id());
+	childNode->appendParent(parentNode->id());
 }
 
 void DialogEditorWindow::nodesDisconnected(NodeGraphicsItem* parent, NodeGraphicsItem* child)
@@ -312,9 +315,9 @@ void DialogEditorWindow::nodesDisconnected(NodeGraphicsItem* parent, NodeGraphic
 	Core::AbstractDialogNode* parentNode = parent->data();
 	Core::AbstractDialogNode* childNode = child->data();
 
-	Q_ASSERT(parentNode->childNodes().contains(childNode));
-	parentNode->removeChild(childNode);
-	childNode->removeParent(parentNode);
+	Q_ASSERT(parentNode->childNodes().contains(childNode->id()));
+	parentNode->removeChild(childNode->id());
+	childNode->removeParent(parentNode->id());
 }
 
 void DialogEditorWindow::nodeAddedToPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase)
@@ -374,22 +377,25 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 		return false;
 	}
 
-	const int nodesWithoutChilds = std::count_if(nodes.begin(), nodes.end(),
-		[](Core::AbstractDialogNode* node)
-		{
-			if (node->type() == Core::ClientReplicaNode::Type ||
-				node->type() == Core::ExpectedWordsNode::Type)
-			{
-				return node->childNodes().isEmpty();
-			}
-
-			return false;
-		});
-
-	if (nodesWithoutChilds > 1)
+	if (m_dialog.difficulty == Core::Dialog::Difficulty::Easy)
 	{
-		error = "Должен быть только 1 узел без выходящих стрелок (" + QString::number(nodesWithoutChilds) + ")";
-		return false;
+		const int nodesWithoutChilds = std::count_if(nodes.begin(), nodes.end(),
+			[](Core::AbstractDialogNode* node)
+			{
+				if (node->type() == Core::ClientReplicaNode::Type ||
+					node->type() == Core::ExpectedWordsNode::Type)
+				{
+					return node->childNodes().isEmpty();
+				}
+
+				return false;
+			});
+
+		if (nodesWithoutChilds > 1)
+		{
+			error = "Должен быть только 1 узел без выходящих стрелок (" + QString::number(nodesWithoutChilds) + ")";
+			return false;
+		}
 	}
 
 	if (m_dialog.difficulty == Core::Dialog::Difficulty::Easy)
@@ -460,71 +466,158 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 		return false;
 	}
 
+	PhaseGraphicsItem* phase = findFirstPhase();
+	if (phase)
+	{
+		while (phase)
+		{
+			const QList<PhaseGraphicsItem*> nextPhases = findNextPhase(phase);
+			if (nextPhases.empty())
+			{
+				phase = nullptr;
+				continue;
+			}
+
+			const bool allPhasesAreSame = std::set<PhaseGraphicsItem*>(nextPhases.begin(), nextPhases.end()).size() <= 1;
+			if (!allPhasesAreSame)
+			{
+				error = "Ветвление по фазам недопустимо (" + phase->data()->as<Core::PhaseNode>()->name() + ")";
+				return false;
+			}
+			phase = *nextPhases.begin();
+		}
+	}
+	else
+	{
+		error = "wut";
+		return false;
+	}
+
 	return true;
 }
 
-void DialogEditorWindow::updateDialog()
+QList<Core::PhaseNode> DialogEditorWindow::getPhases()
 {
-	Q_ASSERT(validateDialog());
+	QList<Core::PhaseNode> result;
+	QList<PhaseGraphicsItem*> orderedPhases = getOrderedPhases();
 
-	for (PhaseGraphicsItem* phase : m_nodesByPhase.keys())
+	for (PhaseGraphicsItem* phaseItem : orderedPhases)
 	{
-		QList<NodeGraphicsItem*> nodes = m_nodesByPhase.value(phase);
-		std::sort(nodes.begin(), nodes.end(),
-			[](NodeGraphicsItem* left, NodeGraphicsItem* right)
-			{
-				return left->data()->parentNodes().empty() || left->data()->childNodes().contains(right->data());
-			});
+		result.append(getPhaseNode(phaseItem));
 	}
 
-	const auto firstPhaseIt = std::find_if(m_nodesByPhase.keyBegin(), m_nodesByPhase.keyEnd(),
-		[this](PhaseGraphicsItem* phase)
-		{
-			return m_nodesByPhase.value(phase).first()->data()->parentNodes().empty();
-		});
-	Q_ASSERT(firstPhaseIt != m_nodesByPhase.keyEnd());
+	return result;
+}
 
-	QList<PhaseGraphicsItem*> phaseItems;
-	phaseItems.append(*firstPhaseIt);
+QList<Core::AbstractDialogNode*> getPhaseNodes(const QList<NodeGraphicsItem*>& items)
+{
+	QList<Core::AbstractDialogNode*> nodes;
+	std::transform(items.begin(), items.end(), std::back_inserter(nodes),
+		[](NodeGraphicsItem* item) { return item->data(); });
+	return nodes;
+}
 
-	while (phaseItems.size() != m_nodesByPhase.keys().size())
+QList<PhaseGraphicsItem*> DialogEditorWindow::getOrderedPhases()
+{
+	QList<PhaseGraphicsItem*> result;
+
+	PhaseGraphicsItem* phase = findFirstPhase();
+	Q_ASSERT(phase != nullptr);
+
+	while (phase != nullptr)
 	{
-		NodeGraphicsItem* previousPhaseEnd = m_nodesByPhase[phaseItems.last()].last();
-		Core::AbstractDialogNode* nextPhaseBegin = *previousPhaseEnd->data()->childNodes().begin();
+		result.append(phase);
 
-		const auto nextPhaseIt = std::find_if(m_nodesByPhase.keyBegin(), m_nodesByPhase.keyEnd(),
-			[this, nextPhaseBegin](PhaseGraphicsItem* phase)
-			{
-			  return m_nodesByPhase.value(phase).first()->data() == nextPhaseBegin;
-			});
-		Q_ASSERT(nextPhaseIt != m_nodesByPhase.keyEnd());
+		Core::PhaseNode* phaseNode = phase->data()->as<Core::PhaseNode>();
+		LOG << "Appending phase " << phaseNode->name();
 
-		phaseItems.append(*nextPhaseIt);
-	}
-
-	QList<Core::PhaseNode> phaseNodes;
-	for (PhaseGraphicsItem* phaseItem : phaseItems)
-	{
-		Core::PhaseNode* phase = dynamic_cast<Core::PhaseNode*>(phaseItem->data());
-
-		const QList<NodeGraphicsItem*>& phaseNodeItems = m_nodesByPhase.value(phaseItem);
-
-		Core::AbstractDialogNode* root = m_nodesByPhase.value(phaseItem).first()->data()->shallowCopy();
-		Core::AbstractDialogNode* parent = root;
-		Core::AbstractDialogNode* child = nullptr;
-
-		for (int i = 1; i < phaseNodeItems.size(); ++i)
+		const QList<PhaseGraphicsItem*> nextPhases = findNextPhase(phase);
+		if (nextPhases.empty())
 		{
-			child = phaseNodeItems[i]->data()->shallowCopy();
-
-			parent->appendChild(child);
-			child->appendParent(parent);
-
-			parent = child;
+			phase = nullptr;
+			continue;
 		}
 
-		phaseNodes.append(Core::PhaseNode(phase->name, phase->score, root));
+		const bool allPhasesAreSame = std::set<PhaseGraphicsItem*>(nextPhases.begin(), nextPhases.end()).size() <= 1;
+		Q_ASSERT(allPhasesAreSame);
+		phase = *nextPhases.begin();
 	}
 
-	m_dialog.phases = phaseNodes;
+	return result;
+}
+
+PhaseGraphicsItem* DialogEditorWindow::findFirstPhase() const
+{
+	const QList<PhaseGraphicsItem*> phasesList = m_nodesByPhase.keys();
+
+	auto it = std::find_if(phasesList.cbegin(), phasesList.cend(),
+		[this](PhaseGraphicsItem* phaseItem)
+		{
+			const QList<NodeGraphicsItem*>& phaseItems = m_nodesByPhase[phaseItem];
+			return std::any_of(phaseItems.begin(), phaseItems.end(),
+				[](NodeGraphicsItem* item) { return item->data()->parentNodes().empty(); });
+		});
+	return *it;
+}
+
+QList<PhaseGraphicsItem*> DialogEditorWindow::findNextPhase(PhaseGraphicsItem* currentPhase) const
+{
+	const QList<Core::AbstractDialogNode*> nodes = ::getPhaseNodes(m_nodesByPhase[currentPhase]);
+
+	QList<Core::AbstractDialogNode::Id> nextPhaseItems;
+	for (Core::AbstractDialogNode* node : nodes)
+	{
+		const QSet<Core::AbstractDialogNode::Id> childNodes = node->childNodes();
+		for (const Core::AbstractDialogNode::Id& id : childNodes)
+		{
+			const auto childNodeIt = Core::findNodeById(nodes, id);
+			if (childNodeIt == nodes.end())
+			{
+				nextPhaseItems.append(id);
+			}
+		}
+	}
+
+	const QList<PhaseGraphicsItem*> phasesList = m_nodesByPhase.keys();
+
+	QList<PhaseGraphicsItem*> nextPhases;
+	for (Core::AbstractDialogNode::Id nextPhaseItem : nextPhaseItems)
+	{
+		const auto it = std::find_if(phasesList.begin(), phasesList.end(),
+			[nextPhaseItem, this](PhaseGraphicsItem* phaseItem)
+			{
+				const QList<Core::AbstractDialogNode*> phaseNodes = ::getPhaseNodes(m_nodesByPhase[phaseItem]);
+				const auto it = Core::findNodeById(phaseNodes, nextPhaseItem);
+				return it != phaseNodes.end();
+
+			});
+
+		if (it != phasesList.end())
+		{
+			nextPhases.append(*it);
+		}
+	}
+
+	return nextPhases;
+}
+
+Core::PhaseNode DialogEditorWindow::getPhaseNode(PhaseGraphicsItem* phaseItem)
+{
+	Core::PhaseNode* phaseNode = dynamic_cast<Core::PhaseNode*>(phaseItem->data());
+
+	QList<Core::AbstractDialogNode*> nodes = getPhaseNodes(phaseItem);
+
+	return Core::PhaseNode(phaseNode->name(), phaseNode->score(), nodes);
+}
+
+QList<Core::AbstractDialogNode*> DialogEditorWindow::getPhaseNodes(PhaseGraphicsItem* phaseItem)
+{
+	QList<Core::AbstractDialogNode*> nodes;
+	for (NodeGraphicsItem* nodeItem : m_nodesByPhase.value(phaseItem))
+	{
+		Core::AbstractDialogNode* node = nodeItem->data()->clone();
+		nodes.append(node);
+	}
+
+	return nodes;
 }

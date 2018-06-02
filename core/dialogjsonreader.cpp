@@ -80,7 +80,9 @@ AbstractDialogNode* parseNode(const QJsonObject& object)
 	static const PropertiesList s_requiredProperties = {
 		{ "type", QJsonValue::Double },
 		{ "data", QJsonValue::Object },
-		{ "childNodes", QJsonValue::Array }
+		{ "id", QJsonValue::String },
+		{ "childNodes", QJsonValue::Array },
+		{ "parentNodes", QJsonValue::Array }
 	};
 	checkProperties(object, s_requiredProperties);
 
@@ -88,11 +90,13 @@ AbstractDialogNode* parseNode(const QJsonObject& object)
 	const QJsonObject data = object["data"].toObject();
 
 	AbstractDialogNode* result = nullptr;
-
-	switch (type)
+	if (type == 0)
 	{
-	case 0: result = parseClientReplicaNode(data); break;
-	case 1: result = parseExpectedWordsNode(data); break;
+		result = parseClientReplicaNode(data);
+	}
+	else if (type == 1)
+	{
+		result = parseExpectedWordsNode(data);
 	}
 
 	if (!result)
@@ -100,10 +104,42 @@ AbstractDialogNode* parseNode(const QJsonObject& object)
 		return nullptr;
 	}
 
+	const AbstractDialogNode::Id id = object["id"].toString();
+	result->setId(id);
+
 	const QJsonArray childsArray = object["childNodes"].toArray();
 	for (const QJsonValue& child : childsArray)
 	{
-		result->appendChild(parseNode(child.toObject()));
+		result->appendChild(child.toString());
+	}
+
+	const QJsonArray parentsArray = object["parentNodes"].toArray();
+	for (const QJsonValue& parent : parentsArray)
+	{
+		result->appendParent(parent.toString());
+	}
+
+	return result;
+}
+
+QList<AbstractDialogNode*> parseNodes(const QJsonArray& nodes)
+{
+	QList<AbstractDialogNode*> result;
+
+	for (const auto& nodeValue : nodes)
+	{
+		if (!nodeValue.isObject())
+		{
+			continue;
+		}
+
+		const auto nodeObject = nodeValue.toObject();
+
+		AbstractDialogNode* node = parseNode(nodeObject);
+		if (node)
+		{
+			result.append(node);
+		}
 	}
 
 	return result;
@@ -114,16 +150,15 @@ PhaseNode parsePhase(const QJsonObject& object)
 	static const PropertiesList s_requiredProperties = {
 		{ "name", QJsonValue::String },
 		{ "score", QJsonValue::Double },
-		{ "root", QJsonValue::Object }
+		{ "nodes", QJsonValue::Array }
 	};
 	checkProperties(object, s_requiredProperties);
 
 	const QString name = object["name"].toString();
 	const double score = object["score"].toDouble();
-	const QJsonObject rootObject = object["root"].toObject();
+	const QList<AbstractDialogNode*> nodes = parseNodes(object["nodes"].toArray());
 
-	std::unique_ptr<AbstractDialogNode> rootNode(parseNode(rootObject));
-	return PhaseNode(name, score, rootNode.get());
+	return PhaseNode(name, score, nodes);
 }
 
 }
@@ -160,7 +195,8 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 		QList<PhaseNode> phases;
 		for (const QJsonValue& phase : phasesArray)
 		{
-			phases << parsePhase(phase.toObject());
+			PhaseNode parsedPhase = parsePhase(phase.toObject());
+			phases << parsedPhase;
 		}
 
 		ok = true;

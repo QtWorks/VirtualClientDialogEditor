@@ -49,7 +49,8 @@ SOURCES += \
 	dialogeditor/dialoglisteditorwidget.cpp \
 	usereditor/userlisteditorwidget.cpp \
     core/backendconnection.cpp \
-    waitingspinnerwidget.cpp
+    waitingspinnerwidget.cpp \
+	dialogeditor/graphlayout.cpp
 
 HEADERS  += \
     listeditorwidget.h \
@@ -87,7 +88,8 @@ HEADERS  += \
 	dialogeditor/dialoglisteditorwidget.h \
 	usereditor/userlisteditorwidget.h \
     core/backendconnection.h \
-    waitingspinnerwidget.h
+    waitingspinnerwidget.h \
+	dialogeditor/graphlayout.h
 
 FORMS    += \
     listeditorwidget.ui \

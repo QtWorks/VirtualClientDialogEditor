@@ -45,7 +45,6 @@ void MainWindow::onLoginDialogFinished(int code)
 
 	if (code == QDialog::Accepted)
 	{
-		// TODO: merge this calls
 		m_usersListEditorWidget->loadData();
 		m_dialogsListEditorWidget->loadData();
 	}

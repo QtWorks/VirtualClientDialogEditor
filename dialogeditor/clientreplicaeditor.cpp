@@ -11,7 +11,7 @@ ClientReplicaEditor::ClientReplicaEditor(const Core::ClientReplicaNode& replica,
 	m_ui->setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, true);
 
-	m_ui->textEdit->setText(m_replica.replica);
+	m_ui->textEdit->setText(m_replica.replica());
 	m_ui->textEdit->setMinimumHeight(50);
 	m_ui->textEdit->setMinimumWidth(300);
 	connect(m_ui->textEdit, &QTextEdit::textChanged, this, &ClientReplicaEditor::onReplicaChanged);
@@ -36,7 +36,7 @@ ClientReplicaEditor::~ClientReplicaEditor()
 
 void ClientReplicaEditor::onReplicaChanged()
 {
-	m_replica.replica = m_ui->textEdit->toPlainText().trimmed();
+	m_replica.setReplica(m_ui->textEdit->toPlainText().trimmed());
 
 	updateControls();
 	emit changed();

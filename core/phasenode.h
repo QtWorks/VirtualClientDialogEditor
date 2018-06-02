@@ -15,19 +15,27 @@ public:
 		Type = AbstractDialogNode::Type + 1
 	};
 
-	PhaseNode(const QString& name, double score, AbstractDialogNode* root);
+	PhaseNode(const QString& name, double score, const QList<AbstractDialogNode*>& nodes);
 
-	PhaseNode(const PhaseNode& other);
-	PhaseNode& operator=(const PhaseNode& other);
+	const QString& name() const;
+	void setName(const QString& name);
 
-	virtual AbstractDialogNode* shallowCopy() const override;
-	virtual bool validate(QString& error) const override;
-	virtual bool compare(AbstractDialogNode* other) const override;
+	double score() const;
+	void setScore(double score);
+
+	const QList<AbstractDialogNode*>& nodes() const;
+
 	virtual int type() const override;
+	virtual bool validate(QString& error) const override;
 
-	QString name;
-	double score;
-	AbstractDialogNode* root;
+private:
+	virtual AbstractDialogNode* shallowCopy() const override;
+	virtual bool compareData(AbstractDialogNode* other) const override;
+
+private:
+	QString m_name;
+	double m_score;
+	QList<AbstractDialogNode*> m_nodes;
 };
 
 bool operator==(const PhaseNode& left, const PhaseNode& right);

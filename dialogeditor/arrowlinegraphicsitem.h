@@ -17,13 +17,12 @@ public:
 		Type = UserType + 1
 	};
 
-	ArrowLineGraphicsItem(const QPointF& startPoint, const QPointF& endPoint, bool isDraggable, QGraphicsItem* parent = 0);
-	ArrowLineGraphicsItem(NodeGraphicsItem* root, NodeGraphicsItem* child, bool isDraggable, QGraphicsItem* parent = 0);
+	ArrowLineGraphicsItem(const QPointF& startPoint, const QPointF& endPoint, QGraphicsItem* parent = 0);
+	ArrowLineGraphicsItem(NodeGraphicsItem* root, NodeGraphicsItem* child,
+		const QVector<QPointF>& intermediatePoints = {}, QGraphicsItem* parent = 0);
 	~ArrowLineGraphicsItem();
 
-	virtual int type() const override;
-	QRectF boundingRect() const override;
-	QPainterPath shape() const override;
+	QVector<QPointF> polyline() const;
 
 	void updatePosition();
 	void updatePosition(const QPointF& p1, const QPointF& p2, bool updateItems = true);
@@ -32,6 +31,10 @@ public:
 	NodeGraphicsItem* parentNode() const;
 	NodeGraphicsItem* childNode() const;
 	bool isConnectingNodes() const;
+
+	virtual int type() const override;
+	QRectF boundingRect() const override;
+	QPainterPath shape() const override;
 
 	virtual void keyPressEvent(QKeyEvent* event) override;
 
@@ -95,7 +98,8 @@ private:
 	};
 
 private:
-	ArrowLineGraphicsItem(const Item& startItem, const Item& endItem, bool isDraggable, QGraphicsItem* parent);
+	ArrowLineGraphicsItem(const Item& startItem, const Item& endItem,
+		const QVector<QPointF>& intermediatePoints, QGraphicsItem* parent);
 
 	void updatePosition(Item&& item);
 	void updateArrowHead();
@@ -120,7 +124,7 @@ private:
 	Item m_endItem;
 	QPolygonF m_arrowHead;
 
-	QLineF m_line;
+	QVector<QPointF> m_intermediatePoints;
 };
 
 #endif // ARROWLINEGRAPHICSITEM_H

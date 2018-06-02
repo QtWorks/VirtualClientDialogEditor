@@ -7,6 +7,7 @@
 #include <QBrush>
 
 class ArrowLineGraphicsItem;
+class PhaseGraphicsItem;
 
 class NodeGraphicsItem
 	: public QGraphicsObject
@@ -42,6 +43,9 @@ public:
 	void removeOutcomingLink(ArrowLineGraphicsItem* link);
 	QList<ArrowLineGraphicsItem*> outcomingLinks() const;
 
+	PhaseGraphicsItem* getPhase() const;
+	void setPhase(PhaseGraphicsItem* phase);
+
 	static bool atResizeRect(const QPointF& position, const QRectF& rect);
 
 	virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/ = Q_NULLPTR) override;
@@ -50,6 +54,9 @@ public:
 
 	virtual Core::AbstractDialogNode* data() = 0;
 	virtual const Core::AbstractDialogNode* data() const = 0;
+
+	virtual qreal minHeight() const;
+	virtual qreal minWidth() const;
 
 signals:
 	void removeRequested();
@@ -65,16 +72,7 @@ public:
 	virtual void keyPressEvent(QKeyEvent* event) override;
 	virtual void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
 
-	virtual void dragEnterEvent(QGraphicsSceneDragDropEvent*) override { LOG << "NodeGraphicsItem::dragEnterEvent"; }
-	virtual void dragMoveEvent(QGraphicsSceneDragDropEvent*) override { LOG << "NodeGraphicsItem::dragMoveEvent"; }
-	virtual void dragLeaveEvent(QGraphicsSceneDragDropEvent*) override { LOG << "NodeGraphicsItem::dragLeaveEvent"; }
-	virtual void dropEvent(QGraphicsSceneDragDropEvent*) override { LOG << "NodeGraphicsItem::dropEvent"; }
-
 	virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
-
-protected:
-	virtual qreal minHeight() const;
-	virtual qreal minWidth() const;
 
 private:
 	static int padding();
@@ -102,6 +100,8 @@ private:
 	QPointF m_position;
 
 	bool m_resizing;
+
+	PhaseGraphicsItem* m_phase;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(NodeGraphicsItem::Properties)

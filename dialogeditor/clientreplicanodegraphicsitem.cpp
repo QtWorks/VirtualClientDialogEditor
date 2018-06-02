@@ -31,7 +31,7 @@ QString ClientReplicaNodeGraphicsItem::getHeaderText() const
 
 QString ClientReplicaNodeGraphicsItem::getContentText() const
 {
-	return m_replica->replica;
+	return m_replica->replica();
 }
 
 QBrush ClientReplicaNodeGraphicsItem::getHeaderBrush() const
@@ -48,7 +48,7 @@ void ClientReplicaNodeGraphicsItem::showNodeEditor()
 
 NodeGraphicsItem* ClientReplicaNodeGraphicsItem::clone() const
 {
-	return new ClientReplicaNodeGraphicsItem(dynamic_cast<Core::ClientReplicaNode*>(m_replica->shallowCopy()), m_properties, parent());
+	return new ClientReplicaNodeGraphicsItem(m_replica->clone()->as<Core::ClientReplicaNode>(), m_properties, parent());
 }
 
 void ClientReplicaNodeGraphicsItem::createEditorIfNeeded()
@@ -62,7 +62,7 @@ void ClientReplicaNodeGraphicsItem::createEditorIfNeeded()
 
 	QObject::connect(m_editor, &ClientReplicaEditor::accepted, [this](const Core::ClientReplicaNode& replica)
 	{
-		m_replica->replica = replica.replica;
+		m_replica->setReplica(replica.replica());
 
 		update();
 

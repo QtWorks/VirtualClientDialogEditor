@@ -6,7 +6,7 @@
 
 DialogConstructorGraphicsScene::DialogConstructorGraphicsScene(QObject* parent)
 	: QGraphicsScene(parent)
-	, m_phase("", 0, nullptr)
+	, m_phase("", 0, {})
 	, m_replica("")
 	, m_expectedWords({})
 {
@@ -32,7 +32,8 @@ void DialogConstructorGraphicsScene::addConstructorItems()
 	addItem(expectedWordsNode);
 
 	const qreal arrowLength = expectedWordsNode->sceneBoundingRect().width() / 2;
-	ArrowLineGraphicsItem* link = new ArrowLineGraphicsItem(QPointF(0, 0), QPointF(arrowLength, 0), true);
+	ArrowLineGraphicsItem* link = new ArrowLineGraphicsItem(QPointF(0, 0), QPointF(arrowLength, 0));
+	link->setDraggable(true);
 	link->setPos(QPoint(0, 280));
 	addItem(link);
 }

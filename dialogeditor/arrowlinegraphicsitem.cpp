@@ -261,22 +261,24 @@ NodeGraphicsItem* ArrowLineGraphicsItem::Item::node() const
 	return m_item;
 }
 
-ArrowLineGraphicsItem::ArrowLineGraphicsItem(const QPointF& startPoint, const QPointF& endPoint, bool isDraggable, QGraphicsItem* parent)
-	: ArrowLineGraphicsItem(ArrowLineGraphicsItem::Item(startPoint), ArrowLineGraphicsItem::Item(endPoint), isDraggable, parent)
+ArrowLineGraphicsItem::ArrowLineGraphicsItem(const QPointF& startPoint, const QPointF& endPoint, QGraphicsItem* parent)
+	: ArrowLineGraphicsItem(ArrowLineGraphicsItem::Item(startPoint), ArrowLineGraphicsItem::Item(endPoint), {}, parent)
 {
 }
 
-ArrowLineGraphicsItem::ArrowLineGraphicsItem(NodeGraphicsItem* startItem, NodeGraphicsItem* endItem, bool isDraggable, QGraphicsItem* parent)
-	: ArrowLineGraphicsItem(Item(startItem, this, false), Item(endItem, this, true), isDraggable, parent)
+ArrowLineGraphicsItem::ArrowLineGraphicsItem(NodeGraphicsItem* startItem, NodeGraphicsItem* endItem,
+	const QVector<QPointF>& intermediatePoints, QGraphicsItem* parent)
+	: ArrowLineGraphicsItem(Item(startItem, this, false), Item(endItem, this, true), intermediatePoints, parent)
 {
 }
 
-ArrowLineGraphicsItem::ArrowLineGraphicsItem(const Item& startItem, const Item& endItem, bool isDraggable, QGraphicsItem* parent)
+ArrowLineGraphicsItem::ArrowLineGraphicsItem(const Item& startItem, const Item& endItem, const QVector<QPointF>& intermediatePoints, QGraphicsItem* parent)
 	: QGraphicsLineItem(parent)
-	, m_isDraggable(isDraggable)
+	, m_isDraggable(false)
 	, m_moveMode(MoveMode::NoMove)
 	, m_startItem(startItem)
 	, m_endItem(endItem)
+	, m_intermediatePoints(intermediatePoints)
 {
 	setFlags(ItemIsMovable | ItemSendsGeometryChanges);
 	if (!m_isDraggable)
@@ -320,7 +322,19 @@ QRectF ArrowLineGraphicsItem::boundingRect() const
 
 QPainterPath ArrowLineGraphicsItem::shape() const
 {
-	QPainterPath path = QGraphicsLineItem::shape();
+	QPainterPath path;
+
+	if (m_intermediatePoints.empty())
+	{
+		path = QGraphicsLineItem::shape();
+	}
+	else
+	{
+		for (const QPointF& point : polyline())
+		{
+			path.lineTo(point);
+		}
+	}
 
 	if (isSelected())
 	{
@@ -331,6 +345,11 @@ QPainterPath ArrowLineGraphicsItem::shape() const
 	path.addPolygon(m_arrowHead);
 
 	return path;
+}
+
+QVector<QPointF> ArrowLineGraphicsItem::polyline() const
+{
+	return QVector<QPointF>() << line().p1() << m_intermediatePoints << line().p2();
 }
 
 void ArrowLineGraphicsItem::updatePosition()
@@ -349,10 +368,11 @@ void ArrowLineGraphicsItem::updatePosition(const QPointF& sceneP1, const QPointF
 		m_endItem.swap(newEndItem);
 	}
 
-	const QLineF sceneLine = QLineF(sceneP1, sceneP2);
+	const QLineF beginingLine = QLineF(sceneP1, m_intermediatePoints.empty() ? sceneP2 : m_intermediatePoints[0]);
+	const QLineF endingLine = QLineF(m_intermediatePoints.empty() ? sceneP1 : m_intermediatePoints.last(), sceneP2);
 
-	const auto adjustedLineBegin = mapFromScene(m_startItem.intersectionPoint(sceneLine));
-	const auto adjustedLineEnd = mapFromScene(m_endItem.intersectionPoint(sceneLine));
+	const auto adjustedLineBegin = mapFromScene(m_startItem.intersectionPoint(beginingLine));
+	const auto adjustedLineEnd = mapFromScene(m_endItem.intersectionPoint(endingLine));
 
 	const auto adjustedLine = QLineF(adjustedLineBegin, adjustedLineEnd);
 
@@ -364,6 +384,9 @@ void ArrowLineGraphicsItem::updatePosition(const QPointF& sceneP1, const QPointF
 void ArrowLineGraphicsItem::setDraggable(bool value)
 {
 	m_isDraggable = value;
+
+	setFlag(ItemIsSelectable, !m_isDraggable);
+	setFlag(ItemIsFocusable, !m_isDraggable);
 }
 
 NodeGraphicsItem* ArrowLineGraphicsItem::parentNode() const
@@ -394,7 +417,8 @@ void ArrowLineGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsI
 	painter->setPen(QPen(Qt::black, 1.0, Qt::SolidLine));
 	painter->setBrush(Qt::black);
 
-	painter->drawLine(line());
+	const QVector<QPointF> points = polyline();
+	painter->drawPolyline(points.data(), points.size());
 	painter->drawPolygon(m_arrowHead);
 
 	if (isSelected())
@@ -464,7 +488,8 @@ void ArrowLineGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 		}
 
 		QDrag* drag = new QDrag(QApplication::instance());
-		ArrowLineGraphicsItem* draggingItem = new ArrowLineGraphicsItem(m_startItem, m_endItem, false, parentItem());
+		ArrowLineGraphicsItem* draggingItem = new ArrowLineGraphicsItem(m_startItem, m_endItem, {}, parentItem());
+		draggingItem->setDraggable(false);
 		drag->setMimeData(new ArrowLineGraphicsItemMimeData(draggingItem));
 
 		QPixmap pixmap(boundingRect().size().toSize());
@@ -604,8 +629,10 @@ void ArrowLineGraphicsItem::updatePosition(Item&& item)
 
 void ArrowLineGraphicsItem::updateArrowHead()
 {
-	double angle = ::acos(line().dx() / line().length());
-	if (line().dy() >= 0)
+	const QLineF arrowLine = m_intermediatePoints.empty() ? line() : QLineF(m_intermediatePoints.last(), line().p2());
+
+	double angle = ::acos(arrowLine.dx() / arrowLine.length());
+	if (arrowLine.dy() >= 0)
 	{
 		angle = (M_PI * 2) - angle;
 	}

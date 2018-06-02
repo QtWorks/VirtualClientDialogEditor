@@ -4,18 +4,28 @@ namespace Core
 {
 
 ClientReplicaNode::ClientReplicaNode(const QString& replica)
-	: replica(replica)
+	: m_replica(replica)
 {
 }
 
-AbstractDialogNode* ClientReplicaNode::shallowCopy() const
+QString ClientReplicaNode::replica() const
 {
-	return new ClientReplicaNode(replica);
+	return m_replica;
+}
+
+void ClientReplicaNode::setReplica(const QString& replica)
+{
+	m_replica = replica;
+}
+
+int ClientReplicaNode::type() const
+{
+	return ClientReplicaNode::Type;
 }
 
 bool ClientReplicaNode::validate(QString& error) const
 {
-	if (replica.trimmed().isEmpty())
+	if (m_replica.trimmed().isEmpty())
 	{
 		error = "Реплика не может быть пустой";
 		return false;
@@ -24,24 +34,20 @@ bool ClientReplicaNode::validate(QString& error) const
 	return true;
 }
 
-bool ClientReplicaNode::compare(AbstractDialogNode* other) const
+AbstractDialogNode* ClientReplicaNode::shallowCopy() const
 {
-	if (other->type() != type())
-	{
-		return false;
-	}
-
-	return *this == *dynamic_cast<ClientReplicaNode*>(other);
+	return new ClientReplicaNode(m_replica);
 }
 
-int ClientReplicaNode::type() const
+bool ClientReplicaNode::compareData(AbstractDialogNode* other) const
 {
-	return ClientReplicaNode::Type;
+	Q_ASSERT(other->type() == type());
+	return *this == *static_cast<ClientReplicaNode*>(other);
 }
 
 bool operator==(const ClientReplicaNode& left, const ClientReplicaNode& right)
 {
-	return left.replica == right.replica;
+	return left.replica() == right.replica();
 }
 
 }

@@ -10,31 +10,39 @@ namespace Core
 namespace
 {
 
+template <typename T>
+QJsonArray dump(const T& container,
+	std::function<QJsonValue(const typename T::value_type&)> valueConterter = [](const typename T::value_type& value) { return QJsonValue(value); })
+{
+	QJsonArray array;
+	for (const auto& value : container)
+	{
+		array.append(valueConterter(value));
+	}
+	return array;
+}
+
 QJsonObject dumpClientReplicaNode(const ClientReplicaNode& node)
 {
 	return {
-		{ "replica", node.replica }
+		{ "replica", node.replica() }
 	};
 }
 
 QJsonObject dumpExpectedWordsNode(const ExpectedWordsNode& node)
 {
-	QJsonArray expectedWords;
-	for (const ExpectedWords& words : node.expectedWords)
+	const QJsonArray expectedWords = dump(node.expectedWords(), [](const ExpectedWords& words)
 	{
-		expectedWords.append(QJsonObject({
-			{ "words", words.words },
-			{ "score", words.score }
-		}));
-	}
+		return QJsonObject({ { "words", words.words }, { "score", words.score } });
+	});
 
 	QJsonObject result = {
 		{ "expectedWords", expectedWords }
 	};
 
-	if (node.customHint)
+	if (node.customHint())
 	{
-		result.insert("hint", node.hint);
+		result.insert("hint", node.hint());
 	}
 
 	return result;
@@ -43,6 +51,8 @@ QJsonObject dumpExpectedWordsNode(const ExpectedWordsNode& node)
 QJsonObject dumpNode(const AbstractDialogNode* node)
 {
 	QJsonObject result;
+
+	result["id"] = node->id();
 
 	if (dynamic_cast<const ClientReplicaNode*>(node))
 	{
@@ -55,30 +65,19 @@ QJsonObject dumpNode(const AbstractDialogNode* node)
 		result["data"] = dumpExpectedWordsNode(dynamic_cast<const ExpectedWordsNode&>(*node));
 	}
 
-	QJsonArray childNodes;
-	for (const AbstractDialogNode* child : node->childNodes())
-	{
-		childNodes.append(dumpNode(child));
-	}
-	result["childNodes"] = childNodes;
+	result["parentNodes"] = dump(node->parentNodes());
+	result["childNodes"] = dump(node->childNodes());
 
 	return result;
 }
 
-QJsonArray dumpPhases(const QList<Core::PhaseNode>& phases)
+QJsonValue dumpPhase(const Core::PhaseNode& phase)
 {
-	QJsonArray array;
-
-	for (const Core::PhaseNode& phase : phases)
-	{
-		array.append(QJsonObject({
-			{ "name", phase.name },
-			{ "score", phase.score },
-			{ "root", dumpNode(phase.root) }
-		}));
-	}
-
-	return array;
+	return QJsonObject({
+		{ "name", phase.name() },
+		{ "score", phase.score() },
+		{ "nodes", dump(phase.nodes(), dumpNode) }
+	});
 }
 
 }
@@ -99,7 +98,7 @@ QJsonObject DialogJsonWriter::writeToObject(const Dialog& dialog)
 	return QJsonObject{
 		{ "name", dialog.name },
 		{ "difficulty", static_cast<int>(dialog.difficulty) },
-		{ "phases", dumpPhases(dialog.phases) }
+		{ "phases", dump(dialog.phases, dumpPhase) }
 	};
 }
 
