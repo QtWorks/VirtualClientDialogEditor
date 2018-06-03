@@ -20,6 +20,7 @@ public:
 
 	Dialog();
 	Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode>& phases);
+	Dialog(const Dialog& other);
 	~Dialog();
 
 	QString printableName() const;

@@ -53,7 +53,12 @@ bool PhaseNode::validate(QString& error) const
 
 AbstractDialogNode* PhaseNode::shallowCopy() const
 {
-	return new PhaseNode(m_name, m_score, m_nodes);
+	QList<AbstractDialogNode*> clonedNodes;
+	for (AbstractDialogNode* node : m_nodes)
+	{
+		clonedNodes.append(node->clone(false));
+	}
+	return new PhaseNode(m_name, m_score, clonedNodes);
 }
 
 bool PhaseNode::compareData(AbstractDialogNode* other) const

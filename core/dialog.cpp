@@ -15,6 +15,22 @@ Dialog::Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode
 {
 }
 
+Dialog::Dialog(const Dialog& other)
+	: name(other.name)
+	, difficulty(other.difficulty)
+{
+	for (const PhaseNode& phase : other.phases)
+	{
+		QList<AbstractDialogNode*> nodes;
+		for (AbstractDialogNode* node : phase.nodes())
+		{
+			nodes.append(node->clone(false));
+		}
+
+		phases.append(PhaseNode(phase.name(), phase.score(), nodes));
+	}
+}
+
 Dialog::~Dialog()
 {
 }

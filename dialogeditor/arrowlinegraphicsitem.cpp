@@ -272,7 +272,7 @@ ArrowLineGraphicsItem::ArrowLineGraphicsItem(NodeGraphicsItem* startItem, NodeGr
 {
 }
 
-ArrowLineGraphicsItem::ArrowLineGraphicsItem(const Item& startItem, const Item& endItem, const QVector<QPointF>& intermediatePoints, QGraphicsItem* parent)
+ArrowLineGraphicsItem::ArrowLineGraphicsItem(const Item& startItem, const Item& endItem, const QVector<QPointF>& /*intermediatePoints*/, QGraphicsItem* parent)
 	: QGraphicsLineItem(parent)
 	, m_isDraggable(false)
 	, m_moveMode(MoveMode::NoMove)
