@@ -54,12 +54,12 @@ QJsonObject dumpNode(const AbstractDialogNode* node)
 
 	result["id"] = node->id();
 
-	if (dynamic_cast<const ClientReplicaNode*>(node))
+	if (node->type() == ClientReplicaNode::Type)
 	{
 		result["type"] = 0;
 		result["data"] = dumpClientReplicaNode(dynamic_cast<const ClientReplicaNode&>(*node));
 	}
-	else if (dynamic_cast<const ExpectedWordsNode*>(node))
+	else if (node->type() == ExpectedWordsNode::Type)
 	{
 		result["type"] = 1;
 		result["data"] = dumpExpectedWordsNode(dynamic_cast<const ExpectedWordsNode&>(*node));

@@ -55,11 +55,15 @@ void AbstractDialogNode::removeChild(const Id& id)
 	m_childNodes.remove(id);
 }
 
-AbstractDialogNode* AbstractDialogNode::clone() const
+AbstractDialogNode* AbstractDialogNode::clone(bool uniqueId) const
 {
 	AbstractDialogNode* result = shallowCopy();
 
-	result->m_id = m_id;
+	if (!uniqueId)
+	{
+		result->m_id = m_id;
+	}
+
 	result->m_parentNodes = m_parentNodes;
 	result->m_childNodes = m_childNodes;
 

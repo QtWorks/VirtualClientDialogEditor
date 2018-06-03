@@ -48,7 +48,7 @@ void ClientReplicaNodeGraphicsItem::showNodeEditor()
 
 NodeGraphicsItem* ClientReplicaNodeGraphicsItem::clone() const
 {
-	return new ClientReplicaNodeGraphicsItem(m_replica->clone()->as<Core::ClientReplicaNode>(), m_properties, parent());
+	return new ClientReplicaNodeGraphicsItem(m_replica->clone(true)->as<Core::ClientReplicaNode>(), m_properties, parent());
 }
 
 void ClientReplicaNodeGraphicsItem::createEditorIfNeeded()

@@ -603,7 +603,7 @@ QList<PhaseGraphicsItem*> DialogEditorWindow::findNextPhase(PhaseGraphicsItem* c
 
 Core::PhaseNode DialogEditorWindow::getPhaseNode(PhaseGraphicsItem* phaseItem)
 {
-	Core::PhaseNode* phaseNode = dynamic_cast<Core::PhaseNode*>(phaseItem->data());
+	Core::PhaseNode* phaseNode = phaseItem->data()->as<Core::PhaseNode>();
 
 	QList<Core::AbstractDialogNode*> nodes = getPhaseNodes(phaseItem);
 
@@ -615,7 +615,7 @@ QList<Core::AbstractDialogNode*> DialogEditorWindow::getPhaseNodes(PhaseGraphics
 	QList<Core::AbstractDialogNode*> nodes;
 	for (NodeGraphicsItem* nodeItem : m_nodesByPhase.value(phaseItem))
 	{
-		Core::AbstractDialogNode* node = nodeItem->data()->clone();
+		Core::AbstractDialogNode* node = nodeItem->data()->clone(false);
 		nodes.append(node);
 	}
 

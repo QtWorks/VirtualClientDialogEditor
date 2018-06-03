@@ -115,7 +115,7 @@ void PhaseGraphicsItem::showNodeEditor()
 
 NodeGraphicsItem* PhaseGraphicsItem::clone() const
 {
-	return new PhaseGraphicsItem(dynamic_cast<Core::PhaseNode*>(m_phase->clone()), m_properties, parent());
+	return new PhaseGraphicsItem(m_phase->clone(true)->as<Core::PhaseNode>(), m_properties, parent());
 }
 
 qreal PhaseGraphicsItem::minHeight() const

@@ -59,7 +59,7 @@ AbstractDialogNode* PhaseNode::shallowCopy() const
 bool PhaseNode::compareData(AbstractDialogNode* other) const
 {
 	Q_ASSERT(other->type() == type());
-	return *this == *dynamic_cast<PhaseNode*>(other);
+	return *this == *other->as<PhaseNode>();
 }
 
 bool operator==(const PhaseNode& left, const PhaseNode& right)

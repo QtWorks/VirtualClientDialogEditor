@@ -55,7 +55,7 @@ void ExpectedWordsNodeGraphicsItem::showNodeEditor()
 
 NodeGraphicsItem* ExpectedWordsNodeGraphicsItem::clone() const
 {
-	return new ExpectedWordsNodeGraphicsItem(m_expectedWords->clone()->as<Core::ExpectedWordsNode>(), m_properties, parent());
+	return new ExpectedWordsNodeGraphicsItem(m_expectedWords->clone(true)->as<Core::ExpectedWordsNode>(), m_properties, parent());
 }
 
 void ExpectedWordsNodeGraphicsItem::createEditorIfNeeded()

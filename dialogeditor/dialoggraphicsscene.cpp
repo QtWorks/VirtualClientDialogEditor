@@ -37,14 +37,14 @@ bool intersects(PhaseGraphicsItem* phase, NodeGraphicsItem* node)
 
 NodeGraphicsItem* makeGraphicsItem(Core::AbstractDialogNode* node, NodeGraphicsItem::Properties properties, QGraphicsScene* parent)
 {
-	if (dynamic_cast<Core::ClientReplicaNode*>(node))
+	if (node->type() == Core::ClientReplicaNode::Type)
 	{
-		return new ClientReplicaNodeGraphicsItem(dynamic_cast<Core::ClientReplicaNode*>(node), properties, parent);
+		return new ClientReplicaNodeGraphicsItem(node->as<Core::ClientReplicaNode>(), properties, parent);
 	}
 
-	if (dynamic_cast<Core::ExpectedWordsNode*>(node))
+	if (node->type() == Core::ExpectedWordsNode::Type)
 	{
-		return new ExpectedWordsNodeGraphicsItem(dynamic_cast<Core::ExpectedWordsNode*>(node), properties, parent);
+		return new ExpectedWordsNodeGraphicsItem(node->as<Core::ExpectedWordsNode>(), properties, parent);
 	}
 
 	return nullptr;
@@ -311,8 +311,8 @@ QPointF nodePosition(const PhaseGraphicsItem& phase, const GraphLayout::GraphNod
 {
 	const QPointF phasePosition = phase.scenePos();
 
-	const int x = phasePosition.x() + s_phaseLeftPadding + node.lx * 210;
-	const int y = phasePosition.y() + s_phaseTopPadding + node.ly * (60 + s_nodesInterval);
+	const int x = phasePosition.x() + s_phaseLeftPadding + node.x * 210;
+	const int y = phasePosition.y() + s_phaseTopPadding + node.y * (60 + s_nodesInterval);
 
 	return QPointF(x, y);
 }
@@ -334,7 +334,7 @@ DialogGraphicsScene::NodeItemById DialogGraphicsScene::renderNodes(PhaseGraphics
 			const NodeGraphicsItem::Properties nodeProperties = NodeGraphicsItem::Resizable | NodeGraphicsItem::Editable | NodeGraphicsItem::Removable;
 
 			const QPointF position = nodePosition(*phaseItem, graphNode);
-			LOG << "Draw node (" << graphNode.lx << ", " << graphNode.ly << ") at " << position.x() << "," << position.y();
+			LOG << "Draw node (" << graphNode.x << ", " << graphNode.y << ") at " << position.x() << "," << position.y();
 
 			const auto nodeIt = Core::findNodeById(dataNodes, graphNode.label);
 			NodeGraphicsItem* nodeGraphicsItem = makeGraphicsItem(*nodeIt, nodeProperties, this);

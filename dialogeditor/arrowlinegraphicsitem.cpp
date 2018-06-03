@@ -278,7 +278,7 @@ ArrowLineGraphicsItem::ArrowLineGraphicsItem(const Item& startItem, const Item& 
 	, m_moveMode(MoveMode::NoMove)
 	, m_startItem(startItem)
 	, m_endItem(endItem)
-	, m_intermediatePoints(intermediatePoints)
+	, m_intermediatePoints({}) // TODO: ignore intermediate points for now
 {
 	setFlags(ItemIsMovable | ItemSendsGeometryChanges);
 	if (!m_isDraggable)

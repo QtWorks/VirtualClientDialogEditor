@@ -42,7 +42,7 @@ AbstractDialogNode* ClientReplicaNode::shallowCopy() const
 bool ClientReplicaNode::compareData(AbstractDialogNode* other) const
 {
 	Q_ASSERT(other->type() == type());
-	return *this == *static_cast<ClientReplicaNode*>(other);
+	return *this == *other->as<ClientReplicaNode>();
 }
 
 bool operator==(const ClientReplicaNode& left, const ClientReplicaNode& right)

@@ -30,7 +30,7 @@ public:
 	void appendChild(const Id& id);
 	void removeChild(const Id& id);
 
-	AbstractDialogNode* clone() const;
+	AbstractDialogNode* clone(bool uniqueId) const;
 
 	bool validate() const;
 	virtual bool validate(QString& error) const = 0;
@@ -45,7 +45,7 @@ public:
 	}
 
 	template <typename T>
-	const T* as(const AbstractDialogNode* node)
+	const T* as(const AbstractDialogNode* node) const
 	{
 		return type() == T::Type ? static_cast<const T*>(this) : nullptr;
 	}
