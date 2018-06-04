@@ -24,8 +24,6 @@ signals:
 	void rejected();
 
 private slots:
-	void onUseHintCheckboxChecked(bool checked);
-	void onHintChanged();
 	void onAddItemClicked();
 	void onSaveClicked();
 	void onCancelClicked();
@@ -39,9 +37,11 @@ private:
 	void setError(const QString& error);
 	void removeError();
 
+	Core::ExpectedWordsNode getNode() const;
+	void setNode(const Core::ExpectedWordsNode& node);
+
 private:
 	Ui::ExpectedWordsEditorWindow* m_ui;
-	Core::ExpectedWordsNode m_expectedWords;
 	QVector<ExpectedWordEditor*> m_itemEditors;
 };
 

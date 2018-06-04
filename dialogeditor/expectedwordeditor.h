@@ -31,7 +31,6 @@ private slots:
 
 private:
 	Ui::ExpectedWordEditor* m_ui;
-	Core::ExpectedWords* m_originalExpectedWords;
 	Core::ExpectedWords m_expectedWords;
 };
 

@@ -70,7 +70,16 @@ void ExpectedWordsNodeGraphicsItem::createEditorIfNeeded()
 	QObject::connect(m_editor, &ExpectedWordsEditorWindow::accepted, [this](const Core::ExpectedWordsNode& expectedWords)
 	{
 		m_expectedWords->setExpectedWords(expectedWords.expectedWords());
-		m_expectedWords->setHint(expectedWords.hint());
+
+		if (expectedWords.customHint())
+		{
+			m_expectedWords->setCustomHint(true);
+			m_expectedWords->setHint(expectedWords.hint());
+		}
+		else
+		{
+			m_expectedWords->setCustomHint(false);
+		}
 
 		update();
 
