@@ -237,13 +237,6 @@ void DialogEditorWindow::updateConnectControls()
 		return;
 	}
 
-	// remove for Hard dialogs
-	/*if (m_dialog.difficulty == Core::Dialog::Difficulty::Hard)
-	{
-		m_ui->connectNodesButton->setEnabled(false);
-		return;
-	}*/
-
 	if (nodesAlreadyConnected(parentNode, childNode))
 	{
 		m_ui->connectNodesButton->setEnabled(false);
@@ -322,7 +315,7 @@ void DialogEditorWindow::nodesDisconnected(NodeGraphicsItem* parent, NodeGraphic
 
 void DialogEditorWindow::nodeAddedToPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase)
 {
-	LOG << ARG2(nodeType(node), "node");
+	LOG << ARG2(nodeType(node), "node") << ARG2(phase->sceneBoundingRect(), "PhaseSBR") << ARG2(node->sceneBoundingRect(), "NodeSBR");
 	Q_ASSERT(m_nodesByPhase.contains(phase));
 
 	m_nodesByPhase[phase].append(node);

@@ -11,11 +11,8 @@
 #include <QMimeData>
 #include <QKeyEvent>
 
-
-
 namespace
 {
-
 
 static const qreal s_nodesInterval = 30.0;
 static const qreal s_phaseTopPadding = 45.0;
@@ -168,6 +165,7 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 				PhaseGraphicsItem* phase = phases.first();
 				if (!phase->sceneBoundingRect().contains(itemSceneRect))
 				{
+					LOG << "Phase SBR not contains " << itemSceneRect;
 					return;
 				}
 
@@ -176,6 +174,7 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 			}
 			else if (!phases.empty())
 			{
+				LOG << "No phases found at " << itemSceneRect;
 				return;
 			}
 		}
@@ -190,6 +189,7 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 		item->setParent(this);
 
 		addNodeToScene(item, event->scenePos());
+		LOG << "Drop item at " << event->scenePos() << ARG2(item->position(), "position");
 
 		item->showNodeEditor();
 	}
@@ -517,6 +517,9 @@ void DialogGraphicsScene::onPhasePositionChanged(PhaseGraphicsItem* phaseItem, c
 		(phasesAtNewRect.size() == 1 && phasesAtNewRect.first() == phaseItem))
 	{
 		LOG << "Phase moved to " << to;
+
+		phaseItem->doHack();
+
 		return;
 	}
 

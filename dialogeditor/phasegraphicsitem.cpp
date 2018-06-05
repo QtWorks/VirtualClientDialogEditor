@@ -7,6 +7,8 @@
 #include <QKeyEvent>
 #include <QGraphicsScene>
 
+#include <QGraphicsSceneMouseEvent>
+
 PhaseGraphicsItem::PhaseGraphicsItem(Core::PhaseNode* phase, Properties properties, QObject* parent)
 	: NodeGraphicsItem(properties, parent)
 	, m_phase(phase)
@@ -38,6 +40,22 @@ void PhaseGraphicsItem::removeItem(NodeGraphicsItem* item)
 
 	m_items.removeOne(item);
 	item->setPhase(nullptr);
+}
+
+void PhaseGraphicsItem::doHack()
+{
+	QGraphicsSceneMouseEvent event;
+
+	QRectF rect = mapRectToScene(boundingRect());
+	QPointF eventPos = rect.bottomRight() - QPointF(1, 1);
+
+	event.setScenePos(eventPos);
+
+	LOG << "Set event pos " << eventPos;
+
+	mousePressEvent(&event);
+
+	mouseReleaseEvent(&event);
 }
 
 int PhaseGraphicsItem::type() const

@@ -11,8 +11,8 @@
 #include <QMimeData>
 
 NodeGraphicsItem::NodeGraphicsItem(Properties properties, QObject* parent)
-	: m_width(minWidth())
-	, m_height(minHeight())
+	: m_width(0)
+	, m_height(0)
 	, m_position(pos())
 	, m_resizing(false)
 {
@@ -22,6 +22,8 @@ NodeGraphicsItem::NodeGraphicsItem(Properties properties, QObject* parent)
 	setAcceptHoverEvents(true);
 
 	setParent(parent);
+
+	resizeToMinimal();
 }
 
 NodeGraphicsItem::~NodeGraphicsItem()
@@ -59,6 +61,13 @@ void NodeGraphicsItem::setProperties(Properties properties)
 
 void NodeGraphicsItem::resize(qreal width, qreal height)
 {
+	if (m_width == width && m_height == height)
+	{
+		return;
+	}
+
+	LOG << "Resize from " << ARG(m_width) << ARG(m_height) << " to " << ARG(width) << ARG(height);
+
 	prepareGeometryChange();
 	m_width = width;
 	m_height = height;
@@ -204,9 +213,9 @@ void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 	{
 		const QPointF eventPosition = mapFromScene(event->scenePos());
 
-		prepareGeometryChange();
-		m_width = std::max(eventPosition.x(), minWidth());
-		m_height = std::max(eventPosition.y(), minHeight());
+		const qreal width = std::max(eventPosition.x(), minWidth());
+		const qreal height = std::max(eventPosition.y(), minHeight());
+		resize(width, height);
 	}
 	else if (m_properties & Draggable)
 	{
@@ -251,8 +260,14 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		setCursor(Qt::OpenHandCursor);
 	}
 
-	emit positionChanged(m_position, pos());
-	m_position = pos();
+	const QPointF oldPosition = m_position;
+	const QPointF newPosition = pos();
+
+	if (oldPosition != newPosition)
+	{
+		m_position = newPosition;
+		emit positionChanged(oldPosition, newPosition);
+	}
 
 	QGraphicsItem::mouseReleaseEvent(event);
 }
