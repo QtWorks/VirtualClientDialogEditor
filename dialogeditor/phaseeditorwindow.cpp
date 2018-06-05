@@ -16,12 +16,12 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, QWidget* pare
 	m_ui->errorIconLabel->setPixmap(warningPixmap);
 	m_ui->errorIconLabel->hide();
 
-	m_ui->nameLineEdit->setText(m_phase.name());
 	connect(m_ui->nameLineEdit, &QLineEdit::textChanged, this, PhaseEditorWindow::onNameChanged);
+	m_ui->nameLineEdit->setText(m_phase.name());
 
-	m_ui->scoreLineEdit->setText(QString::number(m_phase.score()));
 	m_ui->scoreLineEdit->setValidator(new QIntValidator(0, INT_MAX, this));
 	connect(m_ui->scoreLineEdit, &QLineEdit::textChanged, this, PhaseEditorWindow::onScoreChanged);
+	m_ui->scoreLineEdit->setText(QString::number(m_phase.score()));
 
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setText("Сохранить");
 	m_ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Отменить");
