@@ -1,6 +1,7 @@
 #include "logindialog.h"
 #include "ui_logindialog.h"
 #include "waitingspinnerwidget.h"
+#include "settingsdialog.h"
 
 #include <QMessageBox>
 
@@ -8,11 +9,14 @@ LoginDialog::LoginDialog(IBackendConnectionSharedPtr backendConnection, QWidget*
 	: QDialog(parent)
 	, m_ui(new Ui::LoginDialog)
 	, m_backendConnection(backendConnection)
+	, m_settings(nullptr)
+	, m_settingsDialog(nullptr)
 {
 	m_ui->setupUi(this);
-	m_ui->rememberMeCheckBox->setVisible(false);
 
 	setModal(true);
+
+	connect(m_ui->settingsButton, &QPushButton::clicked, this, &LoginDialog::showSettingsDialog);
 
 	connect(m_ui->loginButton, &QPushButton::clicked, this, &LoginDialog::onLoginClicked);
 	connect(m_backendConnection.get(), &Core::IBackendConnection::loggedIn, this, &LoginDialog::onLoggedIn);
@@ -22,6 +26,11 @@ LoginDialog::LoginDialog(IBackendConnectionSharedPtr backendConnection, QWidget*
 LoginDialog::~LoginDialog()
 {
 	delete m_ui;
+}
+
+void LoginDialog::setSettings(ApplicationSettings* settings)
+{
+	m_settings = settings;
 }
 
 void LoginDialog::showSpinner()
@@ -45,6 +54,17 @@ void LoginDialog::hideSpinner()
 	delete m_waitingSpinner;
 }
 
+void LoginDialog::showSettingsDialog()
+{
+	if (!m_settingsDialog)
+	{
+		m_settingsDialog = new SettingsDialog(this);
+		m_settingsDialog->setSettings(m_settings);
+	}
+
+	m_settingsDialog->show();
+}
+
 void LoginDialog::onLoginClicked()
 {
 	showSpinner();
@@ -59,7 +79,8 @@ void LoginDialog::onLoggedIn(Core::IBackendConnection::QueryId queryId)
 		return;
 	}
 
-	QTimer::singleShot(1000, [this]() {
+	QTimer::singleShot(1000, [this]()
+	{
 		hideSpinner();
 		accept();
 	});
@@ -72,7 +93,8 @@ void LoginDialog::onLoginFailed(Core::IBackendConnection::QueryId queryId, const
 		return;
 	}
 
-	QTimer::singleShot(1000, [this, error]() {
+	QTimer::singleShot(1000, [this, error]()
+	{
 		hideSpinner();
 		QMessageBox::critical(this, "Ошибка авторизации", error);
 	});

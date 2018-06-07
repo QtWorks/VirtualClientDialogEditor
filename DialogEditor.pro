@@ -50,7 +50,9 @@ SOURCES += \
 	usereditor/userlisteditorwidget.cpp \
     core/backendconnection.cpp \
     waitingspinnerwidget.cpp \
-	dialogeditor/graphlayout.cpp
+	dialogeditor/graphlayout.cpp \
+	settingsdialog.cpp \
+	applicationsettings.cpp
 
 HEADERS  += \
     listeditorwidget.h \
@@ -89,7 +91,9 @@ HEADERS  += \
 	usereditor/userlisteditorwidget.h \
     core/backendconnection.h \
     waitingspinnerwidget.h \
-	dialogeditor/graphlayout.h
+	dialogeditor/graphlayout.h \
+	settingsdialog.h \
+	applicationsettings.h
 
 FORMS    += \
     listeditorwidget.ui \
@@ -100,4 +104,8 @@ FORMS    += \
     dialogeditor/expectedwordseditorwindow.ui \
     dialogeditor/expectedwordeditor.ui \
     dialogeditor/clientreplicaeditor.ui \
-    dialogeditor/phaseeditorwindow.ui
+    dialogeditor/phaseeditorwindow.ui \
+	settingsdialog.ui
+
+RESOURCES += \
+	resources.qrc
