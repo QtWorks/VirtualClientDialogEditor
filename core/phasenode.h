@@ -24,6 +24,8 @@ public:
 	void setScore(double score);
 
 	const QList<AbstractDialogNode*>& nodes() const;
+	void appendNode(AbstractDialogNode* node);
+	void removeNode(AbstractDialogNode* node);
 
 	virtual int type() const override;
 	virtual bool validate(QString& error) const override;

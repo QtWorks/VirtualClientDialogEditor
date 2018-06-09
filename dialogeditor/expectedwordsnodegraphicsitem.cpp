@@ -43,7 +43,7 @@ QString ExpectedWordsNodeGraphicsItem::getContentText() const
 
 QBrush ExpectedWordsNodeGraphicsItem::getHeaderBrush() const
 {
-	return QBrush(QColor::fromRgb(0x4F, 0xC3, 0xF7));
+	return QColor::fromRgb(0x5DCFC3);
 }
 
 void ExpectedWordsNodeGraphicsItem::showNodeEditor()
@@ -82,6 +82,8 @@ void ExpectedWordsNodeGraphicsItem::createEditorIfNeeded()
 		}
 
 		update();
+
+		emit changed();
 
 		closeEditor();
 	});

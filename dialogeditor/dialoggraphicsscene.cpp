@@ -425,10 +425,7 @@ void DialogGraphicsScene::addNodeToScene(NodeGraphicsItem* node, const QPointF& 
 		}
 	});
 
-	connect(node, &NodeGraphicsItem::changed, [this, node](NodeGraphicsItem* updatedNode)
-	{
-		emit nodeChanged(node, updatedNode);
-	});
+	connect(node, &NodeGraphicsItem::changed, [this, node]() { emit nodeChanged(node); });
 
 	addItem(node);
 

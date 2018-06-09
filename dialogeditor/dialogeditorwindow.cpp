@@ -119,7 +119,6 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* pare
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::nodeRemoved);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::updateSaveControls);
 
-	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeChanged, this, &DialogEditorWindow::nodeChanged);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeChanged, this, &DialogEditorWindow::updateSaveControls);
 
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeAddedToPhase, this, &DialogEditorWindow::nodeAddedToPhase);
@@ -279,11 +278,6 @@ void DialogEditorWindow::nodeRemoved(NodeGraphicsItem* node)
 	}
 }
 
-void DialogEditorWindow::nodeChanged(NodeGraphicsItem* originalNode, NodeGraphicsItem* updatedNode)
-{
-	LOG << ARG2(nodeType(originalNode), "originalNode") << ARG2(nodeType(updatedNode), "updatedNode");
-}
-
 void DialogEditorWindow::nodesConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child)
 {
 	LOG << ARG2(nodeType(parent), "parent") << ARG2(nodeType(child), "child");
@@ -319,6 +313,7 @@ void DialogEditorWindow::nodeAddedToPhase(NodeGraphicsItem* node, PhaseGraphicsI
 	Q_ASSERT(m_nodesByPhase.contains(phase));
 
 	m_nodesByPhase[phase].append(node);
+	phase->data()->as<Core::PhaseNode>()->appendNode(node->data());
 }
 
 void DialogEditorWindow::nodeRemovedFromPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase)
@@ -327,6 +322,7 @@ void DialogEditorWindow::nodeRemovedFromPhase(NodeGraphicsItem* node, PhaseGraph
 	Q_ASSERT(m_nodesByPhase.contains(phase));
 
 	m_nodesByPhase[phase].removeOne(node);
+	phase->data()->as<Core::PhaseNode>()->removeNode(node->data());
 }
 
 bool DialogEditorWindow::validateDialog() const
@@ -598,7 +594,11 @@ Core::PhaseNode DialogEditorWindow::getPhaseNode(PhaseGraphicsItem* phaseItem)
 {
 	Core::PhaseNode* phaseNode = phaseItem->data()->as<Core::PhaseNode>();
 
-	QList<Core::AbstractDialogNode*> nodes = getPhaseNodes(phaseItem);
+	QList<Core::AbstractDialogNode*> nodes;
+	for (Core::AbstractDialogNode* node : phaseNode->nodes())
+	{
+		nodes.append(node->clone(false));
+	}
 
 	return Core::PhaseNode(phaseNode->name(), phaseNode->score(), nodes);
 }

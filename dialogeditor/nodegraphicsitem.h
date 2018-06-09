@@ -21,7 +21,8 @@ public:
 		Resizable = 0x1,
 		Editable = 0x2,
 		Removable = 0x4,
-		Draggable = 0x8
+		Draggable = 0x8,
+		HighlightInvalid = 0x16
 	};
 	Q_DECLARE_FLAGS(Properties, Property)
 
@@ -62,7 +63,7 @@ signals:
 	void removeRequested();
 	void selectionChanged(bool value);
 	void positionChanged(QPointF oldPosition, QPointF newPosition);
-	void changed(NodeGraphicsItem* newNode);
+	void changed();
 
 public:
 	virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -79,6 +80,7 @@ private:
 
 private:
 	QRectF outlineRect() const;
+	QBrush invalidBrush() const;
 	void trackNodes();
 
 private:

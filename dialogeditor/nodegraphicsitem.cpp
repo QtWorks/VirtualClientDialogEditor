@@ -155,7 +155,14 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 		isSelected() ? Qt::DotLine : Qt::SolidLine);
 	painter->setPen(pen);
 
-	painter->setBrush(getHeaderBrush());
+	if (m_properties & HighlightInvalid && !data()->validate())
+	{
+		painter->setBrush(invalidBrush());
+	}
+	else
+	{
+		painter->setBrush(getHeaderBrush());
+	}
 
 	const int headerHeight = painter->fontMetrics().height() + padding() * 2;
 	const int roundRadius = 6;
@@ -227,7 +234,7 @@ void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 		QDrag* drag = new QDrag(this);
 		NodeGraphicsItem* draggingItem = clone();
-		draggingItem->setProperties(Resizable | Editable | Removable);
+		draggingItem->setProperties(Resizable | Editable | Removable | HighlightInvalid);
 		drag->setMimeData(new NodeGraphicsItemMimeData(draggingItem));
 
 		QPixmap pixmap(boundingRect().size().toSize());
@@ -350,6 +357,11 @@ qreal NodeGraphicsItem::minWidth() const
 QRectF NodeGraphicsItem::outlineRect() const
 {
 	return QRect(0, 0, m_width, m_height);
+}
+
+QBrush NodeGraphicsItem::invalidBrush() const
+{
+	return QColor::fromRgb(0xFF5252);
 }
 
 void NodeGraphicsItem::trackNodes()

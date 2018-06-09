@@ -120,8 +120,7 @@ QString PhaseGraphicsItem::getContentText() const
 
 QBrush PhaseGraphicsItem::getHeaderBrush() const
 {
-	static const QColor s_color = QColor::fromRgb(65, 105, 225);
-	return QBrush(s_color);
+	return QColor::fromRgb(0xFFBC40);
 }
 
 void PhaseGraphicsItem::showNodeEditor()
@@ -192,6 +191,8 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 
 		update();
 
+		emit changed();
+
 		closeEditor();
 	});
 
@@ -200,14 +201,14 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 		closeEditor();
 	});
 
-	QObject::connect(m_editor, &QWidget::destroyed, [this]()
-	{
-		m_editor = nullptr;
-	});
-
 	QObject::connect(m_editor, &PhaseEditorWindow::changed, [this]()
 	{
 		update();
+	});
+
+	QObject::connect(m_editor, &QWidget::destroyed, [this]()
+	{
+		m_editor = nullptr;
 	});
 }
 

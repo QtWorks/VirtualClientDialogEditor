@@ -35,7 +35,7 @@ signals:
 
 	void nodeAdded(NodeGraphicsItem* node);
 	void nodeRemoved(NodeGraphicsItem* node);
-	void nodeChanged(NodeGraphicsItem* oldNode, NodeGraphicsItem* newNode);
+	void nodeChanged(NodeGraphicsItem* node);
 
 	void nodesConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);
 	void nodesDisconnected(NodeGraphicsItem* parent, NodeGraphicsItem* child);

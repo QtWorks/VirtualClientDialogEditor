@@ -36,7 +36,7 @@ QString ClientReplicaNodeGraphicsItem::getContentText() const
 
 QBrush ClientReplicaNodeGraphicsItem::getHeaderBrush() const
 {
-	return QBrush(QColor::fromRgb(0xFF, 0x52, 0x52));
+	return QColor::fromRgb(0x846FD7);
 }
 
 void ClientReplicaNodeGraphicsItem::showNodeEditor()
@@ -66,12 +66,19 @@ void ClientReplicaNodeGraphicsItem::createEditorIfNeeded()
 
 		update();
 
+		emit changed();
+
 		closeEditor();
 	});
 
 	QObject::connect(m_editor, &ClientReplicaEditor::rejected, [this]()
 	{
 		closeEditor();
+	});
+
+	QObject::connect(m_editor, &ClientReplicaEditor::changed, [this]()
+	{
+		update();
 	});
 
 	QObject::connect(m_editor, &QWidget::destroyed, [this]()
