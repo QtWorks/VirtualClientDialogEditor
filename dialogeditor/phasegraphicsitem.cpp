@@ -9,9 +9,10 @@
 
 #include <QGraphicsSceneMouseEvent>
 
-PhaseGraphicsItem::PhaseGraphicsItem(Core::PhaseNode* phase, Properties properties, QObject* parent)
+PhaseGraphicsItem::PhaseGraphicsItem(Core::PhaseNode* phase, Core::Dialog* dialog, Properties properties, QObject* parent)
 	: NodeGraphicsItem(properties, parent)
 	, m_phase(phase)
+	, m_dialog(dialog)
 	, m_editor(nullptr)
 {
 	setZValue(1.0);
@@ -56,6 +57,11 @@ void PhaseGraphicsItem::doHack()
 	mousePressEvent(&event);
 
 	mouseReleaseEvent(&event);
+}
+
+void PhaseGraphicsItem::setDialog(Core::Dialog* dialog)
+{
+	m_dialog = dialog;
 }
 
 int PhaseGraphicsItem::type() const
@@ -132,7 +138,7 @@ void PhaseGraphicsItem::showNodeEditor()
 
 NodeGraphicsItem* PhaseGraphicsItem::clone() const
 {
-	return new PhaseGraphicsItem(m_phase->clone(true)->as<Core::PhaseNode>(), m_properties, parent());
+	return new PhaseGraphicsItem(m_phase->clone(true)->as<Core::PhaseNode>(), m_dialog, m_properties, parent());
 }
 
 qreal PhaseGraphicsItem::minHeight() const
@@ -142,7 +148,7 @@ qreal PhaseGraphicsItem::minHeight() const
 		return NodeGraphicsItem::minHeight();
 	}
 
-	qreal mostBottom;
+	qreal mostBottom = 0.0;
 	for (NodeGraphicsItem* item : m_items)
 	{
 		qreal bottom = item->sceneBoundingRect().bottom() - scenePos().y();
@@ -182,12 +188,29 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 		return;
 	}
 
-	m_editor = new PhaseEditorWindow(*m_phase);
+	m_editor = new PhaseEditorWindow(*m_phase, *m_dialog);
 
-	QObject::connect(m_editor, &PhaseEditorWindow::accepted, [this](const Core::PhaseNode& phase)
+	QObject::connect(m_editor, &PhaseEditorWindow::accepted, [this](const Core::PhaseNode& phase, bool applyErrorToAllPhases)
 	{
 		m_phase->setName(phase.name());
 		m_phase->setScore(phase.score());
+
+		if (applyErrorToAllPhases)
+		{
+			m_dialog->errorReplica = phase.errorReplica();
+			m_phase->resetErrorReplica();
+		}
+		else
+		{
+			if (phase.errorReplica() != m_dialog->errorReplica)
+			{
+				m_phase->setErrorReplica(phase.errorReplica());
+			}
+			else
+			{
+				m_phase->resetErrorReplica();
+			}
+		}
 
 		update();
 

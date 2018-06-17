@@ -17,12 +17,14 @@ public:
 		Type = UserType + 4
 	};
 
-	PhaseGraphicsItem(Core::PhaseNode* phase, Properties properties, QObject* parent = 0);
+	PhaseGraphicsItem(Core::PhaseNode* phase, Core::Dialog* dialog, Properties properties, QObject* parent = 0);
 
 	void addItem(NodeGraphicsItem* item);
 	void removeItem(NodeGraphicsItem* item);
 
 	void doHack();
+
+	void setDialog(Core::Dialog* dialog);
 
 	virtual int type() const override;
 	virtual Core::AbstractDialogNode* data() override;
@@ -47,6 +49,7 @@ private:
 
 private:
 	Core::PhaseNode* m_phase;
+	Core::Dialog* m_dialog;
 	PhaseEditorWindow* m_editor;
 	QList<NodeGraphicsItem*> m_items;
 };

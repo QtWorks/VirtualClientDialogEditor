@@ -180,6 +180,8 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 		}
 		else if (item->type() == PhaseGraphicsItem::Type)
 		{
+			qgraphicsitem_cast<PhaseGraphicsItem*>(item)->setDialog(m_dialog);
+
 			if (!phases.empty())
 			{
 				return;
@@ -287,7 +289,7 @@ std::pair<PhaseGraphicsItem*, DialogGraphicsScene::NodeItemById> DialogGraphicsS
 {
 	const NodeGraphicsItem::Properties nodeProperties = NodeGraphicsItem::Resizable | NodeGraphicsItem::Editable | NodeGraphicsItem::Removable;
 
-	PhaseGraphicsItem* phaseItem = new PhaseGraphicsItem(&phase, nodeProperties, this);
+	PhaseGraphicsItem* phaseItem = new PhaseGraphicsItem(&phase, m_dialog, nodeProperties, this);
 
 	ClientReplicaNodeGraphicsItem dummy(nullptr, NodeGraphicsItem::NoProperties);
 	const QPointF phasePos = QPointF((dummy.minWidth() + s_phaseLeftPadding + s_phaseRightPadding + s_nodesInterval) * phaseIndex, 0.0);
@@ -425,7 +427,10 @@ void DialogGraphicsScene::addNodeToScene(NodeGraphicsItem* node, const QPointF& 
 		}
 	});
 
-	connect(node, &NodeGraphicsItem::changed, [this, node]() { emit nodeChanged(node); });
+	connect(node, &NodeGraphicsItem::changed, [this, node]()
+	{
+		emit nodeChanged(node);
+	});
 
 	addItem(node);
 

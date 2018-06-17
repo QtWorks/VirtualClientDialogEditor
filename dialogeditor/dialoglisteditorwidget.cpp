@@ -125,7 +125,7 @@ void DialogListEditorWidget::onItemsRemoveRequested(const QStringList& dialogs)
 
 void DialogListEditorWidget::onItemCreateRequested()
 {
-	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, { } };
+	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, { }, "" };
 	DialogEditorWindow* window = new DialogEditorWindow(dialog);
 
 	connect(window, &DialogEditorWindow::dialogChanged, [this](Core::Dialog dialog)

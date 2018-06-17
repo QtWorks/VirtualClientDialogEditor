@@ -73,11 +73,18 @@ QJsonObject dumpNode(const AbstractDialogNode* node)
 
 QJsonValue dumpPhase(const Core::PhaseNode& phase)
 {
-	return QJsonObject({
+	QJsonObject result = QJsonObject({
 		{ "name", phase.name() },
 		{ "score", phase.score() },
 		{ "nodes", dump(phase.nodes(), dumpNode) }
 	});
+
+	if (phase.hasErrorReplica())
+	{
+		result["errorReplica"] = phase.errorReplica();
+	}
+
+	return result;
 }
 
 }
@@ -98,7 +105,8 @@ QJsonObject DialogJsonWriter::writeToObject(const Dialog& dialog)
 	return QJsonObject{
 		{ "name", dialog.name },
 		{ "difficulty", static_cast<int>(dialog.difficulty) },
-		{ "phases", dump(dialog.phases, dumpPhase) }
+		{ "phases", dump(dialog.phases, dumpPhase) },
+		{ "errorReplica", dialog.errorReplica }
 	};
 }
 

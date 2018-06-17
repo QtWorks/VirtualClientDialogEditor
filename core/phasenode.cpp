@@ -90,7 +90,7 @@ double calculateBestPossibleScore(const QString& name, const QList<AbstractDialo
 	std::transform(leafToRootPaths.begin(), leafToRootPaths.end(), std::back_inserter(scores),
 		[](const NodesPath& path)
 		{
-			double score;
+			double score = 0.0;
 			for (AbstractDialogNode* node : path)
 			{
 				if (node->type() != ExpectedWordsNode::Type)
@@ -131,6 +131,29 @@ PhaseNode::PhaseNode(const QString& name, double score, const QList<AbstractDial
 {
 }
 
+PhaseNode::PhaseNode(const PhaseNode& other)
+	: m_name(other.m_name)
+	, m_score(other.m_score)
+	, m_errorReplica(other.m_errorReplica)
+{
+	setId(other.id());
+
+	for (const AbstractDialogNode::Id& id : other.parentNodes())
+	{
+		appendParent(id);
+	}
+
+	for (const AbstractDialogNode::Id& id : other.childNodes())
+	{
+		appendChild(id);
+	}
+
+	for (AbstractDialogNode* node : other.nodes())
+	{
+		m_nodes.append(node->clone(false));
+	}
+}
+
 const QString& PhaseNode::name() const
 {
 	return m_name;
@@ -169,6 +192,26 @@ void PhaseNode::removeNode(AbstractDialogNode* node)
 	m_nodes.removeOne(node);
 }
 
+bool PhaseNode::hasErrorReplica() const
+{
+	return m_errorReplica.isValid();
+}
+
+QString PhaseNode::errorReplica() const
+{
+	return m_errorReplica.toString();
+}
+
+void PhaseNode::setErrorReplica(const QString& replica)
+{
+	m_errorReplica = replica;
+}
+
+void PhaseNode::resetErrorReplica()
+{
+	m_errorReplica = QVariant();
+}
+
 int PhaseNode::type() const
 {
 	return PhaseNode::Type;
@@ -192,6 +235,12 @@ bool PhaseNode::validate(QString& error) const
 		}
 	}
 
+	if (m_errorReplica.isValid() && m_errorReplica.toString().trimmed().isEmpty())
+	{
+		error = "Реплика для ошибки не может быть пустой";
+		return false;
+	}
+
 	return true;
 }
 
@@ -202,7 +251,14 @@ AbstractDialogNode* PhaseNode::shallowCopy() const
 	{
 		clonedNodes.append(node->clone(false));
 	}
-	return new PhaseNode(m_name, m_score, clonedNodes);
+
+	PhaseNode* result = new PhaseNode(m_name, m_score, clonedNodes);
+	if (m_errorReplica.isValid())
+	{
+		result->setErrorReplica(m_errorReplica.toString());
+	}
+
+	return result;
 }
 
 bool PhaseNode::compareData(AbstractDialogNode* other) const
@@ -213,7 +269,9 @@ bool PhaseNode::compareData(AbstractDialogNode* other) const
 
 bool operator==(const PhaseNode& left, const PhaseNode& right)
 {
-	return left.name() == right.name() && left.score() == right.score() &&
+	return left.name() == right.name() &&
+		left.score() == right.score() &&
+		left.errorReplica() == right.errorReplica() &&
 		left.nodes().size() == right.nodes().size() &&
 		std::equal(left.nodes().begin(), left.nodes().end(), right.nodes().begin(),
 			[](AbstractDialogNode* left, AbstractDialogNode* right) { return left->compare(right); });

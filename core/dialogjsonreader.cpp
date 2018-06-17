@@ -158,7 +158,14 @@ PhaseNode parsePhase(const QJsonObject& object)
 	const double score = object["score"].toDouble();
 	const QList<AbstractDialogNode*> nodes = parseNodes(object["nodes"].toArray());
 
-	return PhaseNode(name, score, nodes);
+	PhaseNode result = PhaseNode(name, score, nodes);
+
+	if (object.contains("errorReplica"))
+	{
+		result.setErrorReplica(object["errorReplica"].toString());
+	}
+
+	return result;
 }
 
 }
@@ -184,23 +191,24 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 		static const PropertiesList s_requiredProperties = {
 			{ "name", QJsonValue::String },
 			{ "difficulty", QJsonValue::Double },
-			{ "phases", QJsonValue::Array }
+			{ "phases", QJsonValue::Array },
+			{ "errorReplica", QJsonValue::String }
 		};
 		checkProperties(dialogObject, s_requiredProperties);
 
 		const QString name = dialogObject["name"].toString();
 		const Dialog::Difficulty difficulty = static_cast<Dialog::Difficulty>(dialogObject["difficulty"].toInt());
+		const QString errorReplica = dialogObject["errorReplica"].toString();
 
 		const QJsonArray phasesArray = dialogObject["phases"].toArray();
 		QList<PhaseNode> phases;
 		for (const QJsonValue& phase : phasesArray)
 		{
-			PhaseNode parsedPhase = parsePhase(phase.toObject());
-			phases << parsedPhase;
+			phases << parsePhase(phase.toObject());
 		}
 
 		ok = true;
-		return Dialog(name, difficulty, phases);
+		return Dialog(name, difficulty, phases, errorReplica);
 	}
 	catch (const std::logic_error& exception)
 	{

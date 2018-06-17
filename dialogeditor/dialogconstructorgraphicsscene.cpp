@@ -19,7 +19,7 @@ DialogConstructorGraphicsScene::~DialogConstructorGraphicsScene()
 
 void DialogConstructorGraphicsScene::addConstructorItems()
 {
-	NodeGraphicsItem* phaseNode = new PhaseGraphicsItem(&m_phase, NodeGraphicsItem::Draggable, this);
+	NodeGraphicsItem* phaseNode = new PhaseGraphicsItem(&m_phase, &m_dialog, NodeGraphicsItem::Draggable, this);
 	phaseNode->setPos(QPoint(0, 0));
 	addItem(phaseNode);
 

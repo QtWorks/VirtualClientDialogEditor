@@ -20,6 +20,7 @@ private:
 	void addConstructorItems();
 
 private:
+	Core::Dialog m_dialog;
 	Core::PhaseNode m_phase;
 	Core::ClientReplicaNode m_replica;
 	Core::ExpectedWordsNode m_expectedWords;

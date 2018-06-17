@@ -119,6 +119,7 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* pare
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::nodeRemoved);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::updateSaveControls);
 
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeChanged, this, &DialogEditorWindow::nodeChanged);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeChanged, this, &DialogEditorWindow::updateSaveControls);
 
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeAddedToPhase, this, &DialogEditorWindow::nodeAddedToPhase);
@@ -256,7 +257,16 @@ void DialogEditorWindow::nodeAdded(NodeGraphicsItem* node)
 
 	if (node->type() == PhaseGraphicsItem::Type)
 	{
-		m_nodesByPhase.insert(qgraphicsitem_cast<PhaseGraphicsItem*>(node), {});
+		PhaseGraphicsItem* phaseItem = qgraphicsitem_cast<PhaseGraphicsItem*>(node);
+		m_nodesByPhase.insert(phaseItem, {});
+
+		const Core::PhaseNode* phaseNode = phaseItem->data()->as<const Core::PhaseNode>();
+		const auto phaseIt = std::find_if(m_dialog.phases.begin(), m_dialog.phases.end(),
+			[&phaseNode](const Core::PhaseNode& phase){ return phase.id() == phaseNode->id(); });
+		if (phaseIt == m_dialog.phases.end())
+		{
+			m_dialog.phases.append(*phaseNode);
+		}
 	}
 }
 
@@ -269,13 +279,38 @@ void DialogEditorWindow::nodeRemoved(NodeGraphicsItem* node)
 
 	if (node->type() == PhaseGraphicsItem::Type)
 	{
-		m_nodesByPhase.remove(qgraphicsitem_cast<PhaseGraphicsItem*>(node));
+		PhaseGraphicsItem* phaseItem = qgraphicsitem_cast<PhaseGraphicsItem*>(node);
+		m_nodesByPhase.remove(phaseItem);
+
+		const Core::PhaseNode* phaseNode = phaseItem->data()->as<const Core::PhaseNode>();
+
+		const auto it = std::find_if(m_dialog.phases.begin(), m_dialog.phases.end(),
+			[phaseNode](const Core::PhaseNode& phase) { return phase.id() == phaseNode->id(); });
+		Q_ASSERT(it != m_dialog.phases.end());
+		const int phaseIndex = std::distance(it, m_dialog.phases.begin());
+		m_dialog.phases.removeAt(phaseIndex);
 	}
 
 	if (m_selectedNodes.contains(node))
 	{
 		node->setSelected(false);
 	}
+}
+
+void DialogEditorWindow::nodeChanged(NodeGraphicsItem* node)
+{
+	if (node->type() != PhaseGraphicsItem::Type)
+	{
+		return;
+	}
+
+	PhaseGraphicsItem* phaseItem = qgraphicsitem_cast<PhaseGraphicsItem*>(node);
+	const Core::PhaseNode* phaseNode = phaseItem->data()->as<const Core::PhaseNode>();
+
+	auto it = std::find_if(m_dialog.phases.begin(), m_dialog.phases.end(),
+		[phaseNode](const Core::PhaseNode& phase) { return phase.id() == phaseNode->id(); });
+	Q_ASSERT(it != m_dialog.phases.end());
+	*it = *phaseNode;
 }
 
 void DialogEditorWindow::nodesConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child)
@@ -336,6 +371,14 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 	if (m_dialog.name.trimmed().isEmpty())
 	{
 		error = "Имя диалога не может быть пустым";
+		return false;
+	}
+
+	if (m_dialog.errorReplica.trimmed().isEmpty() &&
+		std::any_of(m_dialog.phases.begin(), m_dialog.phases.end(),
+			[](const Core::PhaseNode& phase) { return !phase.hasErrorReplica(); }))
+	{
+		error = "Ошибочная реплика не может быть пустой";
 		return false;
 	}
 
@@ -600,7 +643,7 @@ Core::PhaseNode DialogEditorWindow::getPhaseNode(PhaseGraphicsItem* phaseItem)
 		nodes.append(node->clone(false));
 	}
 
-	return Core::PhaseNode(phaseNode->name(), phaseNode->score(), nodes);
+	return Core::PhaseNode(*phaseNode);
 }
 
 QList<Core::AbstractDialogNode*> DialogEditorWindow::getPhaseNodes(PhaseGraphicsItem* phaseItem)

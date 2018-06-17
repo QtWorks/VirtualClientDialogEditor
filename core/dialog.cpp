@@ -8,26 +8,22 @@ Dialog::Dialog()
 {
 }
 
-Dialog::Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode>& phases)
+Dialog::Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode>& phases, const QString& errorReplica)
 	: name(name)
 	, difficulty(difficulty)
 	, phases(phases)
+	, errorReplica(errorReplica)
 {
 }
 
 Dialog::Dialog(const Dialog& other)
 	: name(other.name)
 	, difficulty(other.difficulty)
+	, errorReplica(other.errorReplica)
 {
 	for (const PhaseNode& phase : other.phases)
 	{
-		QList<AbstractDialogNode*> nodes;
-		for (AbstractDialogNode* node : phase.nodes())
-		{
-			nodes.append(node->clone(false));
-		}
-
-		phases.append(PhaseNode(phase.name(), phase.score(), nodes));
+		phases.append(PhaseNode(phase));
 	}
 }
 
@@ -85,7 +81,8 @@ bool operator==(const Dialog& left, const Dialog& right)
 {
 	return left.name == right.name && left.difficulty == right.difficulty &&
 		left.phases.size() == right.phases.size() &&
-		std::equal(left.phases.begin(), left.phases.end(), right.phases.begin());
+		std::equal(left.phases.begin(), left.phases.end(), right.phases.begin()) &&
+		left.errorReplica == right.errorReplica;
 }
 
 bool operator!=(const Dialog& left, const Dialog& right)

@@ -2,6 +2,7 @@
 
 #include "abstractdialognode.h"
 #include <QString>
+#include <QVariant>
 
 namespace Core
 {
@@ -16,6 +17,7 @@ public:
 	};
 
 	PhaseNode(const QString& name, double score, const QList<AbstractDialogNode*>& nodes);
+	PhaseNode(const PhaseNode& other);
 
 	const QString& name() const;
 	void setName(const QString& name);
@@ -26,6 +28,14 @@ public:
 	const QList<AbstractDialogNode*>& nodes() const;
 	void appendNode(AbstractDialogNode* node);
 	void removeNode(AbstractDialogNode* node);
+
+	bool hasErrorReplica() const;
+	QString errorReplica() const;
+	void setErrorReplica(const QString& replica);
+	void resetErrorReplica();
+
+	/*const QString& repeatReplica() const;
+	void setRepeatReplica(const QString& replica);*/
 
 	virtual int type() const override;
 	virtual bool validate(QString& error) const override;
@@ -38,6 +48,9 @@ private:
 	QString m_name;
 	double m_score;
 	QList<AbstractDialogNode*> m_nodes;
+
+	QVariant m_errorReplica;
+	QString m_repeatReplica;
 };
 
 bool operator==(const PhaseNode& left, const PhaseNode& right);
