@@ -23,10 +23,7 @@ QList<AbstractDialogNode*> filterLeafs(const QList<AbstractDialogNode*>& nodes)
 
 			return std::any_of(nodeChilds.begin(), nodeChilds.end(), [&nodes](AbstractDialogNode::Id childId)
 			{
-				const auto childNodeIt = std::find_if(nodes.begin(), nodes.end(), [&childId](AbstractDialogNode* node)
-				{
-					return node->id() == childId;
-				});
+				const auto childNodeIt = findNodeById(nodes.begin(), nodes.end(), childId);
 				return childNodeIt == nodes.end();
 			});
 		});
@@ -49,8 +46,7 @@ QList<NodesPath> findPathsToRoot(AbstractDialogNode* node, const QList<AbstractD
 
 	for (const AbstractDialogNode::Id& parentId : node->parentNodes())
 	{
-		const auto parentNodeIt = std::find_if(nodes.begin(), nodes.end(),
-			[&parentId](AbstractDialogNode* node) { return node->id() == parentId; });
+		const auto parentNodeIt = findNodeById(nodes.begin(), nodes.end(), parentId);
 		if (parentNodeIt == nodes.end())
 		{
 			LOG << node->id() << " is root";

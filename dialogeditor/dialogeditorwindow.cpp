@@ -14,6 +14,9 @@
 
 #include <set>
 
+namespace
+{
+
 template<typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args&&... args)
 {
@@ -50,6 +53,81 @@ bool nodesAlreadyConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child)
 		});
 
 	return existingLinkIt != outcomingLinks.end();
+}
+
+QList<Core::AbstractDialogNode*> gatherNodes(const QMap<PhaseGraphicsItem*, QList<NodeGraphicsItem*>>& dialog)
+{
+	QList<Core::AbstractDialogNode*> result;
+
+	for (PhaseGraphicsItem* phase : dialog.keys())
+	{
+		for (NodeGraphicsItem* node : dialog[phase])
+		{
+			result << node->data()->clone(false);
+		}
+	}
+
+	return result;
+}
+
+typedef QList<Core::AbstractDialogNode*> NodesPath;
+
+QList<NodesPath> findPathsBetweenNodes(Core::AbstractDialogNode* childNode, Core::AbstractDialogNode* parentNode, const QList<Core::AbstractDialogNode*>& nodes, bool compareWithSelf = true)
+{
+	LOG << "searching path to root from " << childNode->id();
+
+	if (compareWithSelf && childNode == parentNode)
+	{
+		LOG << childNode->id() << " is target node (" << parentNode->id() << ")";
+		return { { childNode } };
+	}
+
+	QList<NodesPath> path;
+
+	for (const Core::AbstractDialogNode::Id& parentId : childNode->parentNodes())
+	{
+		const auto parentNodeIt = Core::findNodeById(nodes.begin(), nodes.end(), parentId);
+		if (parentNodeIt == nodes.end())
+		{
+			LOG << childNode->id() << " is target node (" << parentNode->id() << ")";
+			return { { childNode } };
+		}
+
+		QList<NodesPath> pathToParent = findPathsBetweenNodes(*parentNodeIt, parentNode, nodes);
+		for (NodesPath& path : pathToParent)
+		{
+			path.prepend(childNode);
+		}
+
+		LOG << "found " << pathToParent.length() << " paths to " << childNode->id();
+
+		path.append(pathToParent);
+	}
+
+	return path;
+}
+
+bool hasCycles(Core::AbstractDialogNode* childNode, const QList<Core::AbstractDialogNode*>& nodes)
+{
+	QList<NodesPath> paths = findPathsBetweenNodes(childNode, childNode, nodes, false);
+
+	LOG << "Found " << paths.size() << " potential paths to " << childNode->id() << " from itself";
+
+	for (const NodesPath& path : paths)
+	{
+		QStringList nodes;
+		std::transform(path.begin(), path.end(), std::back_inserter(nodes), [](Core::AbstractDialogNode* node){ return node->id(); });
+
+		LOG << "Path: " << nodes.join("->");
+	}
+
+	paths.erase(
+		std::remove_if(paths.begin(), paths.end(), [childNode](const NodesPath& path) { return path.length() == 1 && path[0] == childNode; }),
+		paths.end());
+
+	return !paths.isEmpty();
+}
+
 }
 
 DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* parent)
@@ -238,6 +316,20 @@ void DialogEditorWindow::updateConnectControls()
 	}
 
 	if (nodesAlreadyConnected(parentNode, childNode))
+	{
+		m_ui->connectNodesButton->setEnabled(false);
+		return;
+	}
+
+	const Core::AbstractDialogNode::Id childNodeId = childNode->data()->id();
+	const Core::AbstractDialogNode::Id parentNodeId = parentNode->data()->id();
+
+	QList<Core::AbstractDialogNode*> nodes = gatherNodes(m_nodesByPhase);
+	auto childNodeIt = Core::findNodeById(nodes.begin(), nodes.end(), childNodeId);
+	auto parentNodeIt = Core::findNodeById(nodes.begin(), nodes.end(), parentNodeId);
+	(*childNodeIt)->appendParent(parentNodeId);
+	(*parentNodeIt)->appendChild(childNodeId);
+	if (hasCycles(*childNodeIt, nodes))
 	{
 		m_ui->connectNodesButton->setEnabled(false);
 		return;
@@ -498,6 +590,7 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 		return false;
 	}
 
+	// TODO: use phases from dialog, just sort them
 	PhaseGraphicsItem* phase = findFirstPhase();
 	if (phase)
 	{
