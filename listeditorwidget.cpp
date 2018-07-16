@@ -84,7 +84,15 @@ void ListEditorWidget::addItem(const QString& item)
 
 void ListEditorWidget::removeItem(const QString& item)
 {
-	setRowBackground(items().indexOf(item), c_deletedColor);
+	const int index = items().indexOf(item);
+	if (itemIsAdded(item))
+	{
+		delete m_ui->listWidget->takeItem(index);
+	}
+	else
+	{
+		setRowBackground(index, c_deletedColor);
+	}
 }
 
 void ListEditorWidget::showProgressDialog(const QString& title, const QString& label)

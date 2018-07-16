@@ -71,6 +71,33 @@ QJsonObject dumpNode(const AbstractDialogNode* node)
 	return result;
 }
 
+QJsonObject dumpError(const ErrorReplica& error)
+{
+	QJsonObject result;
+
+	if (error.hasErrorReplica())
+	{
+		result["errorReplica"] = error.errorReplica();
+	}
+
+	if (error.hasFinishingExpectedWords())
+	{
+		result["finishingExpectedWords"] = QJsonArray::fromStringList(error.finishingExpectedWords());
+	}
+
+	if (error.hasFinishingReplica())
+	{
+		result["finishingReplica"] = error.finishingReplica();
+	}
+
+	if (error.hasContinuationExpectedWords())
+	{
+		result["continuationExpectedWords"] = QJsonArray::fromStringList(error.continuationExpectedWords());
+	}
+
+	return result;
+}
+
 QJsonValue dumpPhase(const Core::PhaseNode& phase)
 {
 	QJsonObject result = QJsonObject({
@@ -79,9 +106,9 @@ QJsonValue dumpPhase(const Core::PhaseNode& phase)
 		{ "nodes", dump(phase.nodes(), dumpNode) }
 	});
 
-	if (phase.hasErrorReplica())
+	if (phase.errorReplica().hasAnyField())
 	{
-		result["errorReplica"] = phase.errorReplica();
+		result["errorReplica"] = dumpError(phase.errorReplica());
 	}
 
 	return result;
@@ -102,12 +129,18 @@ QString DialogJsonWriter::write(const Dialog& dialog, bool compact)
 
 QJsonObject DialogJsonWriter::writeToObject(const Dialog& dialog)
 {
-	return QJsonObject{
+	QJsonObject result = QJsonObject({
 		{ "name", dialog.name },
 		{ "difficulty", static_cast<int>(dialog.difficulty) },
-		{ "phases", dump(dialog.phases, dumpPhase) },
-		{ "errorReplica", dialog.errorReplica }
-	};
+		{ "phases", dump(dialog.phases, dumpPhase) }
+	});
+
+	if (dialog.errorReplica.hasAnyField())
+	{
+		result["errorReplica"] = dumpError(dialog.errorReplica);
+	}
+
+	return result;
 }
 
 }

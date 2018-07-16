@@ -52,7 +52,8 @@ SOURCES += \
     waitingspinnerwidget.cpp \
 	dialogeditor/graphlayout.cpp \
 	settingsdialog.cpp \
-	applicationsettings.cpp
+	applicationsettings.cpp \
+    core/errorreplica.cpp
 
 HEADERS  += \
     listeditorwidget.h \
@@ -93,7 +94,8 @@ HEADERS  += \
     waitingspinnerwidget.h \
 	dialogeditor/graphlayout.h \
 	settingsdialog.h \
-	applicationsettings.h
+	applicationsettings.h \
+    core/errorreplica.h
 
 FORMS    += \
     listeditorwidget.ui \

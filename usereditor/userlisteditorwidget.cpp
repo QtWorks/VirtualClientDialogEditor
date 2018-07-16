@@ -56,6 +56,13 @@ bool UserListEditorWidget::itemHasChanges(const QString& username) const
 	return m_model.hasChanges(index);
 }
 
+bool UserListEditorWidget::itemIsAdded(const QString& item) const
+{
+	const QList<Core::User> addedItems = m_model.added();
+	return std::find_if(addedItems.begin(), addedItems.end(),
+		[&item](const Core::User& user) { return user.name == item; }) != addedItems.end();
+}
+
 void UserListEditorWidget::saveChanges()
 {
 	showProgressDialog("Сохранение данных", "Идет сохранение данных. Пожалуйста, подождите.");
@@ -113,9 +120,10 @@ void UserListEditorWidget::onItemsRemoveRequested(const QStringList& users)
 	{
 		const UserListDataModel::Index index = m_model.findIndex([&username](const Core::User& user) { return user.name == username; });
 		Q_ASSERT(index != -1);
-		m_model.remove(index);
 
 		removeItem(username);
+
+		m_model.remove(index);
 	}
 }
 

@@ -60,6 +60,13 @@ bool DialogListEditorWidget::itemHasChanges(const QString& dialogName) const
 	return m_model.hasChanges(index);
 }
 
+bool DialogListEditorWidget::itemIsAdded(const QString& item) const
+{
+	const QList<Core::Dialog> addedItems = m_model.added();
+	return std::find_if(addedItems.begin(), addedItems.end(),
+		[&item](const Core::Dialog& dialog) { return dialog.printableName() == item; }) != addedItems.end();
+}
+
 void DialogListEditorWidget::saveChanges()
 {
 	showProgressDialog("Сохранение данных", "Идет сохранение данных. Пожалуйста, подождите.");
@@ -117,15 +124,16 @@ void DialogListEditorWidget::onItemsRemoveRequested(const QStringList& dialogs)
 	{
 		const DialogListDataModel::Index index = m_model.findIndex([&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
 		Q_ASSERT(index != -1);
-		m_model.remove(index);
 
 		removeItem(dialogName);
+
+		m_model.remove(index);
 	}
 }
 
 void DialogListEditorWidget::onItemCreateRequested()
 {
-	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, { }, "" };
+	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, { }, {} };
 	DialogEditorWindow* window = new DialogEditorWindow(dialog);
 
 	connect(window, &DialogEditorWindow::dialogChanged, [this](Core::Dialog dialog)

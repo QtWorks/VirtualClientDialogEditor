@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>177</height>
+    <height>409</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -19,30 +19,9 @@
   <property name="windowTitle">
    <string>Редактор фазы</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="3" column="1">
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
-        <widget class="QTextEdit" name="errorReplicaTextEdit">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>40</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="errorReplicaCheckBox">
-         <property name="text">
-          <string>Использовать для всех фаз</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
      <item row="2" column="0" colspan="2">
       <widget class="Line" name="line">
        <property name="orientation">
@@ -83,6 +62,124 @@
      </item>
      <item row="1" column="1">
       <widget class="QLineEdit" name="scoreLineEdit"/>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Завершающая реплика:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Завершающие опорные слова:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Реплика возврата:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QTextEdit" name="continuationExpectedWordsTextEdit">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="continuationExpectedWordsCheckBox">
+         <property name="text">
+          <string>Использовать для всех фаз</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="5" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QTextEdit" name="finishingReplicaTextEdit">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="finishingReplicaCheckBox">
+         <property name="text">
+          <string>Использовать для всех фаз</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="4" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QTextEdit" name="finishingExpectedWordsTextEdit">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="finishingExpectedWordsCheckBox">
+         <property name="text">
+          <string>Использовать для всех фаз</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="3" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QTextEdit" name="errorReplicaTextEdit">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="errorReplicaCheckBox">
+         <property name="text">
+          <string>Использовать для всех фаз</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -129,6 +226,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>nameLineEdit</tabstop>
+  <tabstop>scoreLineEdit</tabstop>
+  <tabstop>errorReplicaTextEdit</tabstop>
+  <tabstop>errorReplicaCheckBox</tabstop>
+  <tabstop>finishingExpectedWordsTextEdit</tabstop>
+  <tabstop>finishingExpectedWordsCheckBox</tabstop>
+  <tabstop>finishingReplicaTextEdit</tabstop>
+  <tabstop>finishingReplicaCheckBox</tabstop>
+  <tabstop>continuationExpectedWordsTextEdit</tabstop>
+  <tabstop>continuationExpectedWordsCheckBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

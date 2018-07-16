@@ -4,6 +4,7 @@
 #include "phasenode.h"
 #include "clientreplicanode.h"
 #include "expectedwordsnode.h"
+#include "errorreplica.h"
 #include <QString>
 
 namespace Core
@@ -19,7 +20,7 @@ public:
 	};
 
 	Dialog();
-	Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode>& phases, const QString& errorReplica);
+	Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode>& phases, const ErrorReplica& errorReplica);
 	Dialog(const Dialog& other);
 	~Dialog();
 
@@ -33,7 +34,7 @@ public:
 	QString name;
 	Difficulty difficulty;
 	QList<PhaseNode> phases;
-	QString errorReplica;
+	ErrorReplica errorReplica;
 };
 
 bool operator<(const Dialog& left, const Dialog& right);

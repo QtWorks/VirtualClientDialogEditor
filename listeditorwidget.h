@@ -70,6 +70,7 @@ private slots:
 private:
 	virtual QStringList items() const = 0;
 	virtual bool itemHasChanges(const QString& item) const = 0;
+	virtual bool itemIsAdded(const QString& item) const = 0;
 	virtual void saveChanges() = 0;
 	virtual void revertChanges(const QString& item) = 0;
 	virtual void revertAllChanges() = 0;

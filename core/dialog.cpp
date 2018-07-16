@@ -8,7 +8,7 @@ Dialog::Dialog()
 {
 }
 
-Dialog::Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode>& phases, const QString& errorReplica)
+Dialog::Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode>& phases, const ErrorReplica& errorReplica)
 	: name(name)
 	, difficulty(difficulty)
 	, phases(phases)

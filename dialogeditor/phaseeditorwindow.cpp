@@ -4,6 +4,29 @@
 
 #include <QPushButton>
 
+namespace
+{
+
+const QString c_delimiter = ";";
+
+QList<QString> splitExpectedWords(const QString& expectedWords)
+{
+	QList<QString> result = expectedWords.trimmed().split(c_delimiter, QString::SkipEmptyParts);
+	for (QString& words : result)
+	{
+		words = words.trimmed();
+	}
+	return result;
+}
+
+bool hasCustomField(const QList<Core::PhaseNode>& phases, Core::ErrorReplica::Field field)
+{
+	return std::any_of(phases.begin(), phases.end(),
+		[field](const Core::PhaseNode& phase) { return phase.errorReplica().has(field); });
+}
+
+}
+
 PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, const Core::Dialog& dialog, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::PhaseEditorWindow)
@@ -24,6 +47,9 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, const Core::D
 	connect(m_ui->scoreLineEdit, &QLineEdit::textChanged, this, &PhaseEditorWindow::onScoreChanged);
 
 	connect(m_ui->errorReplicaTextEdit, &QTextEdit::textChanged, this, &PhaseEditorWindow::onErrorReplicaChanged);
+	connect(m_ui->finishingExpectedWordsTextEdit, &QTextEdit::textChanged, this, &PhaseEditorWindow::onFinishingExpectedWordsChanged);
+	connect(m_ui->finishingReplicaTextEdit, &QTextEdit::textChanged, this, &PhaseEditorWindow::onFinishingReplicaChanged);
+	connect(m_ui->continuationExpectedWordsTextEdit, &QTextEdit::textChanged, this, &PhaseEditorWindow::onContinuationExpectedWordsChanged);
 
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setText("Сохранить");
 	m_ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Отменить");
@@ -46,7 +72,29 @@ void PhaseEditorWindow::onSaveClicked()
 	Q_ASSERT(m_phase.validate(error));
 
 	hide();
-	emit accepted(m_phase, m_ui->errorReplicaCheckBox->isChecked());
+
+	QVector<Core::ErrorReplica::Field> replicatingFields;
+	if (m_ui->errorReplicaCheckBox->isChecked())
+	{
+		replicatingFields << Core::ErrorReplica::Field::ErrorReplica;
+	}
+
+	if (m_ui->finishingExpectedWordsCheckBox->isChecked())
+	{
+		replicatingFields << Core::ErrorReplica::Field::FinishingExpectedWords;
+	}
+
+	if (m_ui->finishingReplicaCheckBox->isChecked())
+	{
+		replicatingFields << Core::ErrorReplica::Field::FinishingReplica;
+	}
+
+	if (m_ui->continuationExpectedWordsCheckBox->isChecked())
+	{
+		replicatingFields << Core::ErrorReplica::Field::ContinuationExpectedWords;
+	}
+
+	emit accepted(m_phase, replicatingFields);
 }
 
 void PhaseEditorWindow::onCancelClicked()
@@ -80,7 +128,29 @@ void PhaseEditorWindow::onScoreChanged()
 
 void PhaseEditorWindow::onErrorReplicaChanged()
 {
-	m_phase.setErrorReplica(m_ui->errorReplicaTextEdit->toPlainText().trimmed());
+	const QString replica = m_ui->errorReplicaTextEdit->toPlainText().trimmed();
+	m_phase.errorReplica().setErrorReplica(replica);
+	emit changed();
+}
+
+void PhaseEditorWindow::onFinishingExpectedWordsChanged()
+{
+	const QList<QString> expectedWords = splitExpectedWords(m_ui->finishingExpectedWordsTextEdit->toPlainText());
+	m_phase.errorReplica().setFinishingExpectedWords(expectedWords);
+	emit changed();
+}
+
+void PhaseEditorWindow::onFinishingReplicaChanged()
+{
+	const QString replica = m_ui->finishingReplicaTextEdit->toPlainText().trimmed();
+	m_phase.errorReplica().setFinishingReplica(replica);
+	emit changed();
+}
+
+void PhaseEditorWindow::onContinuationExpectedWordsChanged()
+{
+	const QList<QString> expectedWords = splitExpectedWords(m_ui->continuationExpectedWordsTextEdit->toPlainText());
+	m_phase.errorReplica().setContinuationExpectedWords(expectedWords);
 	emit changed();
 }
 
@@ -127,10 +197,22 @@ void PhaseEditorWindow::updateInterface()
 
 	const Core::Dialog& dialog = m_dialog.get();
 
-	const bool hasCustomErrorReplicas = std::any_of(dialog.phases.begin(), dialog.phases.end(),
-		[](const Core::PhaseNode& phase) { return phase.hasErrorReplica(); });
-	m_ui->errorReplicaCheckBox->setChecked(!hasCustomErrorReplicas);
+	const Core::ErrorReplica& phaseError = m_phase.errorReplica();
+	const Core::ErrorReplica& dialogError = dialog.errorReplica;
 
-	const QString errorReplica = m_phase.hasErrorReplica() ? m_phase.errorReplica() : dialog.errorReplica;
+	m_ui->errorReplicaCheckBox->setChecked(!hasCustomField(dialog.phases, Core::ErrorReplica::Field::ErrorReplica));
+	const QString errorReplica = phaseError.hasErrorReplica() ? phaseError.errorReplica() : dialogError.errorReplica();
 	m_ui->errorReplicaTextEdit->setText(errorReplica);
+
+	m_ui->finishingExpectedWordsCheckBox->setChecked(!hasCustomField(dialog.phases, Core::ErrorReplica::Field::FinishingExpectedWords));
+	const QList<QString> finishingExpectedWords = phaseError.hasFinishingExpectedWords() ? phaseError.finishingExpectedWords() : dialogError.finishingExpectedWords();
+	m_ui->finishingExpectedWordsTextEdit->setText(finishingExpectedWords.join(c_delimiter + " "));
+
+	m_ui->finishingReplicaCheckBox->setChecked(!hasCustomField(dialog.phases, Core::ErrorReplica::Field::FinishingReplica));
+	const QString finishingReplica = phaseError.hasFinishingReplica() ? phaseError.finishingReplica() : dialogError.finishingReplica();
+	m_ui->finishingReplicaTextEdit->setText(finishingReplica);
+
+	m_ui->continuationExpectedWordsCheckBox->setChecked(!hasCustomField(dialog.phases, Core::ErrorReplica::Field::ContinuationExpectedWords));
+	const QList<QString> continuationExpectedWords = phaseError.hasContinuationExpectedWords() ? phaseError.continuationExpectedWords() : dialogError.continuationExpectedWords();
+	m_ui->continuationExpectedWordsTextEdit->setText(continuationExpectedWords.join(c_delimiter + " "));
 }

@@ -17,6 +17,7 @@ private:
 	virtual QStringList items() const override;
 	virtual void saveChanges() override;
 	virtual bool itemHasChanges(const QString& item) const override;
+	virtual bool itemIsAdded(const QString& item) const override;
 	virtual void revertChanges(const QString& item) override;
 	virtual void revertAllChanges() override;
 

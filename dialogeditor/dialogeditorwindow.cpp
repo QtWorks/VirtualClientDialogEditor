@@ -466,11 +466,27 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 		return false;
 	}
 
-	if (m_dialog.errorReplica.trimmed().isEmpty() &&
+	const Core::ErrorReplica& errorReplica = m_dialog.errorReplica;
+	if (errorReplica.hasErrorReplica() && errorReplica.errorReplica().trimmed().isEmpty() &&
 		std::any_of(m_dialog.phases.begin(), m_dialog.phases.end(),
-			[](const Core::PhaseNode& phase) { return !phase.hasErrorReplica(); }))
+			[](const Core::PhaseNode& phase) { return !phase.errorReplica().hasErrorReplica(); }))
 	{
 		error = "Ошибочная реплика не может быть пустой";
+		return false;
+	}
+
+	if (errorReplica.hasFinishingReplica() && errorReplica.finishingReplica().trimmed().isEmpty() &&
+		std::none_of(m_dialog.phases.begin(), m_dialog.phases.end(),
+			[](const Core::PhaseNode& phase) { return phase.errorReplica().hasFinishingReplica(); }))
+	{
+		error = "Завершающая реплика не может быть пустой";
+		return false;
+	}
+
+	if (errorReplica.hasFinishingExpectedWords() && errorReplica.hasContinuationExpectedWords() &&
+		errorReplica.finishingExpectedWords().isEmpty() && errorReplica.continuationExpectedWords().isEmpty())
+	{
+		error = "Завершающие опорные слова и продолжающие опорные слова не могут быть пустыми";
 		return false;
 	}
 

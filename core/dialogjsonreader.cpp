@@ -14,11 +14,16 @@ namespace
 
 typedef QVector<QPair<QString, QJsonValue::Type>> PropertiesList;
 
+bool hasProperty(const QJsonObject& object, const QString& name, QJsonValue::Type type)
+{
+	return object.contains(name) && object[name].type() == type;
+}
+
 bool hasProperties(const QJsonObject& object, const PropertiesList& properties)
 {
 	for (const auto& property : properties)
 	{
-		if (!object.contains(property.first) || object[property.first].type() != property.second)
+		if (!hasProperty(object, property.first, property.second))
 		{
 			return false;
 		}
@@ -145,6 +150,53 @@ QList<AbstractDialogNode*> parseNodes(const QJsonArray& nodes)
 	return result;
 }
 
+ErrorReplica parseError(const QJsonObject& object)
+{
+	ErrorReplica result;
+
+	if (hasProperty(object, "errorReplica", QJsonValue::String))
+	{
+		result.setErrorReplica(object["errorReplica"].toString());
+	}
+
+	if (hasProperty(object, "finishingExpectedWords", QJsonValue::Array))
+	{
+		QList<QString> list;
+
+		for (const QJsonValue& expectedWords : object["finishingExpectedWords"].toArray())
+		{
+			if (expectedWords.isString())
+			{
+				list.append(expectedWords.toString());
+			}
+		}
+
+		result.setFinishingExpectedWords(list);
+	}
+
+	if (hasProperty(object, "finishingReplica", QJsonValue::String))
+	{
+		result.setErrorReplica(object["finishingReplica"].toString());
+	}
+
+	if (hasProperty(object, "continuationExpectedWords", QJsonValue::Array))
+	{
+		QList<QString> list;
+
+		for (const QJsonValue& expectedWords : object["continuationExpectedWords"].toArray())
+		{
+			if (expectedWords.isString())
+			{
+				list.append(expectedWords.toString());
+			}
+		}
+
+		result.setContinuationExpectedWords(list);
+	}
+
+	return result;
+}
+
 PhaseNode parsePhase(const QJsonObject& object)
 {
 	static const PropertiesList s_requiredProperties = {
@@ -158,14 +210,13 @@ PhaseNode parsePhase(const QJsonObject& object)
 	const double score = object["score"].toDouble();
 	const QList<AbstractDialogNode*> nodes = parseNodes(object["nodes"].toArray());
 
-	PhaseNode result = PhaseNode(name, score, nodes);
-
 	if (object.contains("errorReplica"))
 	{
-		result.setErrorReplica(object["errorReplica"].toString());
+		const ErrorReplica errorReplica = parseError(object["errorReplica"].toObject());
+		return PhaseNode(name, score, nodes, errorReplica);
 	}
 
-	return result;
+	return PhaseNode(name, score, nodes, {});
 }
 
 }
@@ -198,13 +249,30 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 
 		const QString name = dialogObject["name"].toString();
 		const Dialog::Difficulty difficulty = static_cast<Dialog::Difficulty>(dialogObject["difficulty"].toInt());
-		const QString errorReplica = dialogObject["errorReplica"].toString();
+		const ErrorReplica errorReplica = parseError(dialogObject["errorReplica"].toObject());
 
 		const QJsonArray phasesArray = dialogObject["phases"].toArray();
 		QList<PhaseNode> phases;
 		for (const QJsonValue& phase : phasesArray)
 		{
 			phases << parsePhase(phase.toObject());
+		}
+
+		const auto hasField = [&errorReplica, &phases](ErrorReplica::Field field)
+		{
+			return errorReplica.has(field) ||
+				std::all_of(phases.begin(), phases.end(),
+					[&field](const PhaseNode& phase) { return phase.errorReplica().has(field); });
+		};
+
+		if (!(hasField(ErrorReplica::Field::ErrorReplica) &&
+			  hasField(ErrorReplica::Field::FinishingExpectedWords) &&
+			  hasField(ErrorReplica::Field::FinishingReplica) &&
+			  hasField(ErrorReplica::Field::ContinuationExpectedWords)))
+		{
+			LOG << "Some error replica fields are missing";
+			ok = false;
+			return Dialog();
 		}
 
 		ok = true;

@@ -120,10 +120,11 @@ double calculateBestPossibleScore(const QString& name, const QList<AbstractDialo
 
 }
 
-PhaseNode::PhaseNode(const QString& name, double score, const QList<AbstractDialogNode*>& nodes)
+PhaseNode::PhaseNode(const QString& name, double score, const QList<AbstractDialogNode*>& nodes, const ErrorReplica& errorReplica)
 	: m_name(name)
 	, m_score(score)
 	, m_nodes(nodes)
+	, m_errorReplica(errorReplica)
 {
 }
 
@@ -188,24 +189,24 @@ void PhaseNode::removeNode(AbstractDialogNode* node)
 	m_nodes.removeOne(node);
 }
 
-bool PhaseNode::hasErrorReplica() const
+const ErrorReplica& PhaseNode::errorReplica() const
 {
-	return m_errorReplica.isValid();
+	return m_errorReplica;
 }
 
-QString PhaseNode::errorReplica() const
+ErrorReplica& PhaseNode::errorReplica()
 {
-	return m_errorReplica.toString();
+	return m_errorReplica;
 }
 
-void PhaseNode::setErrorReplica(const QString& replica)
+void PhaseNode::setErrorReplica(const ErrorReplica& replica)
 {
 	m_errorReplica = replica;
 }
 
 void PhaseNode::resetErrorReplica()
 {
-	m_errorReplica = QVariant();
+	m_errorReplica = ErrorReplica();
 }
 
 int PhaseNode::type() const
@@ -213,11 +214,11 @@ int PhaseNode::type() const
 	return PhaseNode::Type;
 }
 
-bool PhaseNode::validate(QString& error) const
+bool PhaseNode::validate(QString& errorMessage) const
 {
 	if (m_name.trimmed().isEmpty())
 	{
-		error = "Имя фазы не может быть пустым";
+		errorMessage = "Имя фазы не может быть пустым";
 		return false;
 	}
 
@@ -226,15 +227,19 @@ bool PhaseNode::validate(QString& error) const
 		const double bestPossibleScore = calculateBestPossibleScore(m_name, m_nodes);
 		if (bestPossibleScore < m_score)
 		{
-			error = "Cлишком большое количество баллов (максимум - " + QString::number(bestPossibleScore) + ")";
+			errorMessage = "Cлишком большое количество баллов (максимум - " + QString::number(bestPossibleScore) + ")";
 			return false;
 		}
 	}
 
-	if (m_errorReplica.isValid() && m_errorReplica.toString().trimmed().isEmpty())
+	if (m_errorReplica.hasErrorReplica())
 	{
-		error = "Реплика для ошибки не может быть пустой";
-		return false;
+		const QString& errorReplica = m_errorReplica.errorReplica();
+		if (errorReplica.trimmed().isEmpty())
+		{
+			errorMessage = "Реплика для ошибки не может быть пустой";
+			return false;
+		}
 	}
 
 	return true;
@@ -248,13 +253,7 @@ AbstractDialogNode* PhaseNode::shallowCopy() const
 		clonedNodes.append(node->clone(false));
 	}
 
-	PhaseNode* result = new PhaseNode(m_name, m_score, clonedNodes);
-	if (m_errorReplica.isValid())
-	{
-		result->setErrorReplica(m_errorReplica.toString());
-	}
-
-	return result;
+	return new PhaseNode(m_name, m_score, clonedNodes, m_errorReplica);
 }
 
 bool PhaseNode::compareData(AbstractDialogNode* other) const

@@ -18,7 +18,7 @@ public:
 	~PhaseEditorWindow();
 
 signals:
-	void accepted(const Core::PhaseNode& phase, bool applyErrorToAllPhases);
+	void accepted(const Core::PhaseNode& phase, QVector<Core::ErrorReplica::Field> replicatingFields);
 	void rejected();
 	void changed();
 
@@ -28,6 +28,9 @@ private slots:
 	void onNameChanged();
 	void onScoreChanged();
 	void onErrorReplicaChanged();
+	void onFinishingExpectedWordsChanged();
+	void onFinishingReplicaChanged();
+	void onContinuationExpectedWordsChanged();
 	void validate();
 
 private:

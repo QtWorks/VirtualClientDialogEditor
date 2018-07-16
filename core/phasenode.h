@@ -1,6 +1,7 @@
 #pragma once
 
 #include "abstractdialognode.h"
+#include "errorreplica.h"
 #include <QString>
 #include <QVariant>
 
@@ -16,7 +17,7 @@ public:
 		Type = AbstractDialogNode::Type + 1
 	};
 
-	PhaseNode(const QString& name, double score, const QList<AbstractDialogNode*>& nodes);
+	PhaseNode(const QString& name, double score, const QList<AbstractDialogNode*>& nodes, const ErrorReplica& errorReplica);
 	PhaseNode(const PhaseNode& other);
 
 	const QString& name() const;
@@ -29,13 +30,10 @@ public:
 	void appendNode(AbstractDialogNode* node);
 	void removeNode(AbstractDialogNode* node);
 
-	bool hasErrorReplica() const;
-	QString errorReplica() const;
-	void setErrorReplica(const QString& replica);
+	const ErrorReplica& errorReplica() const;
+	ErrorReplica& errorReplica();
+	void setErrorReplica(const ErrorReplica& replica);
 	void resetErrorReplica();
-
-	/*const QString& repeatReplica() const;
-	void setRepeatReplica(const QString& replica);*/
 
 	virtual int type() const override;
 	virtual bool validate(QString& error) const override;
@@ -49,8 +47,7 @@ private:
 	double m_score;
 	QList<AbstractDialogNode*> m_nodes;
 
-	QVariant m_errorReplica;
-	QString m_repeatReplica;
+	ErrorReplica m_errorReplica;
 };
 
 bool operator==(const PhaseNode& left, const PhaseNode& right);
