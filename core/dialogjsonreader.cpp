@@ -176,7 +176,7 @@ ErrorReplica parseError(const QJsonObject& object)
 
 	if (hasProperty(object, "finishingReplica", QJsonValue::String))
 	{
-		result.setErrorReplica(object["finishingReplica"].toString());
+		result.setFinishingReplica(object["finishingReplica"].toString());
 	}
 
 	if (hasProperty(object, "continuationExpectedWords", QJsonValue::Array))
@@ -200,23 +200,22 @@ ErrorReplica parseError(const QJsonObject& object)
 PhaseNode parsePhase(const QJsonObject& object)
 {
 	static const PropertiesList s_requiredProperties = {
+		{ "id", QJsonValue::String },
 		{ "name", QJsonValue::String },
 		{ "score", QJsonValue::Double },
 		{ "nodes", QJsonValue::Array }
 	};
 	checkProperties(object, s_requiredProperties);
 
+	const QString id = object["id"].toString();
 	const QString name = object["name"].toString();
 	const double score = object["score"].toDouble();
 	const QList<AbstractDialogNode*> nodes = parseNodes(object["nodes"].toArray());
 
-	if (object.contains("errorReplica"))
-	{
-		const ErrorReplica errorReplica = parseError(object["errorReplica"].toObject());
-		return PhaseNode(name, score, nodes, errorReplica);
-	}
-
-	return PhaseNode(name, score, nodes, {});
+	const ErrorReplica errorReplica = object.contains("errorReplica") ? parseError(object["errorReplica"].toObject()) : ErrorReplica();
+	PhaseNode result = PhaseNode(name, score, nodes, errorReplica);
+	result.setId(id);
+	return result;
 }
 
 }
@@ -242,8 +241,7 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 		static const PropertiesList s_requiredProperties = {
 			{ "name", QJsonValue::String },
 			{ "difficulty", QJsonValue::Double },
-			{ "phases", QJsonValue::Array },
-			{ "errorReplica", QJsonValue::String }
+			{ "phases", QJsonValue::Array }
 		};
 		checkProperties(dialogObject, s_requiredProperties);
 

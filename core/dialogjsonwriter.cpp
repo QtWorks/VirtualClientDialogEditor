@@ -101,6 +101,7 @@ QJsonObject dumpError(const ErrorReplica& error)
 QJsonValue dumpPhase(const Core::PhaseNode& phase)
 {
 	QJsonObject result = QJsonObject({
+		{ "id", phase.id() },
 		{ "name", phase.name() },
 		{ "score", phase.score() },
 		{ "nodes", dump(phase.nodes(), dumpNode) }

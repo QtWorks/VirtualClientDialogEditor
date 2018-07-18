@@ -183,24 +183,27 @@ qreal PhaseGraphicsItem::minWidth() const
 
 template <typename T>
 void replicateField(QVector<Core::ErrorReplica::Field> replicatingFields, Core::ErrorReplica::Field field,
-	Core::ErrorReplica& oldPhaseError, Core::ErrorReplica& dialogError, const Core::ErrorReplica& newPhaseError)
+	Core::Dialog& dialog, Core::ErrorReplica& currentPhaseError, const Core::ErrorReplica& newPhaseError)
 {
 	const bool replicateToAllPhases = std::find(replicatingFields.begin(), replicatingFields.end(), field) != replicatingFields.end();
-
 	if (replicateToAllPhases)
 	{
-		dialogError.set(field, newPhaseError.get<T>(field));
-		oldPhaseError.reset(field);
+		dialog.errorReplica.set(field, newPhaseError.get<T>(field));
+
+		for (Core::PhaseNode& phase : dialog.phases)
+		{
+			phase.errorReplica().reset(field);
+		}
 	}
 	else
 	{
-		if (newPhaseError.get<T>(field) != dialogError.get<T>(field))
+		if (newPhaseError.get<T>(field) == dialog.errorReplica.get<T>(field))
 		{
-			oldPhaseError.set(field, newPhaseError.get<T>(field));
+			currentPhaseError.reset(field);
 		}
 		else
 		{
-			oldPhaseError.reset(field);
+			currentPhaseError.set(field, newPhaseError.get<T>(field));
 		}
 	}
 }
@@ -220,13 +223,13 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 		m_phase->setScore(phase.score());
 
 		replicateField<QString>(replicatingFields, Core::ErrorReplica::Field::ErrorReplica,
-			m_phase->errorReplica(), m_dialog->errorReplica, phase.errorReplica());
+			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
 		replicateField<QList<QString>>(replicatingFields, Core::ErrorReplica::Field::FinishingExpectedWords,
-			m_phase->errorReplica(), m_dialog->errorReplica, phase.errorReplica());
+			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
 		replicateField<QString>(replicatingFields, Core::ErrorReplica::Field::FinishingReplica,
-			m_phase->errorReplica(), m_dialog->errorReplica, phase.errorReplica());
+			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
 		replicateField<QList<QString>>(replicatingFields, Core::ErrorReplica::Field::ContinuationExpectedWords,
-			m_phase->errorReplica(), m_dialog->errorReplica, phase.errorReplica());
+			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
 
 		update();
 
