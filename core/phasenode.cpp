@@ -209,6 +209,26 @@ void PhaseNode::resetErrorReplica()
 	m_errorReplica = ErrorReplica();
 }
 
+bool PhaseNode::hasRepeatReplica() const
+{
+	return m_repeatReplica.isValid();
+}
+
+QString PhaseNode::repeatReplica() const
+{
+	return m_repeatReplica.toString();
+}
+
+void PhaseNode::setRepeatReplica(const QString& value)
+{
+	m_repeatReplica = value;
+}
+
+void PhaseNode::resetRepeatReplica()
+{
+	m_repeatReplica = QVariant();
+}
+
 int PhaseNode::type() const
 {
 	return PhaseNode::Type;
@@ -234,10 +254,30 @@ bool PhaseNode::validate(QString& errorMessage) const
 
 	if (m_errorReplica.hasErrorReplica())
 	{
-		const QString& errorReplica = m_errorReplica.errorReplica();
-		if (errorReplica.trimmed().isEmpty())
+		const QString& replica = m_errorReplica.errorReplica();
+		if (replica.trimmed().isEmpty())
 		{
 			errorMessage = "Реплика для ошибки не может быть пустой";
+			return false;
+		}
+	}
+
+	if (m_errorReplica.hasErrorPenalty())
+	{
+		const double penalty = m_errorReplica.errorPenalty();
+		if (penalty <= 0.0)
+		{
+			errorMessage = "Количество штрафных баллов должно быть больше 0";
+			return false;
+		}
+	}
+
+	if (hasRepeatReplica())
+	{
+		const QString& replica = repeatReplica();
+		if (replica.trimmed().isEmpty())
+		{
+			errorMessage = "Реплика для повтора не может быть пустой";
 			return false;
 		}
 	}

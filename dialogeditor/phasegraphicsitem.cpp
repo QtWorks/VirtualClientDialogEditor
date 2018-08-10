@@ -224,11 +224,11 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 
 		replicateField<QString>(replicatingFields, Core::ErrorReplica::Field::ErrorReplica,
 			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
+		replicateField<QString>(replicatingFields, Core::ErrorReplica::Field::ErrorPenalty,
+			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
 		replicateField<QList<QString>>(replicatingFields, Core::ErrorReplica::Field::FinishingExpectedWords,
 			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
 		replicateField<QString>(replicatingFields, Core::ErrorReplica::Field::FinishingReplica,
-			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
-		replicateField<QList<QString>>(replicatingFields, Core::ErrorReplica::Field::ContinuationExpectedWords,
 			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
 
 		update();

@@ -28,9 +28,10 @@ private slots:
 	void onNameChanged();
 	void onScoreChanged();
 	void onErrorReplicaChanged();
+	void onErrorPenaltyChanged();
 	void onFinishingExpectedWordsChanged();
 	void onFinishingReplicaChanged();
-	void onContinuationExpectedWordsChanged();
+	void onRepeatReplicaChanged();
 	void validate();
 
 private:

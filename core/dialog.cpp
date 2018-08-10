@@ -20,6 +20,7 @@ Dialog::Dialog(const Dialog& other)
 	: name(other.name)
 	, difficulty(other.difficulty)
 	, errorReplica(other.errorReplica)
+	, phaseRepeatReplica(other.phaseRepeatReplica)
 {
 	for (const PhaseNode& phase : other.phases)
 	{
@@ -82,7 +83,8 @@ bool operator==(const Dialog& left, const Dialog& right)
 	return left.name == right.name && left.difficulty == right.difficulty &&
 		left.phases.size() == right.phases.size() &&
 		std::equal(left.phases.begin(), left.phases.end(), right.phases.begin()) &&
-		left.errorReplica == right.errorReplica;
+		left.errorReplica == right.errorReplica &&
+		left.phaseRepeatReplica == right.phaseRepeatReplica;
 }
 
 bool operator!=(const Dialog& left, const Dialog& right)

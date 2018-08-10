@@ -35,6 +35,7 @@ public:
 	Difficulty difficulty;
 	QList<PhaseNode> phases;
 	ErrorReplica errorReplica;
+	QVariant phaseRepeatReplica;
 };
 
 bool operator<(const Dialog& left, const Dialog& right);

@@ -159,6 +159,11 @@ ErrorReplica parseError(const QJsonObject& object)
 		result.setErrorReplica(object["errorReplica"].toString());
 	}
 
+	if (hasProperty(object, "errorPenalty", QJsonValue::Double))
+	{
+		result.setErrorPenalty(object["errorPenalty"].toDouble());
+	}
+
 	if (hasProperty(object, "finishingExpectedWords", QJsonValue::Array))
 	{
 		QList<QString> list;
@@ -179,21 +184,6 @@ ErrorReplica parseError(const QJsonObject& object)
 		result.setFinishingReplica(object["finishingReplica"].toString());
 	}
 
-	if (hasProperty(object, "continuationExpectedWords", QJsonValue::Array))
-	{
-		QList<QString> list;
-
-		for (const QJsonValue& expectedWords : object["continuationExpectedWords"].toArray())
-		{
-			if (expectedWords.isString())
-			{
-				list.append(expectedWords.toString());
-			}
-		}
-
-		result.setContinuationExpectedWords(list);
-	}
-
 	return result;
 }
 
@@ -212,9 +202,15 @@ PhaseNode parsePhase(const QJsonObject& object)
 	const double score = object["score"].toDouble();
 	const QList<AbstractDialogNode*> nodes = parseNodes(object["nodes"].toArray());
 
-	const ErrorReplica errorReplica = object.contains("errorReplica") ? parseError(object["errorReplica"].toObject()) : ErrorReplica();
+	const ErrorReplica errorReplica = object.contains("errorReplica") ? parseError(object["errorReplica"].toObject()) : ErrorReplica();	
 	PhaseNode result = PhaseNode(name, score, nodes, errorReplica);
 	result.setId(id);
+
+	if (hasProperty(object, "repeatReplica", QJsonValue::String))
+	{
+		result.setRepeatReplica(object["repeatReplica"].toString());
+	}
+
 	return result;
 }
 
@@ -264,17 +260,23 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 		};
 
 		if (!(hasField(ErrorReplica::Field::ErrorReplica) &&
+			  hasField(ErrorReplica::Field::ErrorPenalty) &&
 			  hasField(ErrorReplica::Field::FinishingExpectedWords) &&
-			  hasField(ErrorReplica::Field::FinishingReplica) &&
-			  hasField(ErrorReplica::Field::ContinuationExpectedWords)))
+			  hasField(ErrorReplica::Field::FinishingReplica)))
 		{
 			LOG << "Some error replica fields are missing";
 			ok = false;
 			return Dialog();
 		}
 
+		Dialog dialog = Dialog(name, difficulty, phases, errorReplica);
+		if (hasProperty(dialogObject, "phaseRepeatReplica", QJsonValue::String))
+		{
+			dialog.phaseRepeatReplica = dialogObject["phaseRepeatReplica"].toString();
+		}
+
 		ok = true;
-		return Dialog(name, difficulty, phases, errorReplica);
+		return dialog;
 	}
 	catch (const std::logic_error& exception)
 	{

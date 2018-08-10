@@ -466,27 +466,28 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 		return false;
 	}
 
-	const Core::ErrorReplica& errorReplica = m_dialog.errorReplica;
-	if (errorReplica.hasErrorReplica() && errorReplica.errorReplica().trimmed().isEmpty() &&
-		std::any_of(m_dialog.phases.begin(), m_dialog.phases.end(),
-			[](const Core::PhaseNode& phase) { return !phase.errorReplica().hasErrorReplica(); }))
+	const Core::ErrorReplica& errorReplica = m_dialog.errorReplica;	
+	if (errorReplica.hasErrorReplica() && errorReplica.errorReplica().trimmed().isEmpty())
 	{
 		error = "Ошибочная реплика не может быть пустой";
 		return false;
 	}
 
-	if (errorReplica.hasFinishingReplica() && errorReplica.finishingReplica().trimmed().isEmpty() &&
-		std::none_of(m_dialog.phases.begin(), m_dialog.phases.end(),
-			[](const Core::PhaseNode& phase) { return phase.errorReplica().hasFinishingReplica(); }))
+	if (errorReplica.hasErrorPenalty() && errorReplica.errorPenalty() <= 0.0)
+	{
+		error = "Количество штрафных баллов должно быть больше 0";
+		return false;
+	}
+
+	if (errorReplica.hasFinishingReplica() && errorReplica.finishingReplica().trimmed().isEmpty())
 	{
 		error = "Завершающая реплика не может быть пустой";
 		return false;
 	}
 
-	if (errorReplica.hasFinishingExpectedWords() && errorReplica.hasContinuationExpectedWords() &&
-		errorReplica.finishingExpectedWords().isEmpty() && errorReplica.continuationExpectedWords().isEmpty())
+	if (errorReplica.hasFinishingExpectedWords() && errorReplica.finishingExpectedWords().isEmpty())
 	{
-		error = "Завершающие опорные слова и продолжающие опорные слова не могут быть пустыми";
+		error = "Завершающие опорные слова не могут быть пустыми";
 		return false;
 	}
 

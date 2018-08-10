@@ -35,6 +35,11 @@ public:
 	void setErrorReplica(const ErrorReplica& replica);
 	void resetErrorReplica();
 
+	bool hasRepeatReplica() const;
+	QString repeatReplica() const;
+	void setRepeatReplica(const QString& value);
+	void resetRepeatReplica();
+
 	virtual int type() const override;
 	virtual bool validate(QString& error) const override;
 
@@ -48,6 +53,7 @@ private:
 	QList<AbstractDialogNode*> m_nodes;
 
 	ErrorReplica m_errorReplica;
+	QVariant m_repeatReplica;
 };
 
 bool operator==(const PhaseNode& left, const PhaseNode& right);
