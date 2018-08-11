@@ -91,7 +91,7 @@ void PhaseEditorWindow::onSaveClicked()
 		replicatingFields << Core::ErrorReplica::Field::FinishingReplica;
 	}
 
-	emit accepted(m_phase, replicatingFields);
+	emit accepted(m_phase, replicatingFields, m_ui->repeatReplicaCheckBox->isChecked());
 }
 
 void PhaseEditorWindow::onCancelClicked()

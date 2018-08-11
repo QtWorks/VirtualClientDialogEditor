@@ -217,19 +217,41 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 
 	m_editor = new PhaseEditorWindow(*m_phase, *m_dialog);
 
-	QObject::connect(m_editor, &PhaseEditorWindow::accepted, [this](const Core::PhaseNode& phase, QVector<Core::ErrorReplica::Field> replicatingFields)
+	QObject::connect(m_editor, &PhaseEditorWindow::accepted,
+	[this](const Core::PhaseNode& phase, QVector<Core::ErrorReplica::Field> replicatingErrorFields, bool replicateRepeatReplica)
 	{
 		m_phase->setName(phase.name());
 		m_phase->setScore(phase.score());
 
-		replicateField<QString>(replicatingFields, Core::ErrorReplica::Field::ErrorReplica,
+		replicateField<QString>(replicatingErrorFields, Core::ErrorReplica::Field::ErrorReplica,
 			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
-		replicateField<QString>(replicatingFields, Core::ErrorReplica::Field::ErrorPenalty,
+		replicateField<QString>(replicatingErrorFields, Core::ErrorReplica::Field::ErrorPenalty,
 			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
-		replicateField<QList<QString>>(replicatingFields, Core::ErrorReplica::Field::FinishingExpectedWords,
+		replicateField<QList<QString>>(replicatingErrorFields, Core::ErrorReplica::Field::FinishingExpectedWords,
 			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
-		replicateField<QString>(replicatingFields, Core::ErrorReplica::Field::FinishingReplica,
+		replicateField<QString>(replicatingErrorFields, Core::ErrorReplica::Field::FinishingReplica,
 			*m_dialog, m_phase->errorReplica(), phase.errorReplica());
+
+		if (replicateRepeatReplica)
+		{
+			m_dialog->phaseRepeatReplica = phase.repeatReplica();
+
+			for (Core::PhaseNode& phase : m_dialog->phases)
+			{
+				phase.setRepeatReplica(phase.repeatReplica());
+			}
+		}
+		else
+		{
+			if (phase.repeatReplica() == m_dialog->phaseRepeatReplica)
+			{
+				m_phase->resetRepeatReplica();
+			}
+			else
+			{
+				m_phase->setRepeatReplica(phase.repeatReplica());
+			}
+		}
 
 		update();
 

@@ -335,9 +335,11 @@ void DialogEditorWindow::updateConnectControls()
 		return;
 	}
 
-	m_ui->connectNodesButton->setEnabled(
+	m_ui->connectNodesButton->setEnabled(				
 		(parentNode->type() == ClientReplicaNodeGraphicsItem::Type && childNode->type() == ExpectedWordsNodeGraphicsItem::Type) ||
-		(parentNode->type() == ExpectedWordsNodeGraphicsItem::Type && childNode->type() == ClientReplicaNodeGraphicsItem::Type));
+		(parentNode->type() == ExpectedWordsNodeGraphicsItem::Type && childNode->type() == ClientReplicaNodeGraphicsItem::Type) ||
+		(parentNode->type() == ClientReplicaNodeGraphicsItem::Type && childNode->type() == ClientReplicaNodeGraphicsItem::Type)
+	);
 }
 
 void DialogEditorWindow::nodeAdded(NodeGraphicsItem* node)
