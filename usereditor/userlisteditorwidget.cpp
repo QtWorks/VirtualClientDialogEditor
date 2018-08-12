@@ -93,7 +93,7 @@ void UserListEditorWidget::onItemEditRequested(const QString& username)
 		if (user != m_model.get(index))
 		{
 			m_model.update(index, user);
-			updateItem(username, user.name);
+			updateItem(index);
 		}
 	});
 

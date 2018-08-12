@@ -157,15 +157,14 @@ public:
 		if (addedIt != m_addedRecords.end())
 		{
 			m_addedRecords.erase(addedIt);
-
+			notifyDiffChanged();
+			return;
 		}
-		else
+
+		const auto updatedIt = m_updatedRecords.find(id);
+		if (updatedIt != m_updatedRecords.end())
 		{
-			const auto updatedIt = m_updatedRecords.find(id);
-			if (updatedIt != m_updatedRecords.end())
-			{
-				m_updatedRecords.erase(updatedIt);
-			}
+			m_updatedRecords.erase(updatedIt);
 		}
 
 		m_deletedRecords.append(id);

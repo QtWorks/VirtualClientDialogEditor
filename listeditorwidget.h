@@ -34,7 +34,7 @@ public:
 
 	void updateData();
 
-	void updateItem(const QString& oldItem, const QString& newItem);
+	void updateItem(int index);
 	void addItem(const QString& item);
 	void removeItem(const QString& item);
 

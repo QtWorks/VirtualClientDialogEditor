@@ -97,7 +97,7 @@ void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 		if (dialog != m_model.get(index))
 		{
 			m_model.update(index, dialog);
-			updateItem(dialogName, dialog.printableName());
+			updateItem(index);
 		}
 	});
 

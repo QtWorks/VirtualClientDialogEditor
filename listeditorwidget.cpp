@@ -4,7 +4,6 @@
 namespace
 {
 
-const QColor c_unchangedColor = QColor::fromRgb(255, 255, 255);
 const QColor c_addedColor = QColor::fromRgb(164, 241, 164);
 const QColor c_deletedColor = QColor::fromRgb(255, 153, 153);
 const QColor c_updatedColor = QColor::fromRgb(87, 206, 250);
@@ -68,11 +67,12 @@ void ListEditorWidget::updateData()
 	}
 }
 
-void ListEditorWidget::updateItem(const QString& oldItem, const QString& newItem)
+void ListEditorWidget::updateItem(int index)
 {
-	const int index = items().indexOf(oldItem);
+	const QString item = items()[index];
+
 	QListWidgetItem* listWidgetItem = m_ui->listWidget->item(index);
-	listWidgetItem->setText(newItem);
+	listWidgetItem->setText(item);
 	listWidgetItem->setBackgroundColor(c_updatedColor);
 }
 
@@ -148,20 +148,19 @@ void ListEditorWidget::onRevertButtonClicked()
 	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
 	Q_ASSERT(selectedItems.size() == 1);
 
-	const QString item = selectedItems[0]->text();
-	revertChanges(item);
+	revertChanges(selectedItems[0]->text());
 
-	setRowBackground(items().indexOf(item), c_unchangedColor);
+	const int index = m_ui->listWidget->row(selectedItems[0]);
+
+	delete m_ui->listWidget->takeItem(index);
+	m_ui->listWidget->insertItem(index, items()[index]);
 }
 
 void ListEditorWidget::onRevertAllButtonClicked()
 {
 	revertAllChanges();
 
-	for (int i = 0; i < m_ui->listWidget->count(); ++i)
-	{
-		setRowBackground(i, c_unchangedColor);
-	}
+	updateData();
 }
 
 void ListEditorWidget::onSelectionChanged()
@@ -169,7 +168,10 @@ void ListEditorWidget::onSelectionChanged()
 	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
 	m_ui->editButton->setEnabled(selectedItems.size() == 1);
 	m_ui->removeButton->setEnabled(selectedItems.size() >= 1);
-	m_ui->revertButton->setEnabled(selectedItems.size() == 1 && itemHasChanges(selectedItems.first()->text()));
+	m_ui->revertButton->setEnabled(selectedItems.size() == 1 &&
+		itemHasChanges(selectedItems.first()->text()) &&
+		!itemIsAdded(selectedItems.first()->text())
+	);
 }
 
 void ListEditorWidget::setRowBackground(int index, const QColor& color)
