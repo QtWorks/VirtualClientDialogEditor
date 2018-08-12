@@ -12,6 +12,7 @@ class BackendConnection
 {
 public:
 	BackendConnection(const QUrl& url);
+	virtual ~BackendConnection();
 
 private:
 	virtual QueryId logIn(const QString& login, const QString& password) override;

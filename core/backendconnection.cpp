@@ -40,6 +40,11 @@ BackendConnection::BackendConnection(const QUrl& url)
 	connect(&m_webSocket, &WebSocket::error, this, &BackendConnection::onWebSocketError);
 }
 
+BackendConnection::~BackendConnection()
+{
+	disconnect(&m_webSocket, 0, this, 0);
+}
+
 IBackendConnection::QueryId BackendConnection::logIn(const QString& username, const QString& password)
 {
 	const QJsonObject message = {
@@ -76,12 +81,12 @@ IBackendConnection::QueryId BackendConnection::loadDialogs()
 IBackendConnection::QueryId BackendConnection::updateDialogs(const Update<Dialog>& update)
 {
 	QJsonArray updatedDialogs;
-	for (const auto& dialog : update.updated)
+	for (const auto& originalDialog : update.updated.keys())
 	{
 		const QJsonObject dialogObject = {
-			{ "name", dialog.name },
-			{ "difficulty", static_cast<int>(dialog.difficulty) },
-			{ "value", toJson(update.updated[dialog]) }
+			{ "name", originalDialog.name },
+			{ "difficulty", static_cast<int>(originalDialog.difficulty) },
+			{ "value", toJson(update.updated.value(originalDialog)) }
 		};
 		updatedDialogs << dialogObject;
 	}
@@ -137,11 +142,11 @@ IBackendConnection::QueryId BackendConnection::loadUsers()
 IBackendConnection::QueryId BackendConnection::updateUsers(const Update<User>& update)
 {
 	QJsonArray updatedUsers;
-	for (const auto& user : update.updated)
+	for (const auto& originalUser : update.updated.keys())
 	{
 		const QJsonObject updatedUserObject = {
-			{ "username", user.name },
-			{ "value", toJson(update.updated[user]) }
+			{ "username", originalUser.name },
+			{ "value", toJson(update.updated.value(originalUser)) }
 		};
 		updatedUsers << updatedUserObject;
 	}
