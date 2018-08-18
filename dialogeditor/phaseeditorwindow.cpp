@@ -40,13 +40,13 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, const Core::D
 	m_ui->scoreLineEdit->setValidator(new QIntValidator(0, INT_MAX, this));
 	connect(m_ui->scoreLineEdit, &QLineEdit::textChanged, this, &PhaseEditorWindow::onScoreChanged);
 
-	connect(m_ui->errorReplicaTextEdit, &QTextEdit::textChanged, this, &PhaseEditorWindow::onErrorReplicaChanged);
+	connect(m_ui->errorReplicaPlainTextEdit, &QPlainTextEdit::textChanged, this, &PhaseEditorWindow::onErrorReplicaChanged);
 
 	m_ui->errorPenaltyLineEdit->setValidator(new QDoubleValidator(0, INT_MAX, 2, this));
 	connect(m_ui->errorPenaltyLineEdit, &QLineEdit::textChanged, this, &PhaseEditorWindow::onErrorPenaltyChanged);
-	connect(m_ui->finishingExpectedWordsTextEdit, &QTextEdit::textChanged, this, &PhaseEditorWindow::onFinishingExpectedWordsChanged);
-	connect(m_ui->finishingReplicaTextEdit, &QTextEdit::textChanged, this, &PhaseEditorWindow::onFinishingReplicaChanged);
-	connect(m_ui->repeatReplicaTextEdit, &QTextEdit::textChanged, this, &PhaseEditorWindow::onRepeatReplicaChanged);
+	connect(m_ui->finishingExpectedWordsPlainTextEdit, &QPlainTextEdit::textChanged, this, &PhaseEditorWindow::onFinishingExpectedWordsChanged);
+	connect(m_ui->finishingReplicaPlainTextEdit, &QPlainTextEdit::textChanged, this, &PhaseEditorWindow::onFinishingReplicaChanged);
+	connect(m_ui->repeatReplicaPlainTextEdit, &QPlainTextEdit::textChanged, this, &PhaseEditorWindow::onRepeatReplicaChanged);
 
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setText("Сохранить");
 	m_ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Отменить");
@@ -125,7 +125,7 @@ void PhaseEditorWindow::onScoreChanged()
 
 void PhaseEditorWindow::onErrorReplicaChanged()
 {
-	const QString replica = m_ui->errorReplicaTextEdit->toPlainText().trimmed();
+	const QString replica = m_ui->errorReplicaPlainTextEdit->toPlainText().trimmed();
 	m_phase.errorReplica().setErrorReplica(replica);
 	emit changed();
 }
@@ -149,21 +149,21 @@ void PhaseEditorWindow::onErrorPenaltyChanged()
 
 void PhaseEditorWindow::onFinishingExpectedWordsChanged()
 {
-	const QList<QString> expectedWords = splitExpectedWords(m_ui->finishingExpectedWordsTextEdit->toPlainText());
+	const QList<QString> expectedWords = splitExpectedWords(m_ui->finishingExpectedWordsPlainTextEdit->toPlainText());
 	m_phase.errorReplica().setFinishingExpectedWords(expectedWords);
 	emit changed();
 }
 
 void PhaseEditorWindow::onFinishingReplicaChanged()
 {
-	const QString replica = m_ui->finishingReplicaTextEdit->toPlainText().trimmed();
+	const QString replica = m_ui->finishingReplicaPlainTextEdit->toPlainText().trimmed();
 	m_phase.errorReplica().setFinishingReplica(replica);
 	emit changed();
 }
 
 void PhaseEditorWindow::onRepeatReplicaChanged()
 {
-	const QString replica = m_ui->repeatReplicaTextEdit->toPlainText().trimmed();
+	const QString replica = m_ui->repeatReplicaPlainTextEdit->toPlainText().trimmed();
 	m_phase.setRepeatReplica(replica);
 	emit changed();
 }
@@ -221,7 +221,7 @@ void PhaseEditorWindow::updateInterface()
 
 	m_ui->errorReplicaCheckBox->setChecked(!hasCustomField(Core::ErrorReplica::Field::ErrorReplica));
 	const QString errorReplica = phaseError.hasErrorReplica() ? phaseError.errorReplica() : dialogError.errorReplica();
-	m_ui->errorReplicaTextEdit->setText(errorReplica);
+	m_ui->errorReplicaPlainTextEdit->document()->setPlainText(errorReplica);
 
 	m_ui->errorPenaltyCheckBox->setChecked(!hasCustomField(Core::ErrorReplica::Field::ErrorPenalty));
 	const double errorPenalty = phaseError.hasErrorPenalty() ? phaseError.errorPenalty() : dialogError.errorPenalty();
@@ -229,13 +229,13 @@ void PhaseEditorWindow::updateInterface()
 
 	m_ui->finishingExpectedWordsCheckBox->setChecked(!hasCustomField(Core::ErrorReplica::Field::FinishingExpectedWords));
 	const QList<QString> finishingExpectedWords = phaseError.hasFinishingExpectedWords() ? phaseError.finishingExpectedWords() : dialogError.finishingExpectedWords();
-	m_ui->finishingExpectedWordsTextEdit->setText(finishingExpectedWords.join(c_delimiter + " "));
+	m_ui->finishingExpectedWordsPlainTextEdit->document()->setPlainText(finishingExpectedWords.join(c_delimiter + " "));
 
 	m_ui->finishingReplicaCheckBox->setChecked(!hasCustomField(Core::ErrorReplica::Field::FinishingReplica));
 	const QString finishingReplica = phaseError.hasFinishingReplica() ? phaseError.finishingReplica() : dialogError.finishingReplica();
-	m_ui->finishingReplicaTextEdit->setText(finishingReplica);
+	m_ui->finishingReplicaPlainTextEdit->document()->setPlainText(finishingReplica);
 
 	m_ui->repeatReplicaCheckBox->setChecked(!m_phase.hasRepeatReplica());
 	const QString repeatReplica = m_phase.hasRepeatReplica() ? m_phase.repeatReplica() : dialog.phaseRepeatReplica.toString();
-	m_ui->repeatReplicaTextEdit->setText(repeatReplica);
+	m_ui->repeatReplicaPlainTextEdit->document()->setPlainText(repeatReplica);
 }

@@ -36,8 +36,11 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="scoreLineEdit"/>
+     </item>
      <item row="0" column="1">
-      <widget class="QTextEdit" name="wordsTextEdit">
+      <widget class="QPlainTextEdit" name="wordsPlainTextEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
          <horstretch>0</horstretch>
@@ -45,9 +48,6 @@
         </sizepolicy>
        </property>
       </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="scoreLineEdit"/>
      </item>
     </layout>
    </item>

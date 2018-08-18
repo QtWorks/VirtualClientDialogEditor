@@ -8,13 +8,13 @@ ExpectedWordEditor::ExpectedWordEditor(const Core::ExpectedWords& expectedWords,
 {
 	m_ui->setupUi(this);
 
-	m_ui->wordsTextEdit->setText(m_expectedWords.words);
+	m_ui->wordsPlainTextEdit->document()->setPlainText(m_expectedWords.words);
 
-	QFontMetrics fontMetrics = QFontMetrics(m_ui->wordsTextEdit->font());
+	QFontMetrics fontMetrics = QFontMetrics(m_ui->wordsPlainTextEdit->font());
 	setMinimumHeight(fontMetrics.lineSpacing() * 5.5);
 	setMaximumHeight(fontMetrics.lineSpacing() * 7.5);
 
-	connect(m_ui->wordsTextEdit, &QTextEdit::textChanged, this, &ExpectedWordEditor::onWordsChanged);
+	connect(m_ui->wordsPlainTextEdit, &QPlainTextEdit::textChanged, this, &ExpectedWordEditor::onWordsChanged);
 
 	m_ui->scoreLineEdit->setText(QString::number(m_expectedWords.score));
 	m_ui->scoreLineEdit->setValidator(new QIntValidator(this));
@@ -35,12 +35,12 @@ Core::ExpectedWords ExpectedWordEditor::expectedWords() const
 
 void ExpectedWordEditor::setFocus()
 {
-	m_ui->wordsTextEdit->setFocus();
+	m_ui->wordsPlainTextEdit->setFocus();
 }
 
 void ExpectedWordEditor::onWordsChanged()
 {
-	m_expectedWords.words = m_ui->wordsTextEdit->toPlainText().trimmed();
+	m_expectedWords.words = m_ui->wordsPlainTextEdit->toPlainText().trimmed();
 	emit changed();
 }
 

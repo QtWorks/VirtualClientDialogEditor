@@ -11,10 +11,10 @@ ClientReplicaEditor::ClientReplicaEditor(const Core::ClientReplicaNode& replica,
 	m_ui->setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, true);
 
-	m_ui->textEdit->setText(m_replica.replica());
-	m_ui->textEdit->setMinimumHeight(50);
-	m_ui->textEdit->setMinimumWidth(300);
-	connect(m_ui->textEdit, &QTextEdit::textChanged, this, &ClientReplicaEditor::onReplicaChanged);
+	m_ui->plainTextEdit->document()->setPlainText(m_replica.replica());
+	m_ui->plainTextEdit->setMinimumHeight(50);
+	m_ui->plainTextEdit->setMinimumWidth(300);
+	connect(m_ui->plainTextEdit, &QPlainTextEdit::textChanged, this, &ClientReplicaEditor::onReplicaChanged);
 
 	QIcon warningIcon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
 	QPixmap warningPixmap = warningIcon.pixmap(QSize(16, 16));
@@ -25,7 +25,7 @@ ClientReplicaEditor::ClientReplicaEditor(const Core::ClientReplicaNode& replica,
 	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, ClientReplicaEditor::onSaveClicked);
 	connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, ClientReplicaEditor::onCancelClicked);
 
-	resize(400, m_ui->textEdit->minimumHeight() + m_ui->buttonBox->height() + m_ui->verticalLayout->spacing());
+	resize(400, m_ui->plainTextEdit->minimumHeight() + m_ui->buttonBox->height() + m_ui->verticalLayout->spacing());
 	updateControls();
 }
 
@@ -36,7 +36,7 @@ ClientReplicaEditor::~ClientReplicaEditor()
 
 void ClientReplicaEditor::onReplicaChanged()
 {
-	m_replica.setReplica(m_ui->textEdit->toPlainText().trimmed());
+	m_replica.setReplica(m_ui->plainTextEdit->toPlainText().trimmed());
 
 	updateControls();
 	emit changed();

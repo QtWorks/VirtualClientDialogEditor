@@ -12,13 +12,13 @@ ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNo
 
 	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, this, &ExpectedWordsEditorWindow::validate);
 	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, m_ui->hintLabel, &QLabel::setEnabled);
-	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, m_ui->hintTextEdit, &QTextEdit::setEnabled);
+	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, m_ui->hintPlainTextEdit, &QPlainTextEdit::setEnabled);
 
-	connect(m_ui->hintTextEdit, &QTextEdit::textChanged, this, &ExpectedWordsEditorWindow::validate);
+	connect(m_ui->hintPlainTextEdit, &QPlainTextEdit::textChanged, this, &ExpectedWordsEditorWindow::validate);
 
-	QFontMetrics fontMetrics = QFontMetrics(m_ui->hintTextEdit->font());
-	m_ui->hintTextEdit->setMaximumHeight(fontMetrics.lineSpacing() * 4);
-	m_ui->hintTextEdit->setMaximumHeight(fontMetrics.lineSpacing() * 4);
+	QFontMetrics fontMetrics = QFontMetrics(m_ui->hintPlainTextEdit->font());
+	m_ui->hintPlainTextEdit->setMaximumHeight(fontMetrics.lineSpacing() * 4);
+	m_ui->hintPlainTextEdit->setMaximumHeight(fontMetrics.lineSpacing() * 4);
 
 	m_ui->listWidget->setStyleSheet("QListWidget::item { border-bottom: 1px solid black; }");
 	m_ui->listWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -144,7 +144,7 @@ Core::ExpectedWordsNode ExpectedWordsEditorWindow::getNode() const
 	const bool useCustomHint = m_ui->useHintCheckBox->isChecked();
 	if (useCustomHint)
 	{
-		const QString hint = m_ui->hintTextEdit->toPlainText().trimmed();
+		const QString hint = m_ui->hintPlainTextEdit->toPlainText().trimmed();
 		const Core::ExpectedWordsNode expectedWordsNode = Core::ExpectedWordsNode(words, hint);
 		return expectedWordsNode;
 	}
@@ -162,10 +162,10 @@ void ExpectedWordsEditorWindow::setNode(const Core::ExpectedWordsNode& node)
 
 	m_ui->useHintCheckBox->setChecked(node.customHint());
 	m_ui->hintLabel->setEnabled(node.customHint());
-	m_ui->hintTextEdit->setEnabled(node.customHint());
+	m_ui->hintPlainTextEdit->setEnabled(node.customHint());
 
 	if (node.customHint())
 	{
-		m_ui->hintTextEdit->setText(node.hint());
+		m_ui->hintPlainTextEdit->document()->setPlainText(node.hint());
 	}
 }

@@ -34,7 +34,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QTextEdit" name="hintTextEdit"/>
+      <widget class="QPlainTextEdit" name="hintPlainTextEdit"/>
      </item>
     </layout>
    </item>
