@@ -23,6 +23,7 @@ public:
 	void setDialog(Core::Dialog* dialog);
 
 	void addNodeToScene(NodeGraphicsItem* node, const QPointF& position);
+	void removeNodeFromScene(NodeGraphicsItem* node);
 	void addLineToScene(ArrowLineGraphicsItem* line);
 	void connectNodes(NodeGraphicsItem* parentNode, NodeGraphicsItem* childNode,
 		const QVector<QPointF>& intermediatePoints = {});
@@ -59,7 +60,7 @@ private:
 	NodeItemById renderNodes(PhaseGraphicsItem* phaseItem, const GraphLayout::NodesByLayer& nodes, const QList<Core::AbstractDialogNode*>& dataNodes);
 	void renderEdges(PhaseGraphicsItem* phaseItem, const GraphLayout::NodesByLayer& nodes, const NodeItemById& itemByNode);
 
-	void removeNodeFromScene(NodeGraphicsItem* node);
+
 	void removeLinkFromScene(ArrowLineGraphicsItem* line);
 
 	void onPhasePositionChanged(PhaseGraphicsItem* phaseItem, const QPointF& from, const QPointF& to);

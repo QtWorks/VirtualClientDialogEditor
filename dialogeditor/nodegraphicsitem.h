@@ -33,9 +33,6 @@ public:
 	void resize(qreal width, qreal height);
 	void resizeToMinimal();
 
-	QPointF position() const;
-	void setPosition(const QPointF& position);
-
 	void addIncomingLink(ArrowLineGraphicsItem* link);
 	void removeIncomingLink(ArrowLineGraphicsItem* link);
 	QList<ArrowLineGraphicsItem*> incomingLinks() const;
@@ -99,7 +96,8 @@ private:
 
 	qreal m_width;
 	qreal m_height;
-	QPointF m_position;
+
+	QVariant m_position;
 
 	bool m_resizing;
 

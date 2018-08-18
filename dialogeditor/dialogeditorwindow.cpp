@@ -11,6 +11,7 @@
 
 #include "logger.h"
 #include <QPushButton>
+#include <QMessageBox>
 
 #include <set>
 
@@ -187,15 +188,18 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* pare
 	m_ui->constructorGraphicsView->setSceneRect(constructorSceneRect);
 
 	connect(m_ui->connectNodesButton, &QPushButton::clicked, this, &DialogEditorWindow::onConnectNodesClicked);
+	connect(m_ui->removeStandaloneNodesButton, &QPushButton::clicked, this, &DialogEditorWindow::removeStandaloneNodes);
 
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeSelectionChanged, this, &DialogEditorWindow::onNodeSelectionChanged);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeSelectionChanged, this, &DialogEditorWindow::updateConnectControls);
 
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeAdded, this, &DialogEditorWindow::nodeAdded);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeAdded, this, &DialogEditorWindow::updateSaveControls);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeAdded, this, &DialogEditorWindow::updateRemoveControls);
 
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::nodeRemoved);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::updateSaveControls);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeRemoved, this, &DialogEditorWindow::updateRemoveControls);
 
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeChanged, this, &DialogEditorWindow::nodeChanged);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodeChanged, this, &DialogEditorWindow::updateSaveControls);
@@ -208,9 +212,11 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* pare
 
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesConnected, this, &DialogEditorWindow::nodesConnected);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesConnected, this, &DialogEditorWindow::updateSaveControls);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesConnected, this, &DialogEditorWindow::updateRemoveControls);
 
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesDisconnected, this, &DialogEditorWindow::nodesDisconnected);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesDisconnected, this, &DialogEditorWindow::updateSaveControls);
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesDisconnected, this, &DialogEditorWindow::updateRemoveControls);
 
 	m_dialogGraphicsScene->setDialog(&m_dialog);
 
@@ -220,6 +226,7 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* pare
 
 	updateSaveControls();
 	updateConnectControls();
+	updateRemoveControls();
 }
 
 DialogEditorWindow::~DialogEditorWindow()
@@ -295,6 +302,59 @@ void DialogEditorWindow::onConnectNodesClicked()
 
 	parentNode->setSelected(false);
 	childNode->setSelected(false);
+}
+
+QVector<NodeGraphicsItem*> DialogEditorWindow::disconnectedNodes() const
+{
+	QVector<NodeGraphicsItem*> nodes;
+
+	std::copy_if(m_nodeItems.begin(), m_nodeItems.end(), std::back_inserter(nodes),
+		[](NodeGraphicsItem* node)
+		{
+			if (node->type() == ClientReplicaNodeGraphicsItem::Type ||
+				node->type() == ExpectedWordsNodeGraphicsItem::Type)
+			{
+				return node->data()->parentNodes().isEmpty() && node->data()->childNodes().isEmpty();
+			}
+
+			return false;
+		});
+
+	return nodes;
+}
+
+void DialogEditorWindow::removeStandaloneNodes()
+{
+	QVector<NodeGraphicsItem*> nodes = disconnectedNodes();
+	if (nodes.isEmpty())
+	{
+		return;
+	}
+
+	QMessageBox messageBox(QMessageBox::Question,
+		"Удаление блоков",
+		"Вы действительно хотите удалить " + QString::number(nodes.size()) + " блоков без стрелок?",
+		QMessageBox::Yes | QMessageBox::No,
+		this);
+	messageBox.setButtonText(QMessageBox::Yes, tr("Да"));
+	messageBox.setButtonText(QMessageBox::No, tr("Нет"));
+
+	const int answer = messageBox.exec();
+	if (answer != QMessageBox::Yes)
+	{
+		return;
+	}
+
+	for (NodeGraphicsItem* node : nodes)
+	{
+		m_dialogGraphicsScene->removeNodeFromScene(node);
+	}
+}
+
+void DialogEditorWindow::updateRemoveControls()
+{
+	QVector<NodeGraphicsItem*> nodes = disconnectedNodes();
+	m_ui->removeStandaloneNodesButton->setEnabled(nodes.size() > 0);
 }
 
 void DialogEditorWindow::updateConnectControls()

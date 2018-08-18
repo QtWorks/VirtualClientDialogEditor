@@ -33,6 +33,10 @@ public slots:
 	void onConnectNodesClicked();
 	void updateConnectControls();
 
+	QVector<NodeGraphicsItem*> disconnectedNodes() const;
+	void removeStandaloneNodes();
+	void updateRemoveControls();
+
 	void nodeAdded(NodeGraphicsItem* node);
 	void nodeRemoved(NodeGraphicsItem* node);
 	void nodeChanged(NodeGraphicsItem* node);

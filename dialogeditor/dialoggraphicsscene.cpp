@@ -191,7 +191,7 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 		item->setParent(this);
 
 		addNodeToScene(item, event->scenePos());
-		LOG << "Drop item at " << event->scenePos() << ARG2(item->position(), "position");
+		LOG << "Drop item at " << event->scenePos() << ARG2(item->pos(), "position");
 
 		item->showNodeEditor();
 	}
@@ -403,7 +403,7 @@ void DialogGraphicsScene::renderEdges(PhaseGraphicsItem* phaseItem, const GraphL
 
 void DialogGraphicsScene::addNodeToScene(NodeGraphicsItem* node, const QPointF& position)
 {
-	node->setPosition(position);
+	node->setPos(position);
 
 	connect(node, &NodeGraphicsItem::removeRequested, [this, node]()
 	{
@@ -520,13 +520,11 @@ void DialogGraphicsScene::onPhasePositionChanged(PhaseGraphicsItem* phaseItem, c
 	{
 		LOG << "Phase moved to " << to;
 
-		phaseItem->doHack();
-
 		return;
 	}
 
 	LOG << "Found " << phasesAtNewRect.size() << " phases";
-	phaseItem->setPosition(from);
+	phaseItem->setPos(from);
 }
 
 void DialogGraphicsScene::onReplicaPositionChanged(NodeGraphicsItem* replicaItem, const QPointF& from, const QPointF& to)
@@ -556,7 +554,7 @@ void DialogGraphicsScene::onReplicaPositionChanged(NodeGraphicsItem* replicaItem
 		else if (intersects(phaseItem, replicaItem))
 		{
 			LOG << "phase.intersects -> revert";
-			replicaItem->setPosition(from);
+			replicaItem->setPos(from);
 		}
 
 		return;
@@ -578,7 +576,7 @@ void DialogGraphicsScene::onReplicaPositionChanged(NodeGraphicsItem* replicaItem
 	if (phasesAtOldRect != phasesAtNewRect)
 	{
 		LOG << "different phases -> revert";
-		replicaItem->setPosition(from);
+		replicaItem->setPos(from);
 		return;
 	}
 
@@ -592,7 +590,7 @@ void DialogGraphicsScene::onReplicaPositionChanged(NodeGraphicsItem* replicaItem
 	if (intersects(phaseItem, replicaItem))
 	{
 		LOG << "phase.intersects -> revert";
-		replicaItem->setPosition(from);
+		replicaItem->setPos(from);
 	}
 }
 

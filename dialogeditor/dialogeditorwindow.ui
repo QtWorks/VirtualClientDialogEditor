@@ -84,6 +84,19 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="removeStandaloneNodesButton">
+         <property name="maximumSize">
+          <size>
+           <width>220</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Удалить несоединенные блоки</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

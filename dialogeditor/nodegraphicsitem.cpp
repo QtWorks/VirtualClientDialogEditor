@@ -13,7 +13,6 @@
 NodeGraphicsItem::NodeGraphicsItem(Properties properties, QObject* parent)
 	: m_width(0)
 	, m_height(0)
-	, m_position(pos())
 	, m_resizing(false)
 {
 	setFlags(ItemIsMovable | ItemSendsGeometryChanges);
@@ -76,17 +75,6 @@ void NodeGraphicsItem::resize(qreal width, qreal height)
 void NodeGraphicsItem::resizeToMinimal()
 {
 	resize(minWidth(), minHeight());
-}
-
-QPointF NodeGraphicsItem::position() const
-{
-	return m_position;
-}
-
-void NodeGraphicsItem::setPosition(const QPointF& position)
-{
-	m_position = position;
-	setPos(m_position);
 }
 
 void NodeGraphicsItem::addIncomingLink(ArrowLineGraphicsItem* link)
@@ -211,6 +199,8 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 		setCursor(Qt::ClosedHandCursor);
 	}
 
+	m_position = event->scenePos();
+
 	QGraphicsItem::mousePressEvent(event);
 }
 
@@ -267,12 +257,12 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		setCursor(Qt::OpenHandCursor);
 	}
 
-	const QPointF oldPosition = m_position;
+	const QPointF oldPosition = m_position.toPointF();
 	const QPointF newPosition = pos();
 
 	if (oldPosition != newPosition)
 	{
-		m_position = newPosition;
+		m_position = QVariant();
 		emit positionChanged(oldPosition, newPosition);
 	}
 

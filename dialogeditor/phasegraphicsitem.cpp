@@ -99,7 +99,7 @@ QVariant PhaseGraphicsItem::itemChange(GraphicsItemChange change, const QVariant
 		QPointF delta = value.toPointF() - pos();
 		for (NodeGraphicsItem* item : m_items)
 		{
-			item->setPosition(item->pos() + delta);
+			item->setPos(item->pos() + delta);
 		}
 	}
 	else if (change == QGraphicsItem::ItemSelectedChange && scene())
