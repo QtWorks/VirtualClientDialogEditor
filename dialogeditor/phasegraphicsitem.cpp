@@ -9,6 +9,12 @@
 
 #include <QGraphicsSceneMouseEvent>
 
+namespace {
+
+const int c_zValueMultiplier = 10;
+
+}
+
 PhaseGraphicsItem::PhaseGraphicsItem(Core::PhaseNode* phase, Core::Dialog* dialog, Properties properties, QObject* parent)
 	: NodeGraphicsItem(properties, parent)
 	, m_phase(phase)
@@ -27,6 +33,11 @@ void PhaseGraphicsItem::addItem(NodeGraphicsItem* item)
 
 	if (!m_items.contains(item))
 	{
+		if (isSelected())
+		{
+			item->setZValue(item->zValue() * c_zValueMultiplier);
+		}
+
 		m_items.append(item);
 		item->setPhase(this);
 	}
@@ -107,7 +118,7 @@ QVariant PhaseGraphicsItem::itemChange(GraphicsItemChange change, const QVariant
 		const bool selected = value.toBool();
 		for (NodeGraphicsItem* item : m_items)
 		{
-			item->setZValue(selected ? item->zValue() * 10 : item->zValue() / 10);
+			item->setZValue(selected ? item->zValue() * c_zValueMultiplier : item->zValue() / c_zValueMultiplier);
 		}
 	}
 

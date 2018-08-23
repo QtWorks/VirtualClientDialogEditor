@@ -154,7 +154,10 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 		NodeGraphicsItem* item = mimeData->item();
 		item->resizeToMinimal();
 
-		const QRectF itemSceneRect = QRectF(event->scenePos().x(), event->scenePos().y(), item->boundingRect().width(), item->boundingRect().height());
+		const QPointF dropPosition = event->scenePos();
+		const QRectF itemBoundingRect = item->boundingRect();
+		const QRectF itemSceneRect = QRectF(dropPosition.x(), dropPosition.y(), itemBoundingRect.width(), itemBoundingRect.height());
+
 		const QList<PhaseGraphicsItem*> phases = phaseItems(itemSceneRect);
 
 		if (item->type() == ClientReplicaNodeGraphicsItem::Type ||
@@ -190,8 +193,8 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 
 		item->setParent(this);
 
-		addNodeToScene(item, event->scenePos());
-		LOG << "Drop item at " << event->scenePos() << ARG2(item->pos(), "position");
+		addNodeToScene(item, dropPosition);
+		LOG << "Drop item at " << dropPosition << ARG2(item->pos(), "itemPosition");
 
 		item->showNodeEditor();
 	}

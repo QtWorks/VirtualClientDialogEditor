@@ -14,6 +14,7 @@ NodeGraphicsItem::NodeGraphicsItem(Properties properties, QObject* parent)
 	: m_width(0)
 	, m_height(0)
 	, m_resizing(false)
+	, m_phase(nullptr)
 {
 	setFlags(ItemIsMovable | ItemSendsGeometryChanges);
 
@@ -199,7 +200,7 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 		setCursor(Qt::ClosedHandCursor);
 	}
 
-	m_position = event->scenePos();
+	m_position = pos();
 
 	QGraphicsItem::mousePressEvent(event);
 }
@@ -256,14 +257,18 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 	{
 		setCursor(Qt::OpenHandCursor);
 	}
-
-	const QPointF oldPosition = m_position.toPointF();
-	const QPointF newPosition = pos();
-
-	if (oldPosition != newPosition)
+	else
 	{
-		m_position = QVariant();
-		emit positionChanged(oldPosition, newPosition);
+		const QPointF oldPosition = m_position.toPointF();
+		const QPointF newPosition = pos();
+
+		if (oldPosition != newPosition)
+		{
+			LOG << "Position changed from " << oldPosition << " to " << newPosition << "; delta " << (newPosition - oldPosition);
+
+			m_position = QVariant();
+			emit positionChanged(oldPosition, newPosition);
+		}
 	}
 
 	QGraphicsItem::mouseReleaseEvent(event);
