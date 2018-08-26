@@ -38,9 +38,9 @@ QStringList UserListEditorWidget::items() const
 {
 	QStringList result;
 
-	for (const UserListDataModel::Index& index : m_model.indexes())
+	for (const Core::User& user : m_model)
 	{
-		result << m_model.get(index).name;
+		result << user.name;
 	}
 
 	return result;
@@ -55,35 +55,65 @@ void UserListEditorWidget::removeItems(const QStringList& usernames)
 	QList<Core::User> removingUsers;
 	for (const QString& username : usernames)
 	{
-		const UserListDataModel::Index index = m_model.findIndex([&username](const Core::User& user){ return user.name == username; });
-		removingUsers.append(m_model.get(index));
+		const auto it = std::find_if(m_model.begin(), m_model.end(),
+			[&username](const Core::User& user){ return user.name == username; });
+		Q_ASSERT(it != m_model.end());
+		removingUsers.append(*it);
 	}
 
 	m_backendConnection->updateUsers({ {}, removingUsers, {} });
 }
 
+void UserListEditorWidget::updateUser(int index, const Core::User& user)
+{
+	const Core::User& sourceUser = m_model[index];
+	if (sourceUser == user)
+	{
+		return;
+	}
+
+	showProgressDialog("Изменение данных", "Идет изменение данных. Пожалуйста, подождите.");
+
+	const QMap<Core::User, Core::User> updated = {
+		{ sourceUser, user }
+	};
+	m_backendConnection->updateUsers({ updated, {}, {} });
+}
+
+void UserListEditorWidget::addUser(const Core::User& user)
+{
+	showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
+	m_backendConnection->updateUsers({ {}, {}, { user } });
+}
+
 void UserListEditorWidget::onItemEditRequested(const QString& username)
 {
-	const UserListDataModel::Index index = m_model.findIndex(
+	const auto it = std::find_if(m_model.begin(), m_model.end(),
 		[&username](const Core::User& user){ return user.name == username; });
-	Q_ASSERT(index != -1);
+	Q_ASSERT(it != m_model.end());
+	const int index = std::distance(m_model.begin(), it);
 
-	UserEditorDialog* editorWindow = new UserEditorDialog(m_model.get(index), this);
-	connect(editorWindow, &UserEditorDialog::userChanged, [this, index, username](Core::User user)
+	const auto validator = [this, index](const QString& name)
 	{
-		const Core::User& sourceUser = m_model.get(index);
-		if (sourceUser == m_model.get(index))
+		for (int i = 0; i < m_model.length(); i++)
 		{
-			return;
+			if (i == index)
+			{
+				continue;
+			}
+
+			const Core::User& user = m_model[i];
+			if (user.name.compare(name, Qt::CaseInsensitive) == 0)
+			{
+				return false;
+			}
 		}
 
-		showProgressDialog("Изменение данных", "Идет изменение данных. Пожалуйста, подождите.");
+		return true;
+	};
 
-		const QMap<Core::User, Core::User> updated = {
-			{ sourceUser, user }
-		};
-		m_backendConnection->updateUsers({ updated, {}, {} });
-	});
+	UserEditorDialog* editorWindow = new UserEditorDialog(*it, validator, this);
+	connect(editorWindow, &UserEditorDialog::userChanged, [this, index](Core::User user) { updateUser(index, user); });
 
 	editorWindow->show();
 }
@@ -92,19 +122,29 @@ void UserListEditorWidget::onItemCreateRequested()
 {
 	const Core::User user = { };
 
-	UserEditorDialog* editorWindow = new UserEditorDialog(user, this);
-	connect(editorWindow, &UserEditorDialog::userChanged, [this](Core::User user)
+	const auto validator = [this](const QString& name)
 	{
-		showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
-		m_backendConnection->updateUsers({ {}, {}, { user } });
-	});
+		for (int i = 0; i < m_model.length(); i++)
+		{
+			const Core::User& user = m_model[i];
+			if (user.name.compare(name, Qt::CaseInsensitive) == 0)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+	UserEditorDialog* editorWindow = new UserEditorDialog(user, validator, this);
+	connect(editorWindow, &UserEditorDialog::userChanged, [this](Core::User user) { addUser(user); });
 
 	editorWindow->show();
 }
 
 void UserListEditorWidget::onUsersLoaded(Core::IBackendConnection::QueryId /*queryId*/, const QList<Core::User>& users)
 {
-	m_model.setData(users);
+	m_model = users;
 
 	updateData();
 

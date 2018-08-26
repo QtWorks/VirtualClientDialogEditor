@@ -3,7 +3,6 @@
 #include "core/ibackendconnection.h"
 #include "core/dialog.h"
 #include "listeditorwidget.h"
-#include "listdatamodel.h"
 
 class DialogListEditorWidget
 	: public ListEditorWidget
@@ -33,7 +32,7 @@ private:
 private:
 	IBackendConnectionSharedPtr m_backendConnection;
 
-	typedef ListDataModel<Core::Dialog> DialogListDataModel;
+	typedef QList<Core::Dialog> DialogListDataModel;
 	DialogListDataModel m_model;
 
 	bool m_updating;

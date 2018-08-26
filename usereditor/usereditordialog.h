@@ -3,6 +3,7 @@
 
 #include "core/user.h"
 #include <QDialog>
+#include <functional>
 
 namespace Ui {
 class UserEditorDialog;
@@ -14,7 +15,8 @@ class UserEditorDialog
 	Q_OBJECT
 
 public:
-	explicit UserEditorDialog(const Core::User& user, QWidget* parent = 0);
+	typedef std::function<bool(const QString&)> UniquenessValidator;
+	UserEditorDialog(const Core::User& user, const UniquenessValidator& validator, QWidget* parent = 0);
 	~UserEditorDialog();
 
 signals:
@@ -28,6 +30,7 @@ private slots:
 private:
 	Ui::UserEditorDialog* m_ui;
 	Core::User m_user;
+	UniquenessValidator m_uniquenessValidator;
 };
 
 #endif // USEREDITORWIDGET_H

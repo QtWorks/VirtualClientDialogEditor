@@ -86,7 +86,6 @@ HEADERS  += \
     core/clientreplicanode.h \
     core/expectedwordsnode.h \
     core/phasenode.h \
-    listdatamodel.h \
 	dialogeditor/dialoglisteditorwidget.h \
 	usereditor/userlisteditorwidget.h \
     core/backendconnection.h \

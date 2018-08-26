@@ -42,9 +42,9 @@ QStringList DialogListEditorWidget::items() const
 {
 	QStringList result;
 
-	for (const DialogListDataModel::Index& index : m_model.indexes())
+	for (const Core::Dialog& dialog: m_model)
 	{
-		result << m_model.get(index).printableName();
+		result << dialog.printableName();
 	}
 
 	return result;
@@ -58,10 +58,11 @@ void DialogListEditorWidget::removeItems(const QStringList& dialogs)
 
 	QList<Core::Dialog> removingDialogs;
 	for (const QString& dialogName : dialogs)
-	{
-		const DialogListDataModel::Index index = m_model.findIndex(
+	{		
+		const auto it = std::find_if(m_model.begin(), m_model.end(),
 			[&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
-		removingDialogs.append(m_model.get(index));
+		Q_ASSERT(it != m_model.end());
+		removingDialogs.append(*it);
 	}
 
 	m_backendConnection->updateDialogs({ {}, removingDialogs, {} });
@@ -69,7 +70,7 @@ void DialogListEditorWidget::removeItems(const QStringList& dialogs)
 
 void DialogListEditorWidget::updateDialog(int index, const Core::Dialog& dialog)
 {
-	const Core::Dialog& sourceDialog = m_model.get(index);
+	const Core::Dialog& sourceDialog = m_model[index];
 	if (dialog == sourceDialog)
 	{
 		return;
@@ -94,11 +95,31 @@ void DialogListEditorWidget::addDialog(const Core::Dialog& dialog)
 
 void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 {
-	const DialogListDataModel::Index index = m_model.findIndex(
+	const auto it = std::find_if(m_model.begin(), m_model.end(),
 		[&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
-	Q_ASSERT(index != -1);
+	Q_ASSERT(it != m_model.end());
+	const int index = std::distance(m_model.begin(), it);
 
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(m_model.get(index), true);
+	const auto validator = [this, index](const QString& name, Core::Dialog::Difficulty difficulty)
+	{
+		const QString newName = Core::Dialog::printableName(name, difficulty);
+		for (int i = 0; i < m_model.length(); i++)
+		{
+			if (i == index)
+			{
+				continue;
+			}
+
+			if (m_model[i].printableName().compare(newName, Qt::CaseInsensitive) == 0)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(*it, validator, true);
 	connect(editorWindow, &DialogEditorWindow::dialogModified,
 		[this, index](Core::Dialog dialog) { updateDialog(index, dialog); });
 	connect(editorWindow, &DialogEditorWindow::dialogCreated,
@@ -111,7 +132,22 @@ void DialogListEditorWidget::onItemCreateRequested()
 {
 	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, { }, {} };
 
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(dialog, false);
+	const auto validator = [this](const QString& name, Core::Dialog::Difficulty difficulty)
+	{
+		const QString newName = Core::Dialog::printableName(name, difficulty);
+
+		for (int i = 0; i < m_model.length(); i++)
+		{
+			if (m_model[i].printableName().compare(newName, Qt::CaseInsensitive) == 0)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(dialog, validator, false);
 	connect(editorWindow, &DialogEditorWindow::dialogModified,
 		[this](Core::Dialog dialog) { addDialog(dialog); });
 
@@ -120,7 +156,7 @@ void DialogListEditorWidget::onItemCreateRequested()
 
 void DialogListEditorWidget::onDialogsLoaded(Core::IBackendConnection::QueryId /*queryId*/, const QList<Core::Dialog>& dialogs)
 {
-	m_model.setData(dialogs);
+	m_model = dialogs;
 
 	updateData();
 

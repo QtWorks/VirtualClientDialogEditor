@@ -1,10 +1,12 @@
 #include "usereditordialog.h"
 #include "ui_usereditordialog.h"
 #include <QPushButton>
+#include <QMessageBox>
 
-UserEditorDialog::UserEditorDialog(const Core::User& user, QWidget* parent)
+UserEditorDialog::UserEditorDialog(const Core::User& user, const UniquenessValidator& validator, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::UserEditorDialog)
+	, m_uniquenessValidator(validator)
 {
 	m_ui->setupUi(this);
 
@@ -24,9 +26,20 @@ UserEditorDialog::~UserEditorDialog()
 
 void UserEditorDialog::saveChanges()
 {
-	const QString username = m_ui->usernameEdit->text();
-	const bool admin = m_ui->adminCheckBox->isChecked();
+	const QString username = m_ui->usernameEdit->text().trimmed();
+	if (username.isEmpty())
+	{
+		QMessageBox::warning(this, "Ошибка валидации", "Имя пользователя должно быть не пустым");
+		return;
+	}
 
+	if (!m_uniquenessValidator(username))
+	{
+		QMessageBox::warning(this, "Ошибка валидации", "Имя пользователя должно быть уникальным");
+		return;
+	}
+
+	const bool admin = m_ui->adminCheckBox->isChecked();
 	emit userChanged({ username, admin });
 	accept();
 }

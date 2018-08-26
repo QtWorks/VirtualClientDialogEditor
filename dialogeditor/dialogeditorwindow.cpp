@@ -132,12 +132,13 @@ bool hasCycles(Core::AbstractDialogNode* childNode, const QList<Core::AbstractDi
 
 }
 
-DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, bool enableSaveAs, QWidget* parent)
+DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, const UniquenessValidator& uniquenessValidator, bool enableSaveAs, QWidget* parent)
 	: QWidget(parent)
 	, m_ui(new Ui::DialogEditorWindow)
 	, m_dialogConstructorGraphicsScene(new DialogConstructorGraphicsScene(this))
 	, m_dialogGraphicsScene(new DialogGraphicsScene(this))
 	, m_dialog(dialog)
+	, m_uniquenessValidator(uniquenessValidator)
 {
 	m_ui->setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, true);
@@ -153,6 +154,7 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, bool enableSa
 		[this](const QString& difficulty)
 		{
 			m_dialog.difficulty = Core::Dialog::difficultyFromString(difficulty);
+			updateSaveControls();
 		});
 
 	QIcon warningIcon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
@@ -174,20 +176,33 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, bool enableSa
 	{
 		connect(m_ui->saveAsButton, QPushButton::clicked, [this]()
 		{
-			bool ok = false;
-			QString dialogName = QInputDialog::getText(this, "Введите имя диалога", "Имя диалога:", QLineEdit::Normal, "", &ok, 0);
-			while (dialogName.trimmed().isEmpty())
+			bool validName = false;
+
+			bool accepted = false;
+			QString newDialogName = QInputDialog::getText(this, "Введите имя диалога", "Имя диалога:", QLineEdit::Normal, "", &accepted);
+			while (!validName)
 			{
-				dialogName = QInputDialog::getText(this, "Введите имя диалога", "Имя не может быть пустым.\nИмя диалога:", QLineEdit::Normal, "", &ok, 0);
-				if (!ok)
+				if (!accepted)
 				{
 					return;
 				}
+
+				if (newDialogName.trimmed().isEmpty())
+				{
+					newDialogName = QInputDialog::getText(this, "Введите имя диалога", "Имя не может быть пустым.\nИмя диалога:", QLineEdit::Normal, "", &accepted);
+					continue;
+				}
+
+				if (!m_uniquenessValidator(newDialogName, m_dialog.difficulty))
+				{
+					newDialogName = QInputDialog::getText(this, "Введите имя диалога", "Имя должно быть уникальным.\nИмя диалога:", QLineEdit::Normal, "", &accepted);
+					continue;
+				}
+
+				validName = true;
 			}
 
-			Q_ASSERT(validateDialog());
-
-			m_dialog.name = dialogName;
+			m_dialog.name = newDialogName;
 			m_dialog.phases = getPhases();
 
 			emit dialogCreated(m_dialog);
@@ -562,6 +577,12 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 	if (m_dialog.name.trimmed().isEmpty())
 	{
 		error = "Имя диалога не может быть пустым";
+		return false;
+	}
+
+	if (!m_uniquenessValidator(m_dialog.name, m_dialog.difficulty))
+	{
+		error = "Имя диалога должно быть уникальным";
 		return false;
 	}
 

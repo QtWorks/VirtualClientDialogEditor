@@ -3,7 +3,6 @@
 #include "core/ibackendconnection.h"
 #include "core/user.h"
 #include "listeditorwidget.h"
-#include "listdatamodel.h"
 
 class UserListEditorWidget
 	: public ListEditorWidget
@@ -27,9 +26,13 @@ private slots:
 	void onUsersUpdateFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
 
 private:
+	void updateUser(int index, const Core::User& user);
+	void addUser(const Core::User& user);
+
+private:
 	IBackendConnectionSharedPtr m_backendConnection;
 
-	typedef ListDataModel<Core::User> UserListDataModel;
+	typedef QList<Core::User> UserListDataModel;
 	UserListDataModel m_model;
 
 	bool m_updating;

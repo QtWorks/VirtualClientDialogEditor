@@ -25,6 +25,7 @@ public:
 	~Dialog();
 
 	QString printableName() const;
+	static QString printableName(const QString& name, Difficulty difficulty);
 
 	static QString difficultyToString(Difficulty difficulty);
 

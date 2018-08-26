@@ -34,6 +34,11 @@ Dialog::~Dialog()
 
 QString Dialog::printableName() const
 {
+	return printableName(name, difficulty);
+}
+
+QString Dialog::printableName(const QString& name, Difficulty difficulty)
+{
 	return name + " (" + difficultyToString(difficulty) + ")";
 }
 

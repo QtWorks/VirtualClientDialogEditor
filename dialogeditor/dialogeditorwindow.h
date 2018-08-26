@@ -15,7 +15,8 @@ class DialogEditorWindow
 	Q_OBJECT
 
 public:
-	explicit DialogEditorWindow(const Core::Dialog& dialog, bool enableSaveAs, QWidget* parent = 0);
+	typedef std::function<bool(const QString&, Core::Dialog::Difficulty)> UniquenessValidator;
+	DialogEditorWindow(const Core::Dialog& dialog, const UniquenessValidator& uniquenessValidator, bool enableSaveAs, QWidget* parent = 0);
 	~DialogEditorWindow();
 
 signals:
@@ -68,6 +69,7 @@ private:
 	QGraphicsScene* m_dialogConstructorGraphicsScene;
 	DialogGraphicsScene* m_dialogGraphicsScene;
 	Core::Dialog m_dialog;
+	UniquenessValidator m_uniquenessValidator;
 
 	QVector<NodeGraphicsItem*> m_selectedNodes;
 
