@@ -40,6 +40,19 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="addButton">
+       <property name="minimumSize">
+        <size>
+         <width>111</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Добавить</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="editButton">
        <property name="minimumSize">
         <size>
@@ -66,89 +79,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="revertButton">
-       <property name="minimumSize">
-        <size>
-         <width>111</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Восстановить</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="addButton">
-       <property name="minimumSize">
-        <size>
-         <width>111</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Добавить</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="saveButton">
-       <property name="minimumSize">
-        <size>
-         <width>111</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Сохранить</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="revertAllButton">
-       <property name="minimumSize">
-        <size>
-         <width>111</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Восстановить все</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_4">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>

@@ -15,18 +15,11 @@ public:
 
 private:
 	virtual QStringList items() const override;
-	virtual void saveChanges() override;
-	virtual bool itemHasChanges(const QString& item) const override;
-	virtual bool itemIsAdded(const QString& item) const override;
-	virtual void revertChanges(const QString& item) override;
-	virtual void revertAllChanges() override;
+	virtual void removeItems(const QStringList& items) override;
 
 private slots:
 	void onItemEditRequested(const QString& username);
-	void onItemsRemoveRequested(const QStringList& users);
 	void onItemCreateRequested();
-
-	void onDiffRecordsCountChanged(int count);
 
 	void onUsersLoaded(Core::IBackendConnection::QueryId queryId, const QList<Core::User>& users);
 	void onUsersLoadFailed(Core::IBackendConnection::QueryId queryId, const QString& error);

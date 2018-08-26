@@ -23,11 +23,7 @@ DialogListEditorWidget::DialogListEditorWidget(IBackendConnectionSharedPtr backe
 	, m_updating(false)
 {
 	connect(this, &ListEditorWidget::itemEditRequested, this, &DialogListEditorWidget::onItemEditRequested);
-	connect(this, &ListEditorWidget::itemsRemoveRequested, this, &DialogListEditorWidget::onItemsRemoveRequested);
 	connect(this, &ListEditorWidget::itemCreateRequested, this, &DialogListEditorWidget::onItemCreateRequested);
-
-	connect(&m_model, &IListDataModel::diffRecordsCountChanged, this, &DialogListEditorWidget::onDiffRecordsCountChanged);
-	onDiffRecordsCountChanged(0);
 
 	connect(m_backendConnection.get(), &Core::IBackendConnection::dialogsLoaded, this, &DialogListEditorWidget::onDialogsLoaded);
 	connect(m_backendConnection.get(), &Core::IBackendConnection::dialogsLoadFailed, this, &DialogListEditorWidget::onDialogsLoadFailed);
@@ -54,105 +50,64 @@ QStringList DialogListEditorWidget::items() const
 	return result;
 }
 
-bool DialogListEditorWidget::itemHasChanges(const QString& dialogName) const
+void DialogListEditorWidget::removeItems(const QStringList& dialogs)
 {
-	const DialogListDataModel::Index index = m_model.findIndex([&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
-	return m_model.hasChanges(index);
-}
-
-bool DialogListEditorWidget::itemIsAdded(const QString& item) const
-{
-	const QList<Core::Dialog> addedItems = m_model.added();
-	return std::find_if(addedItems.begin(), addedItems.end(),
-		[&item](const Core::Dialog& dialog) { return dialog.printableName() == item; }) != addedItems.end();
-}
-
-void DialogListEditorWidget::saveChanges()
-{
-	showProgressDialog("Сохранение данных", "Идет сохранение данных. Пожалуйста, подождите.");
+	showProgressDialog("Удаление данных", "Идет удаление данных. Пожалуйста, подождите.");
 
 	m_updating = true;
-	m_backendConnection->updateDialogs({ m_model.updated(), m_model.deleted(), m_model.added() });
-}
 
-void DialogListEditorWidget::revertChanges(const QString& dialogName)
-{
-	const DialogListDataModel::Index index = m_model.findIndex([&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
-	m_model.revert(index);
-}
+	QList<Core::Dialog> removingDialogs;
+	for (const QString& dialogName : dialogs)
+	{
+		const DialogListDataModel::Index index = m_model.findIndex(
+			[&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
+		removingDialogs.append(m_model.get(index));
+	}
 
-void DialogListEditorWidget::revertAllChanges()
-{
-	m_model.revertAll();
+	m_backendConnection->updateDialogs({ {}, removingDialogs, {} });
 }
 
 void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 {
-	const DialogListDataModel::Index index = m_model.findIndex([&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
+	const DialogListDataModel::Index index = m_model.findIndex(
+		[&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
 	Q_ASSERT(index != -1);
 
-	DialogEditorWindow* window = new DialogEditorWindow(m_model.get(index));
-	connect(window, &DialogEditorWindow::dialogChanged, [this, index, dialogName](Core::Dialog dialog)
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(m_model.get(index));
+	connect(editorWindow, &DialogEditorWindow::dialogChanged, [this, index, dialogName](Core::Dialog dialog)
 	{
-		if (dialog != m_model.get(index))
+		const Core::Dialog& sourceDialog = m_model.get(index);
+		if (dialog == sourceDialog)
 		{
-			m_model.update(index, dialog);
-			updateItem(index);
+			return;
 		}
+
+		showProgressDialog("Изменение данных", "Идет изменение данных. Пожалуйста, подождите.");
+
+		const QMap<Core::Dialog, Core::Dialog> updated = {
+			{ sourceDialog, dialog }
+		};
+		m_backendConnection->updateDialogs({ updated, {}, {} });
 	});
 
-	window->show();
-}
-
-void DialogListEditorWidget::onItemsRemoveRequested(const QStringList& dialogs)
-{
-	QMessageBox messageBox(QMessageBox::Question,
-		"Удаление диалогов",
-		"Вы действительно хотите удалить " + QString(dialogs.size() > 1 ? "выбранные диалоги" : "выбранный диалог") + "?",
-		QMessageBox::Yes | QMessageBox::No,
-		this);
-	messageBox.setButtonText(QMessageBox::Yes, tr("Да"));
-	messageBox.setButtonText(QMessageBox::No, tr("Нет"));
-
-	const int answer = messageBox.exec();
-	if (answer != QMessageBox::Yes)
-	{
-		return;
-	}
-
-	for (const QString& dialogName : dialogs)
-	{
-		const DialogListDataModel::Index index = m_model.findIndex([&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
-		Q_ASSERT(index != -1);
-
-		removeItem(dialogName);
-
-		m_model.remove(index);
-	}
+	editorWindow->show();
 }
 
 void DialogListEditorWidget::onItemCreateRequested()
 {
 	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, { }, {} };
-	DialogEditorWindow* window = new DialogEditorWindow(dialog);
 
-	connect(window, &DialogEditorWindow::dialogChanged, [this](Core::Dialog dialog)
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(dialog);
+	connect(editorWindow, &DialogEditorWindow::dialogChanged, [this](Core::Dialog dialog)
 	{
-		m_model.append(dialog);
-
 		Core::DialogJsonWriter writer;
 		LOG << writer.write(dialog);
 
-		addItem(dialog.printableName());
+		showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
+		m_backendConnection->updateDialogs({ {}, {}, { dialog } });
 	});
 
-	window->show();
-}
-
-void DialogListEditorWidget::onDiffRecordsCountChanged(int count)
-{
-	m_saveButton->setEnabled(count > 0);
-	m_revertAllButton->setEnabled(count > 0);
+	editorWindow->show();
 }
 
 void DialogListEditorWidget::onDialogsLoaded(Core::IBackendConnection::QueryId /*queryId*/, const QList<Core::Dialog>& dialogs)
