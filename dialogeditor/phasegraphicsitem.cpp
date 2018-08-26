@@ -54,22 +54,6 @@ void PhaseGraphicsItem::removeItem(NodeGraphicsItem* item)
 	item->setPhase(nullptr);
 }
 
-void PhaseGraphicsItem::doHack()
-{
-	QGraphicsSceneMouseEvent event;
-
-	QRectF rect = mapRectToScene(boundingRect());
-	QPointF eventPos = rect.bottomRight() - QPointF(1, 1);
-
-	event.setScenePos(eventPos);
-
-	LOG << "Set event pos " << eventPos;
-
-	mousePressEvent(&event);
-
-	mouseReleaseEvent(&event);
-}
-
 void PhaseGraphicsItem::setDialog(Core::Dialog* dialog)
 {
 	m_dialog = dialog;
@@ -127,7 +111,7 @@ QVariant PhaseGraphicsItem::itemChange(GraphicsItemChange change, const QVariant
 
 QString PhaseGraphicsItem::getHeaderText() const
 {
-	return "Фаза: " + m_phase->name() + " (" + QString::number(m_phase->score()) + ")";
+	return QString("Фаза: %1 (%2 / %3)").arg(m_phase->name()).arg(m_phase->bestPossibleScore()).arg(m_phase->score());
 }
 
 QString PhaseGraphicsItem::getContentText() const

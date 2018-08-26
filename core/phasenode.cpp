@@ -111,7 +111,10 @@ double calculateBestPossibleScore(const QString& name, const QList<AbstractDialo
 			return score;
 		});
 
-	LOG << name << ": Possible scores: " << scores;
+	if (scores.empty())
+	{
+		return 0.0;
+	}
 
 	const auto maxScoreIt = std::max_element(scores.begin(), scores.end());
 	Q_ASSERT(maxScoreIt != scores.end());
@@ -170,6 +173,11 @@ double PhaseNode::score() const
 void PhaseNode::setScore(double score)
 {
 	m_score = score;
+}
+
+double PhaseNode::bestPossibleScore() const
+{
+	return calculateBestPossibleScore(m_name, m_nodes);
 }
 
 const QList<AbstractDialogNode*>& PhaseNode::nodes() const

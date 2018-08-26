@@ -22,8 +22,6 @@ public:
 	void addItem(NodeGraphicsItem* item);
 	void removeItem(NodeGraphicsItem* item);
 
-	void doHack();
-
 	void setDialog(Core::Dialog* dialog);
 
 	virtual int type() const override;

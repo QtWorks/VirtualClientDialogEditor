@@ -25,6 +25,7 @@ public:
 
 	double score() const;
 	void setScore(double score);
+	double bestPossibleScore() const;
 
 	const QList<AbstractDialogNode*>& nodes() const;
 	void appendNode(AbstractDialogNode* node);
