@@ -12,6 +12,7 @@
 #include "logger.h"
 #include <QPushButton>
 #include <QMessageBox>
+#include <QInputDialog>
 
 #include <set>
 
@@ -131,7 +132,7 @@ bool hasCycles(Core::AbstractDialogNode* childNode, const QList<Core::AbstractDi
 
 }
 
-DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* parent)
+DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, bool enableSaveAs, QWidget* parent)
 	: QWidget(parent)
 	, m_ui(new Ui::DialogEditorWindow)
 	, m_dialogConstructorGraphicsScene(new DialogConstructorGraphicsScene(this))
@@ -158,20 +159,48 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QWidget* pare
 	QPixmap warningPixmap = warningIcon.pixmap(QSize(16, 16));
 	m_ui->errorIconLabel->setPixmap(warningPixmap);
 
-	m_ui->buttonBox->button(QDialogButtonBox::Save)->setText("Сохранить");
-	m_ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Отменить");
-	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, [this]()
+	connect(m_ui->saveButton, &QPushButton::clicked, [this]()
 	{
 		Q_ASSERT(validateDialog());
 
 		m_dialog.phases = getPhases();
 
-		emit dialogChanged(m_dialog);
+		emit dialogModified(m_dialog);
 
 		close();
 	});
 
-	connect(m_ui->buttonBox, &QDialogButtonBox::rejected, [this]()
+	if (enableSaveAs)
+	{
+		connect(m_ui->saveAsButton, QPushButton::clicked, [this]()
+		{
+			bool ok = false;
+			QString dialogName = QInputDialog::getText(this, "Введите имя диалога", "Имя диалога:", QLineEdit::Normal, "", &ok, 0);
+			while (dialogName.trimmed().isEmpty())
+			{
+				dialogName = QInputDialog::getText(this, "Введите имя диалога", "Имя не может быть пустым.\nИмя диалога:", QLineEdit::Normal, "", &ok, 0);
+				if (!ok)
+				{
+					return;
+				}
+			}
+
+			Q_ASSERT(validateDialog());
+
+			m_dialog.name = dialogName;
+			m_dialog.phases = getPhases();
+
+			emit dialogCreated(m_dialog);
+
+			close();
+		});
+	}
+	else
+	{
+		m_ui->saveAsButton->hide();
+	}
+
+	connect(m_ui->closeButton, &QPushButton::clicked, [this]()
 	{
 		close();
 	});
@@ -278,7 +307,8 @@ void DialogEditorWindow::showError(QString text)
 	m_ui->errorTextLabel->setText(text);
 	m_ui->errorTextLabel->show();
 
-	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
+	m_ui->saveButton->setEnabled(false);
+	m_ui->saveAsButton->setEnabled(false);
 }
 
 void DialogEditorWindow::hideError()
@@ -288,7 +318,8 @@ void DialogEditorWindow::hideError()
 	m_ui->errorTextLabel->setText("");
 	m_ui->errorTextLabel->hide();
 
-	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(true);
+	m_ui->saveButton->setEnabled(true);
+	m_ui->saveAsButton->setEnabled(true);
 }
 
 void DialogEditorWindow::onConnectNodesClicked()

@@ -67,28 +67,42 @@ void DialogListEditorWidget::removeItems(const QStringList& dialogs)
 	m_backendConnection->updateDialogs({ {}, removingDialogs, {} });
 }
 
+void DialogListEditorWidget::updateDialog(int index, const Core::Dialog& dialog)
+{
+	const Core::Dialog& sourceDialog = m_model.get(index);
+	if (dialog == sourceDialog)
+	{
+		return;
+	}
+
+	showProgressDialog("Изменение данных", "Идет изменение данных. Пожалуйста, подождите.");
+
+	const QMap<Core::Dialog, Core::Dialog> updated = {
+		{ sourceDialog, dialog }
+	};
+	m_backendConnection->updateDialogs({ updated, {}, {} });
+}
+
+void DialogListEditorWidget::addDialog(const Core::Dialog& dialog)
+{
+	Core::DialogJsonWriter writer;
+	LOG << writer.write(dialog);
+
+	showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
+	m_backendConnection->updateDialogs({ {}, {}, { dialog } });
+}
+
 void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 {
 	const DialogListDataModel::Index index = m_model.findIndex(
 		[&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
 	Q_ASSERT(index != -1);
 
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(m_model.get(index));
-	connect(editorWindow, &DialogEditorWindow::dialogChanged, [this, index, dialogName](Core::Dialog dialog)
-	{
-		const Core::Dialog& sourceDialog = m_model.get(index);
-		if (dialog == sourceDialog)
-		{
-			return;
-		}
-
-		showProgressDialog("Изменение данных", "Идет изменение данных. Пожалуйста, подождите.");
-
-		const QMap<Core::Dialog, Core::Dialog> updated = {
-			{ sourceDialog, dialog }
-		};
-		m_backendConnection->updateDialogs({ updated, {}, {} });
-	});
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(m_model.get(index), true);
+	connect(editorWindow, &DialogEditorWindow::dialogModified,
+		[this, index](Core::Dialog dialog) { updateDialog(index, dialog); });
+	connect(editorWindow, &DialogEditorWindow::dialogCreated,
+		[this](Core::Dialog dialog) { addDialog(dialog); });
 
 	editorWindow->show();
 }
@@ -97,15 +111,9 @@ void DialogListEditorWidget::onItemCreateRequested()
 {
 	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, { }, {} };
 
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(dialog);
-	connect(editorWindow, &DialogEditorWindow::dialogChanged, [this](Core::Dialog dialog)
-	{
-		Core::DialogJsonWriter writer;
-		LOG << writer.write(dialog);
-
-		showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
-		m_backendConnection->updateDialogs({ {}, {}, { dialog } });
-	});
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(dialog, false);
+	connect(editorWindow, &DialogEditorWindow::dialogModified,
+		[this](Core::Dialog dialog) { addDialog(dialog); });
 
 	editorWindow->show();
 }

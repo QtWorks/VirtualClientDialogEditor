@@ -15,11 +15,12 @@ class DialogEditorWindow
 	Q_OBJECT
 
 public:
-	explicit DialogEditorWindow(const Core::Dialog& dialog, QWidget* parent = 0);
+	explicit DialogEditorWindow(const Core::Dialog& dialog, bool enableSaveAs, QWidget* parent = 0);
 	~DialogEditorWindow();
 
 signals:
-	void dialogChanged(Core::Dialog dialog);
+	void dialogModified(Core::Dialog dialog);
+	void dialogCreated(Core::Dialog dialog);
 
 public slots:
 	void onNodeAdded(NodeGraphicsItem* node);

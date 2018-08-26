@@ -27,6 +27,10 @@ private slots:
 	void onDialogsUpdateFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
 
 private:
+	void updateDialog(int index, const Core::Dialog& dialog);
+	void addDialog(const Core::Dialog& dialog);
+
+private:
 	IBackendConnectionSharedPtr m_backendConnection;
 
 	typedef ListDataModel<Core::Dialog> DialogListDataModel;
