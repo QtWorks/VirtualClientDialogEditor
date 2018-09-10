@@ -193,6 +193,7 @@ PhaseNode parsePhase(const QJsonObject& object)
 		{ "id", QJsonValue::String },
 		{ "name", QJsonValue::String },
 		{ "score", QJsonValue::Double },
+		{ "repeatOnInsufficientScore", QJsonValue::Bool },
 		{ "nodes", QJsonValue::Array }
 	};
 	checkProperties(object, s_requiredProperties);
@@ -200,10 +201,11 @@ PhaseNode parsePhase(const QJsonObject& object)
 	const QString id = object["id"].toString();
 	const QString name = object["name"].toString();
 	const double score = object["score"].toDouble();
+	const bool repeatOnInsufficientScore = object["repeatOnInsufficientScore"].toBool();
 	const QList<AbstractDialogNode*> nodes = parseNodes(object["nodes"].toArray());
 
 	const ErrorReplica errorReplica = object.contains("errorReplica") ? parseError(object["errorReplica"].toObject()) : ErrorReplica();	
-	PhaseNode result = PhaseNode(name, score, nodes, errorReplica);
+	PhaseNode result = PhaseNode(name, score, repeatOnInsufficientScore, nodes, errorReplica);
 	result.setId(id);
 
 	if (hasProperty(object, "repeatReplica", QJsonValue::String))

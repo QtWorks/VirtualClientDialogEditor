@@ -6,7 +6,7 @@
 
 DialogConstructorGraphicsScene::DialogConstructorGraphicsScene(QObject* parent)
 	: QGraphicsScene(parent)
-	, m_phase("", 0, {}, {})
+	, m_phase("", 0, false, {}, {})
 	, m_replica("")
 	, m_expectedWords({})
 {

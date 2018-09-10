@@ -104,6 +104,7 @@ QJsonValue dumpPhase(const Core::PhaseNode& phase)
 		{ "id", phase.id() },
 		{ "name", phase.name() },
 		{ "score", phase.score() },
+		{ "repeatOnInsufficientScore", phase.repeatOnInsufficientScore() },
 		{ "nodes", dump(phase.nodes(), dumpNode) }
 	});
 

@@ -17,7 +17,7 @@ public:
 		Type = AbstractDialogNode::Type + 1
 	};
 
-	PhaseNode(const QString& name, double score, const QList<AbstractDialogNode*>& nodes, const ErrorReplica& errorReplica);
+	PhaseNode(const QString& name, double score, bool repeatOnInsufficientScore, const QList<AbstractDialogNode*>& nodes, const ErrorReplica& errorReplica);
 	PhaseNode(const PhaseNode& other);
 
 	const QString& name() const;
@@ -26,6 +26,9 @@ public:
 	double score() const;
 	void setScore(double score);
 	double bestPossibleScore() const;
+
+	bool repeatOnInsufficientScore() const;
+	void setRepeatOnInsufficientScore(bool repeatOnInsufficientScore);
 
 	const QList<AbstractDialogNode*>& nodes() const;
 	void appendNode(AbstractDialogNode* node);
@@ -51,6 +54,7 @@ private:
 private:
 	QString m_name;
 	double m_score;
+	bool m_repeatOnInsufficientScore;
 	QList<AbstractDialogNode*> m_nodes;
 
 	ErrorReplica m_errorReplica;

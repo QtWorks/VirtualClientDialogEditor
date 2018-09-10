@@ -31,6 +31,9 @@ public:
 	virtual void keyPressEvent(QKeyEvent* event) override;
 	virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
+private slots:
+	void onPhaseAccepted(const Core::PhaseNode& phase, QVector<Core::ErrorReplica::Field> replicatingErrorFields, bool replicateRepeatReplica);
+
 private:
 	virtual QString getHeaderText() const override;
 	virtual QString getContentText() const override;

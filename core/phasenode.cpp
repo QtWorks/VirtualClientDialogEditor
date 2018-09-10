@@ -123,9 +123,10 @@ double calculateBestPossibleScore(const QString& name, const QList<AbstractDialo
 
 }
 
-PhaseNode::PhaseNode(const QString& name, double score, const QList<AbstractDialogNode*>& nodes, const ErrorReplica& errorReplica)
+PhaseNode::PhaseNode(const QString& name, double score, bool repeatOnInsufficientScore, const QList<AbstractDialogNode*>& nodes, const ErrorReplica& errorReplica)
 	: m_name(name)
 	, m_score(score)
+	, m_repeatOnInsufficientScore(repeatOnInsufficientScore)
 	, m_nodes(nodes)
 	, m_errorReplica(errorReplica)
 {
@@ -134,6 +135,7 @@ PhaseNode::PhaseNode(const QString& name, double score, const QList<AbstractDial
 PhaseNode::PhaseNode(const PhaseNode& other)
 	: m_name(other.m_name)
 	, m_score(other.m_score)
+	, m_repeatOnInsufficientScore(other.m_repeatOnInsufficientScore)
 	, m_errorReplica(other.m_errorReplica)
 	, m_repeatReplica(other.m_repeatReplica)
 {
@@ -178,6 +180,16 @@ void PhaseNode::setScore(double score)
 double PhaseNode::bestPossibleScore() const
 {
 	return calculateBestPossibleScore(m_name, m_nodes);
+}
+
+bool PhaseNode::repeatOnInsufficientScore() const
+{
+	return m_repeatOnInsufficientScore;
+}
+
+void PhaseNode::setRepeatOnInsufficientScore(bool repeatOnInsufficientScore)
+{
+	m_repeatOnInsufficientScore = repeatOnInsufficientScore;
 }
 
 const QList<AbstractDialogNode*>& PhaseNode::nodes() const
@@ -251,7 +263,7 @@ bool PhaseNode::validate(QString& errorMessage) const
 		return false;
 	}
 
-	if (!m_nodes.empty())
+	if (m_repeatOnInsufficientScore && !m_nodes.empty())
 	{
 		const double bestPossibleScore = calculateBestPossibleScore(m_name, m_nodes);
 		if (bestPossibleScore < m_score)
@@ -302,7 +314,7 @@ AbstractDialogNode* PhaseNode::shallowCopy() const
 		clonedNodes.append(node->clone(false));
 	}
 
-	return new PhaseNode(m_name, m_score, clonedNodes, m_errorReplica);
+	return new PhaseNode(m_name, m_score, m_repeatOnInsufficientScore, clonedNodes, m_errorReplica);
 }
 
 bool PhaseNode::compareData(AbstractDialogNode* other) const
@@ -315,6 +327,7 @@ bool operator==(const PhaseNode& left, const PhaseNode& right)
 {
 	return left.name() == right.name() &&
 		left.score() == right.score() &&
+		left.repeatOnInsufficientScore() == right.repeatOnInsufficientScore() &&
 		left.errorReplica() == right.errorReplica() &&
 		left.nodes().size() == right.nodes().size() &&
 		std::equal(left.nodes().begin(), left.nodes().end(), right.nodes().begin(),

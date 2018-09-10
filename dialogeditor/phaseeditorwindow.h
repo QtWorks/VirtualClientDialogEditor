@@ -27,6 +27,7 @@ private slots:
 	void onCancelClicked();
 	void onNameChanged();
 	void onScoreChanged();
+	void onRepeatOnInsufficientScoreChanged();
 	void onErrorReplicaChanged();
 	void onErrorPenaltyChanged();
 	void onFinishingExpectedWordsChanged();

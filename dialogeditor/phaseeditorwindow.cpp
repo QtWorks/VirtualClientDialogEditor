@@ -40,6 +40,8 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, const Core::D
 	m_ui->scoreLineEdit->setValidator(new QIntValidator(0, INT_MAX, this));
 	connect(m_ui->scoreLineEdit, &QLineEdit::textChanged, this, &PhaseEditorWindow::onScoreChanged);
 
+	connect(m_ui->repeatOnInsufficientScoreCheckBox, &QCheckBox::clicked, this, &PhaseEditorWindow::onRepeatOnInsufficientScoreChanged);
+
 	connect(m_ui->errorReplicaPlainTextEdit, &QPlainTextEdit::textChanged, this, &PhaseEditorWindow::onErrorReplicaChanged);
 
 	m_ui->errorPenaltyLineEdit->setValidator(new QDoubleValidator(0, INT_MAX, 2, this));
@@ -120,6 +122,12 @@ void PhaseEditorWindow::onScoreChanged()
 	Q_ASSERT(ok);
 
 	m_phase.setScore(score);
+	emit changed();
+}
+
+void PhaseEditorWindow::onRepeatOnInsufficientScoreChanged()
+{
+	m_phase.setRepeatOnInsufficientScore(m_ui->repeatOnInsufficientScoreCheckBox->isChecked());
 	emit changed();
 }
 
@@ -208,6 +216,7 @@ void PhaseEditorWindow::updateInterface()
 	m_ui->nameLineEdit->setFocus();
 
 	m_ui->scoreLineEdit->setText(QString::number(m_phase.score()));
+	m_ui->repeatOnInsufficientScoreCheckBox->setChecked(m_phase.repeatOnInsufficientScore());
 
 	const Core::Dialog& dialog = m_dialog.get();
 

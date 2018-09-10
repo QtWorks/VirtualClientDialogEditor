@@ -13,19 +13,82 @@
   <property name="minimumSize">
    <size>
     <width>500</width>
-    <height>0</height>
+    <height>441</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Редактор фазы</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_6">
+  <layout class="QVBoxLayout" name="verticalLayout_7">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
+     <item row="1" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QLineEdit" name="scoreLineEdit"/>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="repeatOnInsufficientScoreCheckBox">
+         <property name="text">
+          <string>Повтор фазы при недоборе баллов</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="6" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QPlainTextEdit" name="finishingReplicaPlainTextEdit">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="finishingReplicaCheckBox">
+         <property name="text">
+          <string>Использовать для всех фаз</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>Имя фазы:</string>
+        <string>Завершающие опорные слова:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QPlainTextEdit" name="repeatReplicaPlainTextEdit">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="repeatReplicaCheckBox">
+         <property name="text">
+          <string>Использовать для всех фаз</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Проходной балл:</string>
        </property>
       </widget>
      </item>
@@ -36,20 +99,72 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
+     <item row="5" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QPlainTextEdit" name="finishingExpectedWordsPlainTextEdit">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="finishingExpectedWordsCheckBox">
+         <property name="text">
+          <string>Использовать для всех фаз</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_6">
        <property name="text">
-        <string>Кол-во баллов:</string>
+        <string>Реплика повтора фазы:</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="scoreLineEdit"/>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>Кол-во штрафных быллов:</string>
+       </property>
+      </widget>
      </item>
-     <item row="2" column="0" colspan="2">
-      <widget class="Line" name="line">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+     <item row="4" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QLineEdit" name="errorPenaltyLineEdit"/>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="errorPenaltyCheckBox">
+         <property name="text">
+          <string>Использовать для всех фаз</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Завершающая реплика:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Имя фазы:</string>
        </property>
       </widget>
      </item>
@@ -84,114 +199,10 @@
        </item>
       </layout>
      </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_8">
-       <property name="text">
-        <string>Кол-во штрафных быллов:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <layout class="QVBoxLayout" name="verticalLayout_5">
-       <item>
-        <widget class="QLineEdit" name="errorPenaltyLineEdit"/>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="errorPenaltyCheckBox">
-         <property name="text">
-          <string>Использовать для всех фаз</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="5" column="1" rowspan="2">
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QPlainTextEdit" name="finishingExpectedWordsPlainTextEdit">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>40</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="finishingExpectedWordsCheckBox">
-         <property name="text">
-          <string>Использовать для всех фаз</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Завершающая реплика:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="1">
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QPlainTextEdit" name="finishingReplicaPlainTextEdit">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>40</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="finishingReplicaCheckBox">
-         <property name="text">
-          <string>Использовать для всех фаз</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>Реплика повтора фазы:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QPlainTextEdit" name="repeatReplicaPlainTextEdit">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>40</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="repeatReplicaCheckBox">
-         <property name="text">
-          <string>Использовать для всех фаз</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="5" column="0" rowspan="2">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Завершающие опорные слова:</string>
+     <item row="2" column="0" colspan="2">
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
       </widget>
      </item>
