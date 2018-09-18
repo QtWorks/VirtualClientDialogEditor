@@ -29,14 +29,29 @@ QString ClientReplicaNodeGraphicsItem::getHeaderText() const
 	return "Клиент";
 }
 
+QColor ClientReplicaNodeGraphicsItem::getHeaderTextColor() const
+{
+	return Qt::black;
+}
+
+QColor ClientReplicaNodeGraphicsItem::getHeaderBackgroundColor() const
+{
+	return QColor::fromRgb(0x846FD7);
+}
+
 QString ClientReplicaNodeGraphicsItem::getContentText() const
 {
 	return m_replica->replica();
 }
 
-QBrush ClientReplicaNodeGraphicsItem::getHeaderBrush() const
+QColor ClientReplicaNodeGraphicsItem::getContentTextColor() const
 {
-	return QColor::fromRgb(0x846FD7);
+	return Qt::black;
+}
+
+QColor ClientReplicaNodeGraphicsItem::getContentBackgroundColor() const
+{
+	return Qt::white;
 }
 
 void ClientReplicaNodeGraphicsItem::showNodeEditor()

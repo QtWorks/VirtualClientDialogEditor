@@ -139,7 +139,7 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 {
 	painter->setRenderHint(QPainter::Antialiasing);
 
-	QPen pen = QPen(Qt::black,
+	QPen pen = QPen(getHeaderTextColor(),
 		isSelected() ? 2.0 : 1.0,
 		isSelected() ? Qt::DotLine : Qt::SolidLine);
 	painter->setPen(pen);
@@ -150,7 +150,7 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 	}
 	else
 	{
-		painter->setBrush(getHeaderBrush());
+		painter->setBrush(getHeaderBackgroundColor());
 	}
 
 	const int headerHeight = painter->fontMetrics().height() + padding() * 2;
@@ -166,9 +166,12 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 
 	QRectF adjustedHeaderRect = headerRect.adjusted(+padding(), +padding(), -padding(), -padding());
 	const QString elidedHeaderText = elideText(painter->fontMetrics(), getHeaderText(), adjustedHeaderRect.width(), adjustedHeaderRect.height());
+
 	painter->drawText(adjustedHeaderRect, Qt::AlignLeft, elidedHeaderText);
 
-	painter->setBrush(getContentBrush());
+	pen.setColor(getContentTextColor());
+	painter->setPen(pen);
+	painter->setBrush(getContentBackgroundColor());
 
 	const QRectF contentRect = QRectF(0, headerHeight, m_width, m_height - headerHeight);
 	QPainterPath contentRectPath;
@@ -372,7 +375,12 @@ void NodeGraphicsItem::trackNodes()
 	}
 }
 
+/*QBrush NodeGraphicsItem::getHeaderTextBrush() const
+{
+	return Qt::black;
+}
+
 QBrush NodeGraphicsItem::getContentBrush() const
 {
 	return QBrush(Qt::white);
-}
+}*/

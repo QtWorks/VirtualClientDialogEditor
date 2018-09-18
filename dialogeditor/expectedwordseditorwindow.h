@@ -43,6 +43,7 @@ private:
 private:
 	Ui::ExpectedWordsEditorWindow* m_ui;
 	QVector<ExpectedWordEditor*> m_itemEditors;
+	Core::ExpectedWordsNode m_initialNode;
 };
 
 #endif // EXPECTEDWORDSEDITORWINDOW_H

@@ -36,8 +36,13 @@ private slots:
 
 private:
 	virtual QString getHeaderText() const override;
+	virtual QColor getHeaderTextColor() const override;
+	virtual QColor getHeaderBackgroundColor() const override;
+
 	virtual QString getContentText() const override;
-	virtual QBrush getHeaderBrush() const override;
+	virtual QColor getContentTextColor() const override;
+	virtual QColor getContentBackgroundColor() const override;
+
 	virtual void showNodeEditor() override;
 	virtual NodeGraphicsItem* clone() const override;
 	virtual qreal minHeight() const override;

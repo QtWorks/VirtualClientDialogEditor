@@ -6,6 +6,7 @@
 ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNode& expectedWords, QWidget* parent)
 	: QWidget(parent)
 	, m_ui(new Ui::ExpectedWordsEditorWindow)
+	, m_initialNode(expectedWords)
 {
 	m_ui->setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, true);
@@ -17,8 +18,8 @@ ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNo
 	connect(m_ui->hintPlainTextEdit, &QPlainTextEdit::textChanged, this, &ExpectedWordsEditorWindow::validate);
 
 	QFontMetrics fontMetrics = QFontMetrics(m_ui->hintPlainTextEdit->font());
-	m_ui->hintPlainTextEdit->setMaximumHeight(fontMetrics.lineSpacing() * 4);
-	m_ui->hintPlainTextEdit->setMaximumHeight(fontMetrics.lineSpacing() * 4);
+	m_ui->hintPlainTextEdit->setMaximumHeight(fontMetrics.lineSpacing() * 6);
+	m_ui->hintPlainTextEdit->setMaximumHeight(fontMetrics.lineSpacing() * 6);
 
 	m_ui->listWidget->setStyleSheet("QListWidget::item { border-bottom: 1px solid black; }");
 	m_ui->listWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -145,11 +146,11 @@ Core::ExpectedWordsNode ExpectedWordsEditorWindow::getNode() const
 	if (useCustomHint)
 	{
 		const QString hint = m_ui->hintPlainTextEdit->toPlainText().trimmed();
-		const Core::ExpectedWordsNode expectedWordsNode = Core::ExpectedWordsNode(words, hint);
+		const Core::ExpectedWordsNode expectedWordsNode = Core::ExpectedWordsNode(words, hint, m_initialNode.forbidden());
 		return expectedWordsNode;
 	}
 
-	const Core::ExpectedWordsNode expectedWordsNode = Core::ExpectedWordsNode(words);
+	const Core::ExpectedWordsNode expectedWordsNode = Core::ExpectedWordsNode(words, m_initialNode.forbidden());
 	return expectedWordsNode;
 }
 

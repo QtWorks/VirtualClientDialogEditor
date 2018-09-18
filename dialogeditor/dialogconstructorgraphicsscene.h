@@ -23,7 +23,8 @@ private:
 	Core::Dialog m_dialog;
 	Core::PhaseNode m_phase;
 	Core::ClientReplicaNode m_replica;
-	Core::ExpectedWordsNode m_expectedWords;
+	Core::ExpectedWordsNode m_allowedExpectedWords;
+	Core::ExpectedWordsNode m_forbiddenExpectedWords;
 };
 
 #endif // DIALOGCONSTRUCTORGRAPHICSSCENE_H

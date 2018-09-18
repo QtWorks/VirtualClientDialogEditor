@@ -8,7 +8,8 @@ DialogConstructorGraphicsScene::DialogConstructorGraphicsScene(QObject* parent)
 	: QGraphicsScene(parent)
 	, m_phase("", 0, false, {}, {})
 	, m_replica("")
-	, m_expectedWords({})
+	, m_allowedExpectedWords({}, false)
+	, m_forbiddenExpectedWords({}, true)
 {
 	addConstructorItems();
 }
@@ -27,13 +28,17 @@ void DialogConstructorGraphicsScene::addConstructorItems()
 	clientReplicaNode->setPos(QPoint(0, 90));
 	addItem(clientReplicaNode);
 
-	NodeGraphicsItem* expectedWordsNode = new ExpectedWordsNodeGraphicsItem(&m_expectedWords, NodeGraphicsItem::Draggable, this);
-	expectedWordsNode->setPos(QPoint(0, 180));
-	addItem(expectedWordsNode);
+	NodeGraphicsItem* allowedExpectedWordsNode = new ExpectedWordsNodeGraphicsItem(&m_allowedExpectedWords, NodeGraphicsItem::Draggable, this);
+	allowedExpectedWordsNode->setPos(QPoint(0, 180));
+	addItem(allowedExpectedWordsNode);
 
-	const qreal arrowLength = expectedWordsNode->sceneBoundingRect().width() / 2;
+	NodeGraphicsItem* forbiddenExpectedWordsNode = new ExpectedWordsNodeGraphicsItem(&m_forbiddenExpectedWords, NodeGraphicsItem::Draggable, this);
+	forbiddenExpectedWordsNode->setPos(QPoint(0, 270));
+	addItem(forbiddenExpectedWordsNode);
+
+	const qreal arrowLength = forbiddenExpectedWordsNode->sceneBoundingRect().width() / 2;
 	ArrowLineGraphicsItem* link = new ArrowLineGraphicsItem(QPointF(0, 0), QPointF(arrowLength, 0));
 	link->setDraggable(true);
-	link->setPos(QPoint(0, 280));
+	link->setPos(QPoint(0, 370));
 	addItem(link);
 }

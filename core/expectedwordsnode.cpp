@@ -30,17 +30,19 @@ bool operator==(const ExpectedWords& left, const ExpectedWords& right)
 	return left.words == right.words && left.score == right.score;
 }
 
-ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords)
+ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, bool forbidden)
 	: m_expectedWords(expectedWords)
 	, m_customHint(false)
 	, m_hint(join(expectedWords, "; "))
+	, m_forbidden(forbidden)
 {
 }
 
-ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, const QString& hint)
+ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, const QString& hint, bool forbidden)
 	: m_expectedWords(expectedWords)
 	, m_customHint(true)
 	, m_hint(hint)
+	, m_forbidden(forbidden)
 {
 }
 
@@ -74,6 +76,11 @@ void ExpectedWordsNode::setHint(const QString& hint)
 	m_hint = hint;
 }
 
+bool ExpectedWordsNode::forbidden() const
+{
+	return m_forbidden;
+}
+
 int ExpectedWordsNode::type() const
 {
 	return ExpectedWordsNode::Type;
@@ -105,12 +112,14 @@ bool ExpectedWordsNode::validate(QString& error) const
 		return false;
 	}
 
+	// TODO: validate score according to "m_forbidden" flag
+
 	return true;
 }
 
 AbstractDialogNode* ExpectedWordsNode::shallowCopy() const
 {
-	return m_customHint ? new ExpectedWordsNode(m_expectedWords, m_hint) : new ExpectedWordsNode(m_expectedWords);
+	return m_customHint ? new ExpectedWordsNode(m_expectedWords, m_hint, m_forbidden) : new ExpectedWordsNode(m_expectedWords, m_forbidden);
 }
 
 bool ExpectedWordsNode::compareData(AbstractDialogNode* other) const
@@ -121,7 +130,10 @@ bool ExpectedWordsNode::compareData(AbstractDialogNode* other) const
 
 bool operator==(const ExpectedWordsNode& left, const ExpectedWordsNode& right)
 {
-	return left.expectedWords() == right.expectedWords() && left.customHint() == right.customHint() && left.hint() == right.hint();
+	return left.expectedWords() == right.expectedWords()
+		&& left.customHint() == right.customHint()
+		&& left.hint() == right.hint()
+		&& left.forbidden() == right.forbidden();
 }
 
 }

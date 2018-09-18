@@ -24,8 +24,8 @@ class ExpectedWordsNode
 	: public AbstractDialogNode
 {
 public:
-	ExpectedWordsNode(const QList<ExpectedWords>& expectedWords);
-	ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, const QString& hint);
+	ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, bool forbidden);
+	ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, const QString& hint, bool forbidden);
 
 	enum Type
 	{
@@ -41,6 +41,8 @@ public:
 	const QString& hint() const;
 	void setHint(const QString& hint);
 
+	bool forbidden() const;
+
 	virtual int type() const override;
 	virtual bool validate(QString& error) const override;
 
@@ -52,6 +54,7 @@ private:
 	QList<ExpectedWords> m_expectedWords;
 	bool m_customHint;
 	QString m_hint;
+	bool m_forbidden;
 };
 
 bool operator==(const ExpectedWordsNode& left, const ExpectedWordsNode& right);

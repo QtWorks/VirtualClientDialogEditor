@@ -37,7 +37,8 @@ QJsonObject dumpExpectedWordsNode(const ExpectedWordsNode& node)
 	});
 
 	QJsonObject result = {
-		{ "expectedWords", expectedWords }
+		{ "expectedWords", expectedWords },
+		{ "forbidden", node.forbidden() }
 	};
 
 	if (node.customHint())

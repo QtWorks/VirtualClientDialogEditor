@@ -72,6 +72,9 @@ public:
 
 	virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
+protected:
+	Properties m_properties;
+
 private:
 	static int padding();
 
@@ -82,13 +85,14 @@ private:
 
 private:
 	virtual QString getHeaderText() const = 0;
-	virtual QString getContentText() const = 0;
-	virtual QBrush getHeaderBrush() const = 0;
-	virtual QBrush getContentBrush() const;
-	virtual NodeGraphicsItem* clone() const = 0;
+	virtual QColor getHeaderTextColor() const = 0;
+	virtual QColor getHeaderBackgroundColor() const = 0;
 
-protected:
-	Properties m_properties;
+	virtual QString getContentText() const = 0;
+	virtual QColor getContentTextColor() const = 0;
+	virtual QColor getContentBackgroundColor() const = 0;
+
+	virtual NodeGraphicsItem* clone() const = 0;
 
 private:
 	QList<ArrowLineGraphicsItem*> m_incomingLinks;

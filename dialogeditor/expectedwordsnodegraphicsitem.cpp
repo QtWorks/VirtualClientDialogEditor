@@ -29,6 +29,16 @@ QString ExpectedWordsNodeGraphicsItem::getHeaderText() const
 	return "Опорные слова";
 }
 
+QColor ExpectedWordsNodeGraphicsItem::getHeaderTextColor() const
+{
+	return m_expectedWords->forbidden() ? Qt::white : Qt::black;
+}
+
+QColor ExpectedWordsNodeGraphicsItem::getHeaderBackgroundColor() const
+{
+	return m_expectedWords->forbidden() ? Qt::black : QColor::fromRgb(0x5DCFC3);
+}
+
 QString ExpectedWordsNodeGraphicsItem::getContentText() const
 {
 	QStringList prefexedExpectedWords;
@@ -41,9 +51,14 @@ QString ExpectedWordsNodeGraphicsItem::getContentText() const
 	return prefexedExpectedWords.join("\n");
 }
 
-QBrush ExpectedWordsNodeGraphicsItem::getHeaderBrush() const
+QColor ExpectedWordsNodeGraphicsItem::getContentTextColor() const
 {
-	return QColor::fromRgb(0x5DCFC3);
+	return Qt::black;
+}
+
+QColor ExpectedWordsNodeGraphicsItem::getContentBackgroundColor() const
+{
+	return Qt::white;
 }
 
 void ExpectedWordsNodeGraphicsItem::showNodeEditor()

@@ -111,7 +111,18 @@ QVariant PhaseGraphicsItem::itemChange(GraphicsItemChange change, const QVariant
 
 QString PhaseGraphicsItem::getHeaderText() const
 {
+	// TODO: computation of "bestPossibleScore" is called very often and takes a lot of times - try to cache results
 	return QString("Фаза: %1 (%2 / %3)").arg(m_phase->name()).arg(m_phase->bestPossibleScore()).arg(m_phase->score());
+}
+
+QColor PhaseGraphicsItem::getHeaderTextColor() const
+{
+	return Qt::black;
+}
+
+QColor PhaseGraphicsItem::getHeaderBackgroundColor() const
+{
+	return QColor::fromRgb(0xFFBC40);
 }
 
 QString PhaseGraphicsItem::getContentText() const
@@ -119,9 +130,14 @@ QString PhaseGraphicsItem::getContentText() const
 	return QString();
 }
 
-QBrush PhaseGraphicsItem::getHeaderBrush() const
+QColor PhaseGraphicsItem::getContentTextColor() const
 {
-	return QColor::fromRgb(0xFFBC40);
+	return Qt::black;
+}
+
+QColor PhaseGraphicsItem::getContentBackgroundColor() const
+{
+	return Qt::white;
 }
 
 void PhaseGraphicsItem::showNodeEditor()

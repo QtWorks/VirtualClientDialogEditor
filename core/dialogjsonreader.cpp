@@ -58,11 +58,14 @@ ClientReplicaNode* parseClientReplicaNode(const QJsonObject& object)
 
 ExpectedWordsNode* parseExpectedWordsNode(const QJsonObject& object)
 {
-	QList<ExpectedWords> expectedWords;
+	checkProperties(object, {
+		{ "expectedWords", QJsonValue::Array },
+		{ "forbidden", QJsonValue::Bool }
+	});
 
-	checkProperties(object, { { "expectedWords", QJsonValue::Array } });
 	const QJsonArray expectedWordsArray = object["expectedWords"].toArray();
 
+	QList<ExpectedWords> expectedWords;
 	for (const QJsonValue& expectedWord : expectedWordsArray)
 	{
 		const QJsonObject expectedWordObject = expectedWord.toObject();
@@ -71,13 +74,15 @@ ExpectedWordsNode* parseExpectedWordsNode(const QJsonObject& object)
 		expectedWords << ExpectedWords(expectedWordObject["words"].toString(), expectedWordObject["score"].toDouble());
 	}
 
+	bool forbidden = object["forbidden"].toBool();
+
 	if (!object.contains("hint"))
 	{
-		return new ExpectedWordsNode(expectedWords);
+		return new ExpectedWordsNode(expectedWords, forbidden);
 	}
 
 	checkProperties(object, { { "hint", QJsonValue::String } });
-	return new ExpectedWordsNode(expectedWords, object["hint"].toString());
+	return new ExpectedWordsNode(expectedWords, object["hint"].toString(), forbidden);
 }
 
 AbstractDialogNode* parseNode(const QJsonObject& object)
