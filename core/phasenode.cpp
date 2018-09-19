@@ -100,13 +100,13 @@ double calculateBestPossibleScore(const QString& name, const QList<AbstractDialo
 					continue;
 				}
 
-				const auto maxScoreIt = std::max_element(expectedWords.begin(), expectedWords.end(),
-					[](const ExpectedWords& left, const ExpectedWords& right)
+				for (const ExpectedWords& words : expectedWords)
+				{
+					if (words.score > 0.0)
 					{
-						return left.score < right.score;
-					});
-				Q_ASSERT(maxScoreIt != expectedWords.end());
-				score += (*maxScoreIt).score;
+						score += words.score;
+					}
+				}
 			}
 			return score;
 		});
