@@ -433,6 +433,12 @@ void DialogEditorWindow::updateConnectControls()
 		return;
 	}
 
+	if (parentNode->type() == PhaseGraphicsItem::Type || childNode->type() == PhaseGraphicsItem::Type)
+	{
+		m_ui->connectNodesButton->setEnabled(false);
+		return;
+	}
+
 	const Core::AbstractDialogNode::Id childNodeId = childNode->data()->id();
 	const Core::AbstractDialogNode::Id parentNodeId = parentNode->data()->id();
 
