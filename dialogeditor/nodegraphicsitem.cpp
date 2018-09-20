@@ -139,7 +139,7 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 {
 	painter->setRenderHint(QPainter::Antialiasing);
 
-	QPen pen = QPen(getHeaderTextColor(),
+	QPen pen = QPen(Qt::black,
 		isSelected() ? 2.0 : 1.0,
 		isSelected() ? Qt::DotLine : Qt::SolidLine);
 	painter->setPen(pen);
@@ -167,6 +167,8 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 	QRectF adjustedHeaderRect = headerRect.adjusted(+padding(), +padding(), -padding(), -padding());
 	const QString elidedHeaderText = elideText(painter->fontMetrics(), getHeaderText(), adjustedHeaderRect.width(), adjustedHeaderRect.height());
 
+	pen.setColor(getHeaderTextColor());
+	painter->setPen(pen);
 	painter->drawText(adjustedHeaderRect, Qt::AlignLeft, elidedHeaderText);
 
 	pen.setColor(getContentTextColor());
