@@ -93,7 +93,8 @@ HEADERS  += \
 	dialogeditor/graphlayout.h \
 	settingsdialog.h \
 	applicationsettings.h \
-    core/errorreplica.h
+    core/errorreplica.h \
+    core/hashcombine.h
 
 FORMS    += \
     listeditorwidget.ui \

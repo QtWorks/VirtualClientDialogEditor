@@ -1,4 +1,5 @@
 #include "clientreplicanode.h"
+#include "hashcombine.h"
 
 namespace Core
 {
@@ -43,6 +44,13 @@ bool ClientReplicaNode::compareData(AbstractDialogNode* other) const
 {
 	Q_ASSERT(other->type() == type());
 	return *this == *other->as<ClientReplicaNode>();
+}
+
+size_t ClientReplicaNode::calculateHash() const
+{
+	size_t seed = 0;
+	hashCombine(seed, m_replica);
+	return seed;
 }
 
 bool operator==(const ClientReplicaNode& left, const ClientReplicaNode& right)

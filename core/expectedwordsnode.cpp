@@ -1,4 +1,5 @@
 #include "expectedwordsnode.h"
+#include "hashcombine.h"
 
 namespace Core
 {
@@ -126,6 +127,23 @@ bool ExpectedWordsNode::compareData(AbstractDialogNode* other) const
 {
 	Q_ASSERT(other->type() == type());
 	return *this == *other->as<ExpectedWordsNode>();
+}
+
+size_t ExpectedWordsNode::calculateHash() const
+{
+	size_t seed = 0;
+
+	for (const ExpectedWords& words : m_expectedWords)
+	{
+		hashCombine(seed, words.words);
+		hashCombine(seed, words.score);
+	}
+
+	hashCombine(seed, m_customHint);
+	hashCombine(seed, m_hint);
+	hashCombine(seed, m_forbidden);
+
+	return seed;
 }
 
 bool operator==(const ExpectedWordsNode& left, const ExpectedWordsNode& right)

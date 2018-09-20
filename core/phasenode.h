@@ -50,6 +50,7 @@ public:
 private:
 	virtual AbstractDialogNode* shallowCopy() const override;
 	virtual bool compareData(AbstractDialogNode* other) const override;
+	virtual size_t calculateHash() const override;
 
 private:
 	QString m_name;

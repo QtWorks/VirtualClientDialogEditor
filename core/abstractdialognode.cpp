@@ -1,4 +1,5 @@
 #include "abstractdialognode.h"
+#include "hashcombine.h"
 #include <QDateTime>
 
 namespace Core
@@ -84,6 +85,27 @@ bool AbstractDialogNode::compare(AbstractDialogNode* other) const
 	};
 
 	return rank(this) == rank(other) && compareData(other);
+}
+
+size_t AbstractDialogNode::hash() const
+{
+	size_t seed = 0;
+
+	for (Id id : m_parentNodes)
+	{
+		hashCombine(seed, id);
+	}
+
+	for (Id id : m_childNodes)
+	{
+		hashCombine(seed, id);
+	}
+
+	hashCombine(seed, m_id);
+
+	seed ^= calculateHash();
+
+	return seed;
 }
 
 }

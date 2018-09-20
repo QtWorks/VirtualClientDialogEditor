@@ -111,7 +111,6 @@ QVariant PhaseGraphicsItem::itemChange(GraphicsItemChange change, const QVariant
 
 QString PhaseGraphicsItem::getHeaderText() const
 {
-	// TODO: computation of "bestPossibleScore" is called very often and takes a lot of times - try to cache results
 	return QString("Фаза: %1 (%2 / %3)").arg(m_phase->name()).arg(m_phase->bestPossibleScore()).arg(m_phase->score());
 }
 

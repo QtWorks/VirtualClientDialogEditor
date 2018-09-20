@@ -50,13 +50,16 @@ public:
 		return type() == T::Type ? static_cast<const T*>(this) : nullptr;
 	}
 
-protected:
+	size_t hash() const;
+
+protected:	
 	QSet<Id> m_parentNodes;
 	QSet<Id> m_childNodes;
 
 private:
 	virtual AbstractDialogNode* shallowCopy() const = 0;
 	virtual bool compareData(AbstractDialogNode* other) const = 0;
+	virtual size_t calculateHash() const = 0;
 
 private:
 	Id m_id;

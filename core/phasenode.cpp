@@ -1,5 +1,6 @@
 #include "phasenode.h"
 #include "expectedwordsnode.h"
+#include "hashcombine.h"
 
 #include "logger.h"
 
@@ -121,6 +122,34 @@ double calculateBestPossibleScore(const QString& name, const QList<AbstractDialo
 	return *maxScoreIt;
 }
 
+double calculateBestPossibleScoreCached(const QString& name, const QList<AbstractDialogNode*>& nodes)
+{
+	typedef quint64 HashType;
+
+	static const auto hash = [](const QList<AbstractDialogNode*>& nodes) -> HashType
+	{
+		size_t seed = 0;
+		for (AbstractDialogNode* node : nodes)
+		{
+			seed ^= node->hash();
+		}
+		return seed;
+	};
+
+	static QMap<HashType, double> s_cache;
+
+	const HashType nodesHash = hash(nodes);
+	auto it = s_cache.find(nodesHash);
+	if (it != s_cache.end())
+	{
+		return *it;
+	}
+
+	const double bestPossibleScore = calculateBestPossibleScore(name, nodes);
+	s_cache.insert(nodesHash, bestPossibleScore);
+	return bestPossibleScore;
+}
+
 }
 
 PhaseNode::PhaseNode(const QString& name, double score, bool repeatOnInsufficientScore, const QList<AbstractDialogNode*>& nodes, const ErrorReplica& errorReplica)
@@ -179,7 +208,7 @@ void PhaseNode::setScore(double score)
 
 double PhaseNode::bestPossibleScore() const
 {
-	return calculateBestPossibleScore(m_name, m_nodes);
+	return calculateBestPossibleScoreCached(m_name, m_nodes);
 }
 
 bool PhaseNode::repeatOnInsufficientScore() const
@@ -265,7 +294,7 @@ bool PhaseNode::validate(QString& errorMessage) const
 
 	if (m_repeatOnInsufficientScore && !m_nodes.empty())
 	{
-		const double bestPossibleScore = calculateBestPossibleScore(m_name, m_nodes);
+		const double bestPossibleScore = calculateBestPossibleScoreCached(m_name, m_nodes);
 		if (bestPossibleScore < m_score)
 		{
 			errorMessage = "Cлишком большое количество баллов (максимум - " + QString::number(bestPossibleScore) + ")";
@@ -321,6 +350,26 @@ bool PhaseNode::compareData(AbstractDialogNode* other) const
 {
 	Q_ASSERT(other->type() == type());
 	return *this == *other->as<PhaseNode>();
+}
+
+size_t PhaseNode::calculateHash() const
+{
+	size_t seed = 0;
+
+	hashCombine(seed, m_name);
+	hashCombine(seed, m_score);
+	hashCombine(seed, m_repeatOnInsufficientScore);
+
+	for (AbstractDialogNode* node : m_nodes)
+	{
+		seed ^= node->hash();
+	}
+
+	// omitted, because these fields are not required atm
+	//hashCombine(seed, m_errorReplica);
+	//hashCombine(seed, m_repeatReplica);
+
+	return seed;
 }
 
 bool operator==(const PhaseNode& left, const PhaseNode& right)
