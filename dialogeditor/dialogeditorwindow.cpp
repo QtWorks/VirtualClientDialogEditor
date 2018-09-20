@@ -439,7 +439,8 @@ void DialogEditorWindow::updateConnectControls()
 		return;
 	}
 
-	const Core::AbstractDialogNode::Id childNodeId = childNode->data()->id();
+	// TODO: optimize
+	/*const Core::AbstractDialogNode::Id childNodeId = childNode->data()->id();
 	const Core::AbstractDialogNode::Id parentNodeId = parentNode->data()->id();
 
 	QList<Core::AbstractDialogNode*> nodes = gatherNodes(m_nodesByPhase);
@@ -451,7 +452,7 @@ void DialogEditorWindow::updateConnectControls()
 	{
 		m_ui->connectNodesButton->setEnabled(false);
 		return;
-	}
+	}*/
 
 	m_ui->connectNodesButton->setEnabled(
 		(parentNode->type() == ClientReplicaNodeGraphicsItem::Type && childNode->type() == ExpectedWordsNodeGraphicsItem::Type) ||
