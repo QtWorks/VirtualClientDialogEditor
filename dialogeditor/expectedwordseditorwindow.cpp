@@ -86,7 +86,7 @@ void ExpectedWordsEditorWindow::addItemWidget(const Core::ExpectedWords& item)
 	connect(editorItem, &ExpectedWordEditor::removed, [this, editorItem]()
 	{
 		int itemIndex = m_itemEditors.indexOf(editorItem);
-		Q_ASSERT(m_ui->listWidget->takeItem(itemIndex));
+		delete m_ui->listWidget->takeItem(itemIndex);
 		m_itemEditors.removeAt(itemIndex);
 
 		validate();
