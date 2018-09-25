@@ -133,7 +133,7 @@ bool hasCycles(Core::AbstractDialogNode* childNode, const QList<Core::AbstractDi
 }
 
 DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, const UniquenessValidator& uniquenessValidator, bool enableSaveAs, QWidget* parent)
-	: QWidget(parent)
+	: QDialog(parent)
 	, m_ui(new Ui::DialogEditorWindow)
 	, m_dialogConstructorGraphicsScene(new DialogConstructorGraphicsScene(this))
 	, m_dialogGraphicsScene(new DialogGraphicsScene(this))
@@ -142,6 +142,7 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, const Uniquen
 {
 	m_ui->setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, true);
+	setModal(true);
 
 	m_ui->nameEdit->setText(dialog.name);
 	connect(m_ui->nameEdit, &QLineEdit::textEdited, [this](const QString& name) { m_dialog.name = name; });

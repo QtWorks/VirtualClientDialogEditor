@@ -2,19 +2,19 @@
 #define CLIENTREPLICAEDITOR_H
 
 #include "core/dialog.h"
-#include <QWidget>
+#include <QDialog>
 
 namespace Ui {
 class ClientReplicaEditor;
 }
 
 class ClientReplicaEditor
-	: public QWidget
+	: public QDialog
 {
 	Q_OBJECT
 
 public:
-	explicit ClientReplicaEditor(const Core::ClientReplicaNode& replica, QWidget* parent = 0);
+	ClientReplicaEditor(const Core::ClientReplicaNode& replica, QWidget* parent = 0);
 	~ClientReplicaEditor();
 
 signals:

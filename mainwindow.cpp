@@ -2,7 +2,8 @@
 #include "ui_mainwindow.h"
 #include "logindialog.h"
 #include "settingsdialog.h"
-#include "dialogeditor/dialoglisteditorwidget.h"
+#include "clienteditor/clientlisteditorwidget.h"
+#include "dialogeditor/dialogstabwidget.h"
 #include "usereditor/userlisteditorwidget.h"
 
 #include <QDesktopWidget>
@@ -12,13 +13,15 @@ MainWindow::MainWindow(ApplicationSettings* settings, IBackendConnectionSharedPt
 	, m_ui(new Ui::MainWindow)
 	, m_loginDialog(new LoginDialog(backendConnection, this))
 	, m_settingsDialog(new SettingsDialog(this))
+	, m_clientListEditorWidget(new ClientListEditorWidget(backendConnection, this))
 	, m_usersListEditorWidget(new UserListEditorWidget(backendConnection, this))
-	, m_dialogsListEditorWidget(new DialogListEditorWidget(backendConnection, this))
+	, m_dialogsTabWidget(new DialogsTabWidget(backendConnection, this))
 {
 	m_ui->setupUi(this);
 
-	m_ui->tabWidget->addTab(m_dialogsListEditorWidget, "Диалоги");
+	m_ui->tabWidget->addTab(m_clientListEditorWidget, "Клиенты");
 	m_ui->tabWidget->addTab(m_usersListEditorWidget, "Пользователи");
+	m_ui->tabWidget->addTab(m_dialogsTabWidget, "Диалоги");
 
 	m_settingsAction = m_ui->menuBar->addAction("Настройки");
 	connect(m_settingsAction, &QAction::triggered, this, &MainWindow::showSettingsWindow);
@@ -30,6 +33,15 @@ MainWindow::MainWindow(ApplicationSettings* settings, IBackendConnectionSharedPt
 	m_loginDialog->setSettings(settings);
 
 	m_settingsDialog->setSettings(settings);
+
+	connect(backendConnection.get(), &Core::IBackendConnection::clientsLoaded,
+		[this](Core::IBackendConnection::QueryId /*queryId*/, const QList<Core::Client>& clients)
+		{
+			m_usersListEditorWidget->setClients(clients);
+			m_usersListEditorWidget->loadData();
+
+			m_dialogsTabWidget->loadData();
+		});
 }
 
 MainWindow::~MainWindow()
@@ -58,8 +70,9 @@ void MainWindow::onLoginDialogFinished(int code)
 
 	if (code == QDialog::Accepted)
 	{
+		m_clientListEditorWidget->loadData();
 		m_usersListEditorWidget->loadData();
-		m_dialogsListEditorWidget->loadData();
+		m_dialogsTabWidget->loadData();
 	}
 	else if (code == QDialog::Rejected)
 	{

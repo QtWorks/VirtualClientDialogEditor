@@ -4,12 +4,13 @@
 #include "logger.h"
 
 ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNode& expectedWords, QWidget* parent)
-	: QWidget(parent)
+	: QDialog(parent)
 	, m_ui(new Ui::ExpectedWordsEditorWindow)
 	, m_initialNode(expectedWords)
 {
 	m_ui->setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, true);
+	setModal(true);
 
 	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, this, &ExpectedWordsEditorWindow::validate);
 	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, m_ui->hintLabel, &QLabel::setEnabled);

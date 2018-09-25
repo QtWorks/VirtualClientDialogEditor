@@ -53,7 +53,11 @@ void ListEditorWidget::updateData()
 
 void ListEditorWidget::showProgressDialog(const QString& title, const QString& label)
 {
-	Q_ASSERT(m_progressDialog == nullptr);
+	if (m_progressDialog)
+	{
+		hideProgressDialog();
+	}
+
 	m_progressDialog.reset(new QProgressDialog(label, QString(), 0, 0, nullptr));
 	m_progressDialog->setWindowTitle(title);
 	m_progressDialog->setWindowFlags(m_progressDialog->windowFlags() & ~Qt::WindowCloseButtonHint);
@@ -63,7 +67,11 @@ void ListEditorWidget::showProgressDialog(const QString& title, const QString& l
 
 void ListEditorWidget::hideProgressDialog()
 {
-	Q_ASSERT(m_progressDialog != nullptr);
+	if (!m_progressDialog)
+	{
+		return;
+	}
+
 	m_progressDialog->hide();
 	m_progressDialog.reset();
 }

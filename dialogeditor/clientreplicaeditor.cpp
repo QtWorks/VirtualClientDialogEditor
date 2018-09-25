@@ -4,12 +4,13 @@
 #include <QPushButton>
 
 ClientReplicaEditor::ClientReplicaEditor(const Core::ClientReplicaNode& replica, QWidget* parent)
-	: QWidget(parent)
+	: QDialog(parent)
 	, m_ui(new Ui::ClientReplicaEditor)
 	, m_replica(replica)
 {
 	m_ui->setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, true);
+	setModal(true);
 
 	m_ui->plainTextEdit->document()->setPlainText(m_replica.replica());
 	m_ui->plainTextEdit->setMinimumHeight(50);

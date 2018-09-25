@@ -18,8 +18,16 @@ struct User
 	{
 	}
 
+	User(const QString& name, const QString& clientId)
+		: name(name)
+		, admin(false)
+		, clientId(clientId)
+	{
+	}
+
 	QString name;
 	bool admin;
+	QString clientId;
 };
 
 inline bool operator<(const User& left, const User& right)
@@ -29,7 +37,7 @@ inline bool operator<(const User& left, const User& right)
 
 inline bool operator==(const User& left, const User& right)
 {
-	return left.name == right.name && left.admin == right.admin;
+	return left.name == right.name && left.admin == right.admin && left.clientId == right.clientId;
 }
 
 inline bool operator!=(const User& left, const User& right)

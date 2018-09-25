@@ -3,6 +3,7 @@
 
 #include "dialoggraphicsscene.h"
 #include <QWidget>
+#include <QDialog>
 #include <memory>
 
 namespace Ui {
@@ -10,7 +11,7 @@ class DialogEditorWindow;
 }
 
 class DialogEditorWindow
-	: public QWidget
+	: public QDialog
 {
 	Q_OBJECT
 

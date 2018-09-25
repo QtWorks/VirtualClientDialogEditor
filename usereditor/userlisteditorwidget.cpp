@@ -34,6 +34,11 @@ void UserListEditorWidget::loadData()
 	m_backendConnection->loadUsers();
 }
 
+void UserListEditorWidget::setClients(const QList<Core::Client>& clients)
+{
+	m_clients = clients;
+}
+
 QStringList UserListEditorWidget::items() const
 {
 	QStringList result;
@@ -112,7 +117,7 @@ void UserListEditorWidget::onItemEditRequested(const QString& username)
 		return true;
 	};
 
-	UserEditorDialog* editorWindow = new UserEditorDialog(*it, validator, this);
+	UserEditorDialog* editorWindow = new UserEditorDialog(*it, validator, m_clients, this);
 	connect(editorWindow, &UserEditorDialog::userChanged, [this, index](Core::User user) { updateUser(index, user); });
 
 	editorWindow->show();
@@ -136,7 +141,7 @@ void UserListEditorWidget::onItemCreateRequested()
 		return true;
 	};
 
-	UserEditorDialog* editorWindow = new UserEditorDialog(user, validator, this);
+	UserEditorDialog* editorWindow = new UserEditorDialog(user, validator, m_clients, this);
 	connect(editorWindow, &UserEditorDialog::userChanged, [this](Core::User user) { addUser(user); });
 
 	editorWindow->show();

@@ -29,6 +29,7 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, const Core::D
 {
 	m_ui->setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, true);
+	setModal(true);
 
 	QIcon warningIcon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
 	QPixmap warningPixmap = warningIcon.pixmap(QSize(16, 16));

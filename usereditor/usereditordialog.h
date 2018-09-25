@@ -2,6 +2,7 @@
 #define USEREDITORWIDGET_H
 
 #include "core/user.h"
+#include "core/client.h"
 #include <QDialog>
 #include <functional>
 
@@ -16,7 +17,7 @@ class UserEditorDialog
 
 public:
 	typedef std::function<bool(const QString&)> UniquenessValidator;
-	UserEditorDialog(const Core::User& user, const UniquenessValidator& validator, QWidget* parent = 0);
+	UserEditorDialog(const Core::User& user, const UniquenessValidator& validator, const QList<Core::Client>& clients, QWidget* parent = 0);
 	~UserEditorDialog();
 
 signals:
@@ -31,6 +32,7 @@ private:
 	Ui::UserEditorDialog* m_ui;
 	Core::User m_user;
 	UniquenessValidator m_uniquenessValidator;
+	QList<Core::Client> m_clients;
 };
 
 #endif // USEREDITORWIDGET_H

@@ -11,8 +11,9 @@ class MainWindow;
 class ApplicationSettings;
 class LoginDialog;
 class SettingsDialog;
+class ClientListEditorWidget;
 class UserListEditorWidget;
-class DialogListEditorWidget;
+class DialogsTabWidget;
 
 class MainWindow
 	: public QMainWindow
@@ -35,6 +36,7 @@ private:
 
 	LoginDialog* m_loginDialog;
 	SettingsDialog* m_settingsDialog;
+	ClientListEditorWidget* m_clientListEditorWidget;
 	UserListEditorWidget* m_usersListEditorWidget;
-	DialogListEditorWidget* m_dialogsListEditorWidget;
+	DialogsTabWidget* m_dialogsTabWidget;
 };

@@ -38,11 +38,30 @@ void DialogListEditorWidget::loadData()
 	m_backendConnection->loadDialogs();
 }
 
+void DialogListEditorWidget::setCurrentClient(const QString& client)
+{
+	if (!m_model.contains(client))
+	{
+		return;
+	}
+
+	m_currentClient = client;
+
+	updateData();
+}
+
 QStringList DialogListEditorWidget::items() const
 {
 	QStringList result;
 
-	for (const Core::Dialog& dialog: m_model)
+	if (!m_model.contains(m_currentClient))
+	{
+		return result;
+	}
+
+	const auto& dialogs = m_model[m_currentClient];
+
+	for (const auto& dialog: dialogs)
 	{
 		result << dialog.printableName();
 	}
@@ -56,21 +75,22 @@ void DialogListEditorWidget::removeItems(const QStringList& dialogs)
 
 	m_updating = true;
 
+	const auto& sourceDialogs = m_model[m_currentClient];
 	QList<Core::Dialog> removingDialogs;
 	for (const QString& dialogName : dialogs)
 	{		
-		const auto it = std::find_if(m_model.begin(), m_model.end(),
+		const auto it = std::find_if(sourceDialogs.begin(), sourceDialogs.end(),
 			[&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
-		Q_ASSERT(it != m_model.end());
+		Q_ASSERT(it != sourceDialogs.end());
 		removingDialogs.append(*it);
 	}
 
-	m_backendConnection->updateDialogs({ {}, removingDialogs, {} });
+	m_backendConnection->updateDialogs(m_currentClient, { {}, removingDialogs, {} });
 }
 
 void DialogListEditorWidget::updateDialog(int index, const Core::Dialog& dialog)
 {
-	const Core::Dialog& sourceDialog = m_model[index];
+	const Core::Dialog& sourceDialog = m_model[m_currentClient][index];
 	if (dialog == sourceDialog)
 	{
 		return;
@@ -81,7 +101,7 @@ void DialogListEditorWidget::updateDialog(int index, const Core::Dialog& dialog)
 	const QMap<Core::Dialog, Core::Dialog> updated = {
 		{ sourceDialog, dialog }
 	};
-	m_backendConnection->updateDialogs({ updated, {}, {} });
+	m_backendConnection->updateDialogs(m_currentClient, { updated, {}, {} });
 }
 
 void DialogListEditorWidget::addDialog(const Core::Dialog& dialog)
@@ -90,27 +110,29 @@ void DialogListEditorWidget::addDialog(const Core::Dialog& dialog)
 	LOG << writer.write(dialog);
 
 	showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
-	m_backendConnection->updateDialogs({ {}, {}, { dialog } });
+	m_backendConnection->updateDialogs(m_currentClient, { {}, {}, { dialog } });
 }
 
 void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 {
-	const auto it = std::find_if(m_model.begin(), m_model.end(),
-		[&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
-	Q_ASSERT(it != m_model.end());
-	const int index = std::distance(m_model.begin(), it);
+	const auto& dialogs = m_model[m_currentClient];
 
-	const auto validator = [this, index](const QString& name, Core::Dialog::Difficulty difficulty)
+	const auto it = std::find_if(dialogs.begin(), dialogs.end(),
+		[&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
+	Q_ASSERT(it != dialogs.end());
+	const int index = std::distance(dialogs.begin(), it);
+
+	const auto validator = [this, index, &dialogs](const QString& name, Core::Dialog::Difficulty difficulty)
 	{
 		const QString newName = Core::Dialog::printableName(name, difficulty);
-		for (int i = 0; i < m_model.length(); i++)
+		for (int i = 0; i < dialogs.length(); i++)
 		{
 			if (i == index)
 			{
 				continue;
 			}
 
-			if (m_model[i].printableName().compare(newName, Qt::CaseInsensitive) == 0)
+			if (dialogs[i].printableName().compare(newName, Qt::CaseInsensitive) == 0)
 			{
 				return false;
 			}
@@ -136,9 +158,11 @@ void DialogListEditorWidget::onItemCreateRequested()
 	{
 		const QString newName = Core::Dialog::printableName(name, difficulty);
 
-		for (int i = 0; i < m_model.length(); i++)
+		const auto& dialogs = m_model[m_currentClient];
+
+		for (int i = 0; i < dialogs.length(); i++)
 		{
-			if (m_model[i].printableName().compare(newName, Qt::CaseInsensitive) == 0)
+			if (dialogs[i].printableName().compare(newName, Qt::CaseInsensitive) == 0)
 			{
 				return false;
 			}
@@ -154,9 +178,11 @@ void DialogListEditorWidget::onItemCreateRequested()
 	editorWindow->show();
 }
 
-void DialogListEditorWidget::onDialogsLoaded(Core::IBackendConnection::QueryId /*queryId*/, const QList<Core::Dialog>& dialogs)
+void DialogListEditorWidget::onDialogsLoaded(Core::IBackendConnection::QueryId /*queryId*/,
+	const QMap<QString, QList<Core::Dialog>>& dialogs)
 {
 	m_model = dialogs;
+	m_currentClient = dialogs.isEmpty() ? "" : dialogs.keys().first();
 
 	updateData();
 

@@ -18,11 +18,14 @@ private:
 	virtual QueryId logIn(const QString& login, const QString& password) override;
 	virtual QueryId logOut() override;
 
-	virtual QueryId loadDialogs() override;
-	virtual QueryId updateDialogs(const Update<Dialog>& update) override;
+	virtual QueryId loadClients() override;
+	virtual QueryId updateClients(const Update<Client>& update) override;
 
 	virtual QueryId loadUsers() override;
 	virtual QueryId updateUsers(const Update<User>& update) override;
+
+	virtual QueryId loadDialogs() override;
+	virtual QueryId updateDialogs(const QString& cliendId, const Update<Dialog>& update) override;
 
 private:
 	void onWebSocketDisconnected();
@@ -37,17 +40,24 @@ private:
 	void onLogOutSuccess(IBackendConnection::QueryId queryId);
 	void onLogOutFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
 
-	void onDialogsLoadSuccess(IBackendConnection::QueryId queryId, const QJsonObject& message);
-	void onDialogsLoadFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
+	void onClientsLoadSuccess(IBackendConnection::QueryId queryId, const QJsonObject& message);
+	void onClientsLoadFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
 
-	void onDialogsUpdateSuccess(IBackendConnection::QueryId queryId);
-	void onDialogsUpdateFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
+	void onClientsUpdateSuccess(IBackendConnection::QueryId queryId);
+	void onClientsUpdateFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
 
 	void onUsersLoadSuccess(IBackendConnection::QueryId queryId, const QJsonObject& message);
 	void onUsersLoadFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
 
 	void onUsersUpdateSuccess(IBackendConnection::QueryId queryId);
 	void onUsersUpdateFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
+
+	void onDialogsLoadSuccess(IBackendConnection::QueryId queryId, const QJsonObject& message);
+	void onDialogsLoadFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
+
+	void onDialogsUpdateSuccess(IBackendConnection::QueryId queryId);
+	void onDialogsUpdateFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
+
 
 private:
 	WebSocket m_webSocket;

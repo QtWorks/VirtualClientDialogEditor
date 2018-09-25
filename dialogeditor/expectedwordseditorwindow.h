@@ -2,7 +2,7 @@
 #define EXPECTEDWORDSEDITORWINDOW_H
 
 #include "core/dialog.h"
-#include <QWidget>
+#include <QDialog>
 
 namespace Ui {
 class ExpectedWordsEditorWindow;
@@ -11,12 +11,12 @@ class ExpectedWordsEditorWindow;
 class ExpectedWordEditor;
 
 class ExpectedWordsEditorWindow
-	: public QWidget
+	: public QDialog
 {
 	Q_OBJECT
 
 public:
-	explicit ExpectedWordsEditorWindow(const Core::ExpectedWordsNode& expectedWords, QWidget* parent = 0);
+	ExpectedWordsEditorWindow(const Core::ExpectedWordsNode& expectedWords, QWidget* parent = 0);
 	~ExpectedWordsEditorWindow();
 
 signals:

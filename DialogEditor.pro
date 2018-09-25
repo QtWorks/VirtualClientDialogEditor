@@ -52,7 +52,10 @@ SOURCES += \
     waitingspinnerwidget.cpp \
 	dialogeditor/graphlayout.cpp \
 	settingsdialog.cpp \
-	applicationsettings.cpp
+	applicationsettings.cpp \
+	clienteditor/clientlisteditorwidget.cpp \
+    clienteditor/clienteditordialog.cpp \
+    dialogeditor/dialogstabwidget.cpp
 
 HEADERS  += \
     listeditorwidget.h \
@@ -94,7 +97,11 @@ HEADERS  += \
 	settingsdialog.h \
 	applicationsettings.h \
     core/errorreplica.h \
-    core/hashcombine.h
+    core/hashcombine.h \
+	clienteditor/clientlisteditorwidget.h \
+	core/client.h \
+    clienteditor/clienteditordialog.h \
+    dialogeditor/dialogstabwidget.h
 
 FORMS    += \
     listeditorwidget.ui \
@@ -106,7 +113,9 @@ FORMS    += \
     dialogeditor/expectedwordeditor.ui \
     dialogeditor/clientreplicaeditor.ui \
     dialogeditor/phaseeditorwindow.ui \
-	settingsdialog.ui
+	settingsdialog.ui \
+    clienteditor/clienteditordialog.ui \
+    dialogeditor/dialogstabwidget.ui
 
 RESOURCES += \
 	resources.qrc

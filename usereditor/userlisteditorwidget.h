@@ -11,6 +11,7 @@ public:
 	UserListEditorWidget(IBackendConnectionSharedPtr backendConnection, QWidget* parent = nullptr);
 
 	void loadData();
+	void setClients(const QList<Core::Client>& clients);
 
 private:
 	virtual QStringList items() const override;
@@ -34,6 +35,7 @@ private:
 
 	typedef QList<Core::User> UserListDataModel;
 	UserListDataModel m_model;
+	QList<Core::Client> m_clients;
 
 	bool m_updating;
 };

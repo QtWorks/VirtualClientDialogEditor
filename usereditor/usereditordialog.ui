@@ -7,17 +7,23 @@
     <x>0</x>
     <y>0</y>
     <width>274</width>
-    <height>92</height>
+    <height>120</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <layout class="QFormLayout" name="formLayout">
      <item row="0" column="0">
       <widget class="QLabel" name="usernameLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="text">
         <string>Имя пользователя</string>
        </property>
@@ -26,12 +32,49 @@
      <item row="0" column="1">
       <widget class="QLineEdit" name="usernameEdit"/>
      </item>
+     <item row="1" column="0">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Права доступа:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
      <item row="1" column="1">
-      <widget class="QCheckBox" name="adminCheckBox">
-       <property name="text">
-        <string>Администратор</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QCheckBox" name="adminCheckBox">
+         <property name="text">
+          <string>Администратор</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="clientsComboBox"/>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -45,5 +88,22 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>adminCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>clientsComboBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>142</x>
+     <y>41</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>159</x>
+     <y>67</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

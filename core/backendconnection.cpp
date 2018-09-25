@@ -27,7 +27,23 @@ QByteArray toString(const QJsonObject& object)
 
 QJsonObject toJson(const User& user)
 {
-	return QJsonObject{ { "username", user.name }, { "password", user.name }, { "admin", user.admin } };
+	QJsonObject result = {
+		{ "username", user.name },
+		{ "password", user.name },
+		{ "admin", user.admin }
+	};
+
+	if (!user.admin)
+	{
+		result["clientId"] = user.clientId;
+	}
+
+	return result;
+}
+
+QJsonObject toJson(const Client& client)
+{
+	return QJsonObject{ { "name", client.name }, { "databaseName", client.databaseName } };
 }
 
 }
@@ -68,61 +84,57 @@ IBackendConnection::QueryId BackendConnection::logOut()
 	return sendMessage(message);
 }
 
-IBackendConnection::QueryId BackendConnection::loadDialogs()
+IBackendConnection::QueryId BackendConnection::loadClients()
 {
 	const QJsonObject message = {
 		{ "queryId", generateQueryId() },
-		{ "type", "dialogs_load" }
+		{ "type", "clients_load" }
 	};
 
 	return sendMessage(message);
 }
 
-IBackendConnection::QueryId BackendConnection::updateDialogs(const Update<Dialog>& update)
+IBackendConnection::QueryId BackendConnection::updateClients(const Update<Client>& update)
 {
-	QJsonArray updatedDialogs;
-	for (const auto& originalDialog : update.updated.keys())
+	QJsonArray updated;
+	for (const auto& original : update.updated.keys())
 	{
-		const QJsonObject dialogObject = {
-			{ "name", originalDialog.name },
-			{ "difficulty", static_cast<int>(originalDialog.difficulty) },
-			{ "value", toJson(update.updated.value(originalDialog)) }
+		const QJsonObject clientObject = {
+			{ "name", original.name },
+			{ "value", toJson(update.updated.value(original)) }
 		};
-		updatedDialogs << dialogObject;
+		updated << clientObject;
 	}
 
-	QJsonArray deletedDialogs;
-	for (const auto& dialog : update.deleted)
+	QJsonArray deleted;
+	for (const auto& client : update.deleted)
 	{
-		deletedDialogs << QJsonObject{
-			{ "name", dialog.name },
-			{ "difficulty", static_cast<int>(dialog.difficulty) }
-		};
+		deleted << QJsonObject{ { "name", client.name } };
 	}
 
-	QJsonArray addedDialogs;
-	for (const auto& dialog : update.added)
+	QJsonArray added;
+	for (const auto& client : update.added)
 	{
-		addedDialogs << QJsonObject{ { "value", toJson(dialog) } };
+		added << QJsonObject{ { "value", toJson(client) } };
 	}
 
 	QJsonObject updateObject;
-	if (!updatedDialogs.empty())
+	if (!updated.empty())
 	{
-		updateObject["updated"] = updatedDialogs;
+		updateObject["updated"] = updated;
 	}
-	if (!addedDialogs.empty())
+	if (!added.empty())
 	{
-		updateObject["added"] = addedDialogs;
+		updateObject["added"] = added;
 	}
-	if (!deletedDialogs.empty())
+	if (!deleted.empty())
 	{
-		updateObject["deleted"] = deletedDialogs;
+		updateObject["deleted"] = deleted;
 	}
 
 	QJsonObject message = {
 		{ "queryId", generateQueryId() },
-		{ "type", "dialogs_update" },
+		{ "type", "clients_update" },
 		{ "update", updateObject }
 	};
 
@@ -180,6 +192,68 @@ IBackendConnection::QueryId BackendConnection::updateUsers(const Update<User>& u
 	QJsonObject message = {
 		{ "queryId", generateQueryId() },
 		{ "type", "users_update" },
+		{ "update", updateObject }
+	};
+
+	return sendMessage(message);
+}
+
+IBackendConnection::QueryId BackendConnection::loadDialogs()
+{
+	const QJsonObject message = {
+		{ "queryId", generateQueryId() },
+		{ "type", "dialogs_load" }
+	};
+
+	return sendMessage(message);
+}
+
+IBackendConnection::QueryId BackendConnection::updateDialogs(const QString& cliendId, const Update<Dialog>& update)
+{
+	QJsonArray updatedDialogs;
+	for (const auto& originalDialog : update.updated.keys())
+	{
+		const QJsonObject dialogObject = {
+			{ "name", originalDialog.name },
+			{ "difficulty", static_cast<int>(originalDialog.difficulty) },
+			{ "value", toJson(update.updated.value(originalDialog)) }
+		};
+		updatedDialogs << dialogObject;
+	}
+
+	QJsonArray deletedDialogs;
+	for (const auto& dialog : update.deleted)
+	{
+		deletedDialogs << QJsonObject{
+			{ "name", dialog.name },
+			{ "difficulty", static_cast<int>(dialog.difficulty) }
+		};
+	}
+
+	QJsonArray addedDialogs;
+	for (const auto& dialog : update.added)
+	{
+		addedDialogs << QJsonObject{ { "value", toJson(dialog) } };
+	}
+
+	QJsonObject updateObject;
+	if (!updatedDialogs.empty())
+	{
+		updateObject["updated"] = updatedDialogs;
+	}
+	if (!addedDialogs.empty())
+	{
+		updateObject["added"] = addedDialogs;
+	}
+	if (!deletedDialogs.empty())
+	{
+		updateObject["deleted"] = deletedDialogs;
+	}
+
+	QJsonObject message = {
+		{ "queryId", generateQueryId() },
+		{ "type", "dialogs_update" },
+		{ "clientId", cliendId },
 		{ "update", updateObject }
 	};
 
@@ -258,70 +332,84 @@ void BackendConnection::onLogInFailure(IBackendConnection::QueryId queryId, cons
 	emit logInFailed(queryId, error);
 }
 
-void BackendConnection::onDialogsLoadSuccess(IBackendConnection::QueryId queryId, const QJsonObject& message)
+void BackendConnection::onClientsLoadSuccess(IBackendConnection::QueryId queryId, const QJsonObject& message)
 {
-	if (!message.contains("dialogs") || message["dialogs"].type() != QJsonValue::Array)
+	if (!message.contains("clients") || message["clients"].type() != QJsonValue::Array)
 	{
-		LOG << "Message" << ARG2(message["type"], "type") << " must have \"dialogs\" array property";
+		LOG << "Message" << ARG2(message["type"], "type") << " must have \"clients\" array property";
 		return;
 	}
 
-	const QJsonArray dialogsArray = message["dialogs"].toArray();
-	QList<Dialog> result;
-	for (int i = 0; i < dialogsArray.size(); ++i)
+	const QJsonArray clientsArray = message["clients"].toArray();
+	QList<Client> result;
+	for (int i = 0; i < clientsArray.size(); ++i)
 	{
-		const QJsonValue& dialogValue = dialogsArray[i];
-		if (!dialogValue.isObject())
+		const QJsonValue& clientValue = clientsArray[i];
+		if (!clientValue.isObject())
 		{
-			LOG << "Faled to parse dialog #" << i << " - value type must be an object (actual type is " << dialogValue.type() << ")";
+			LOG << "Faled to parse client #" << i << " - value type must be an object (actual type is " << clientValue.type() << ")";
 			continue;
 		}
 
-		const QJsonObject dialogObject = dialogValue.toObject();
+		const QJsonObject clientObject = clientValue.toObject();
 
-		bool ok = false;
-		Dialog dialog = DialogJsonReader().read(toString(dialogObject), ok);
-		if (!ok)
+		if (!clientObject.contains("Name") || !clientObject["Name"].isString())
 		{
-			LOG << "Failed to parse dialog #" << i;
+			LOG << "Faled to parse client #" << i << " - object must have \"Name\" string property";
 			continue;
 		}
 
-		result << dialog;
+		if (!clientObject.contains("DatabaseName") || !clientObject["DatabaseName"].isString())
+		{
+			LOG << "Faled to parse client #" << i << " - object must have \"DatabaseName\" string property";
+			continue;
+		}
+
+		if (!clientObject.contains("Id") || !clientObject["Id"].isString())
+		{
+			LOG << "Faled to parse client #" << i << " - object must have \"Id\" string property";
+			continue;
+		}
+
+		result << Client(
+			clientObject["Name"].toString(),
+			clientObject["DatabaseName"].toString(),
+			clientObject["Id"].toString().toLatin1()
+		);
 	}
 
-	emit dialogsLoaded(queryId, result);
+	emit clientsLoaded(queryId, result);
 }
 
-void BackendConnection::onDialogsLoadFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
+void BackendConnection::onClientsLoadFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
 {
 	if (!message.contains("error") || message["error"].type() != QJsonValue::String)
 	{
-		LOG << "Message" << ARG2(message["type"], "type") << " must have \"error\" string property";
+		LOG << "Message" << ARG2(message["type"], "type") << " must have \error\" string property";
 		return;
 	}
 
 	const QString error = message["error"].toString();
 	LOG << "Message" << ARG2(message["type"], "type") << ARG(error);
-	emit dialogsLoadFailed(queryId, error);
+	emit clientsLoadFailed(queryId, error);
 }
 
-void BackendConnection::onDialogsUpdateSuccess(IBackendConnection::QueryId queryId)
+void BackendConnection::onClientsUpdateSuccess(IBackendConnection::QueryId queryId)
 {
-	emit dialogsUpdated(queryId);
+	emit clientsUpdated(queryId);
 }
 
-void BackendConnection::onDialogsUpdateFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
+void BackendConnection::onClientsUpdateFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
 {
 	if (!message.contains("error") || message["error"].type() != QJsonValue::String)
 	{
-		LOG << "Message" << ARG2(message["type"], "type") << " must have \"error\" string property";
+		LOG << "Message" << ARG2(message["type"], "type") << " must have \error\" string property";
 		return;
 	}
 
 	const QString error = message["error"].toString();
 	LOG << "Message" << ARG2(message["type"], "type") << ARG(error);
-	emit dialogsUpdateFailed(queryId, error);
+	emit clientsUpdateFailed(queryId, error);
 }
 
 void BackendConnection::onUsersLoadSuccess(IBackendConnection::QueryId queryId, const QJsonObject& message)
@@ -357,7 +445,23 @@ void BackendConnection::onUsersLoadSuccess(IBackendConnection::QueryId queryId, 
 			continue;
 		}
 
-		result << User(userObject["Username"].toString(), userObject["Admin"].toBool());
+		const QString username = userObject["Username"].toString();
+		const bool admin = userObject["Admin"].toBool();
+
+		if (admin)
+		{
+			result << User(username, admin);
+			continue;
+		}
+
+		if (!userObject.contains("ClientId") || !userObject["ClientId"].isString())
+		{
+			LOG << "Faled to parse user #" << i << " - object must have \"ClientId\" string property";
+			continue;
+		}
+
+		const QString clientId = userObject["ClientId"].toString();
+		result << User(username, clientId);
 	}
 
 	emit usersLoaded(queryId, result);
@@ -394,6 +498,114 @@ void BackendConnection::onUsersUpdateFailure(IBackendConnection::QueryId queryId
 	emit usersUpdateFailed(queryId, error);
 }
 
+void BackendConnection::onDialogsLoadSuccess(IBackendConnection::QueryId queryId, const QJsonObject& message)
+{
+	if (!message.contains("dialogs") || message["dialogs"].type() != QJsonValue::Array)
+	{
+		LOG << "Message" << ARG2(message["type"], "type") << " must have \"dialogs\" array property";
+		return;
+	}
+
+	const QJsonArray clientDialogsArray = message["dialogs"].toArray();
+	QMap<QString, QList<Dialog>> result;
+	for (int i = 0; i < clientDialogsArray.size(); ++i)
+	{
+		const QJsonValue& clientDialogsValue = clientDialogsArray[i];
+		if (!clientDialogsValue.isObject())
+		{
+			LOG << "Faled to parse client dialogs #" << i << " - value type must be an object (actual type is " << clientDialogsValue.type() << ")";
+			continue;
+		}
+
+		const QJsonObject clientDialogsObject = clientDialogsValue.toObject();
+		if (!clientDialogsObject.contains("clientId"))
+		{
+			LOG << "Faled to parse client dialogs #" << i << " - clientId field not found";
+			continue;
+		}
+
+		if (clientDialogsObject["clientId"].type() != QJsonValue::String)
+		{
+			LOG << "Faled to parse client dialogs #" << i << " - clientId field must be string (actual type is " << clientDialogsObject["clientId"].type() << ")";
+			continue;
+		}
+
+		if (!clientDialogsObject.contains("dialogs"))
+		{
+			LOG << "Faled to parse client dialogs #" << i << " - dialogs field not found";
+			continue;
+		}
+
+		if (clientDialogsObject["dialogs"].type() != QJsonValue::Array)
+		{
+			LOG << "Faled to parse client dialogs #" << i << " - dialogs field must be an array (actual type is " << clientDialogsObject["dialogs"].type() << ")";
+			continue;
+		}
+
+		const QString clientId = clientDialogsObject["clientId"].toString();
+		const QJsonArray dialogsArray = clientDialogsObject["dialogs"].toArray();
+
+		QList<Core::Dialog> dialogsList;
+
+		for (int j = 0; j < dialogsArray.size(); ++j)
+		{
+			const QJsonValue& dialogValue = dialogsArray[j];
+			if (!dialogValue.isObject())
+			{
+				LOG << "Faled to parse client dialogs #" << i << " - dialog #" << j << " value type must be an object (actual type is " << dialogValue.type() << ")";
+				continue;
+			}
+
+			const QJsonObject dialogObject = dialogValue.toObject();
+
+			bool ok = false;
+			Dialog dialog = DialogJsonReader().read(toString(dialogObject), ok);
+			if (!ok)
+			{
+				LOG << "Faled to parse client dialogs #" << i << " - failed to parse dialog #" << j;
+				continue;
+			}
+
+			dialogsList << dialog;
+		}
+
+		result.insert(clientId, dialogsList);
+	}
+
+	emit dialogsLoaded(queryId, result);
+}
+
+void BackendConnection::onDialogsLoadFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
+{
+	if (!message.contains("error") || message["error"].type() != QJsonValue::String)
+	{
+		LOG << "Message" << ARG2(message["type"], "type") << " must have \"error\" string property";
+		return;
+	}
+
+	const QString error = message["error"].toString();
+	LOG << "Message" << ARG2(message["type"], "type") << ARG(error);
+	emit dialogsLoadFailed(queryId, error);
+}
+
+void BackendConnection::onDialogsUpdateSuccess(IBackendConnection::QueryId queryId)
+{
+	emit dialogsUpdated(queryId);
+}
+
+void BackendConnection::onDialogsUpdateFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
+{
+	if (!message.contains("error") || message["error"].type() != QJsonValue::String)
+	{
+		LOG << "Message" << ARG2(message["type"], "type") << " must have \"error\" string property";
+		return;
+	}
+
+	const QString error = message["error"].toString();
+	LOG << "Message" << ARG2(message["type"], "type") << ARG(error);
+	emit dialogsUpdateFailed(queryId, error);
+}
+
 BackendConnection::Processor BackendConnection::makeProcessor(const QString& queryType)
 {
 	if (queryType == "log_in")
@@ -403,6 +615,46 @@ BackendConnection::Processor BackendConnection::makeProcessor(const QString& que
 			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onLogInFailure(queryId, error); },
 			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit logInFailed(queryId, errorMessage); },
 			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit logInFailed(queryId, errorMessage); }
+		);
+	}
+
+	if (queryType == "clients_load")
+	{
+		return Processor(
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& data) { onClientsLoadSuccess(queryId, data); },
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onClientsLoadFailure(queryId, error); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit clientsLoadFailed(queryId, errorMessage); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit clientsLoadFailed(queryId, errorMessage); }
+		);
+	}
+
+	if (queryType ==  "clients_update")
+	{
+		return Processor(
+			[this](IBackendConnection::QueryId queryId, const QJsonObject&) { onClientsUpdateSuccess(queryId); },
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onClientsUpdateFailure(queryId, error); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit clientsUpdateFailed(queryId, errorMessage); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit clientsUpdateFailed(queryId, errorMessage); }
+		);
+	}
+
+	if (queryType == "users_load")
+	{
+		return Processor(
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& data) { onUsersLoadSuccess(queryId, data); },
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onUsersLoadFailure(queryId, error); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersLoadFailed(queryId, errorMessage); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersLoadFailed(queryId, errorMessage); }
+		);
+	}
+
+	if (queryType ==  "users_update")
+	{
+		return Processor(
+			[this](IBackendConnection::QueryId queryId, const QJsonObject&) { onUsersUpdateSuccess(queryId); },
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onUsersUpdateFailure(queryId, error); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersUpdateFailed(queryId, errorMessage); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersUpdateFailed(queryId, errorMessage); }
 		);
 	}
 
@@ -423,25 +675,6 @@ BackendConnection::Processor BackendConnection::makeProcessor(const QString& que
 			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onDialogsUpdateFailure(queryId, error); },
 			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit dialogsUpdateFailed(queryId, errorMessage); },
 			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit dialogsUpdateFailed(queryId, errorMessage); }
-		);
-	}
-	if (queryType == "users_load")
-	{
-		return Processor(
-			[this](IBackendConnection::QueryId queryId, const QJsonObject& data) { onUsersLoadSuccess(queryId, data); },
-			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onUsersLoadFailure(queryId, error); },
-			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersLoadFailed(queryId, errorMessage); },
-			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersLoadFailed(queryId, errorMessage); }
-		);
-	}
-
-	if (queryType ==  "users_update")
-	{
-		return Processor(
-			[this](IBackendConnection::QueryId queryId, const QJsonObject&) { onUsersUpdateSuccess(queryId); },
-			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onUsersUpdateFailure(queryId, error); },
-			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersUpdateFailed(queryId, errorMessage); },
-			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit usersUpdateFailed(queryId, errorMessage); }
 		);
 	}
 
