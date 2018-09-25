@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QVariant>
 
 namespace Core
 {
@@ -26,6 +27,7 @@ struct User
 	}
 
 	QString name;
+	QVariant password;
 	bool admin;
 	QString clientId;
 };

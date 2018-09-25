@@ -3,16 +3,21 @@
 #include <QPushButton>
 #include <QMessageBox>
 
-UserEditorDialog::UserEditorDialog(const Core::User& user, const UniquenessValidator& validator, const QList<Core::Client>& clients, QWidget* parent)
+UserEditorDialog::UserEditorDialog(const Core::User& user, const UniquenessValidator& validator, const QList<Core::Client>& clients,
+	bool showPasswordInputs, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::UserEditorDialog)
 	, m_uniquenessValidator(validator)
 	, m_clients(clients)
+	, m_showPasswordInputs(showPasswordInputs)
 {
 	m_ui->setupUi(this);
 	setModal(true);
 
 	m_ui->usernameEdit->setText(user.name);
+
+	m_ui->passwordLabel->setVisible(m_showPasswordInputs);
+	m_ui->passwordLineEdit->setVisible(m_showPasswordInputs);
 
 	for (const Core::Client& client : clients)
 	{
@@ -46,27 +51,50 @@ void UserEditorDialog::saveChanges()
 	const QString username = m_ui->usernameEdit->text().trimmed();
 	if (username.isEmpty())
 	{
-		QMessageBox::warning(this, "Ошибка валидации", "Имя пользователя должно быть не пустым");
+		QMessageBox::warning(this, "Ошибка валидации", "Необходимо ввести имя пользователя.");
 		return;
 	}
 
 	if (!m_uniquenessValidator(username))
 	{
-		QMessageBox::warning(this, "Ошибка валидации", "Имя пользователя должно быть уникальным");
+		QMessageBox::warning(this, "Ошибка валидации", "Имя пользователя должно быть уникальным.");
 		return;
 	}
 
-	const bool admin = m_ui->adminCheckBox->isChecked();
-	if (admin)
+	if (m_showPasswordInputs)
 	{
-		emit userChanged({ username, admin });
+		const QString password = m_ui->passwordLineEdit->text().trimmed();
+		if (password.isEmpty())
+		{
+			QMessageBox::warning(this, "Ошибка валидации", "Необходимо ввести пароль.");
+			return;
+		}
 	}
-	else
+
+	const bool admin = m_ui->adminCheckBox->isChecked();
+
+	Core::User user = Core::User(username, admin);
+
+	if (m_showPasswordInputs)
+	{
+		const QString password = m_ui->passwordLineEdit->text().trimmed();
+		user.password = password;
+	}
+
+	if (!user.admin)
 	{
 		const int clientIndex = m_ui->clientsComboBox->currentIndex();
+		if (clientIndex == -1)
+		{
+			QMessageBox::warning(this, "Ошибка валидации", "Необходимо выбрать клиента или сделать пользователя администратором.");
+			return;
+		}
+
 		const QString clientId = m_clients[clientIndex].id;
-		emit userChanged({ username, clientId});
+		user.clientId = clientId;
 	}
+
+	emit userChanged(user);
 
 	accept();
 }

@@ -117,7 +117,7 @@ void UserListEditorWidget::onItemEditRequested(const QString& username)
 		return true;
 	};
 
-	UserEditorDialog* editorWindow = new UserEditorDialog(*it, validator, m_clients, this);
+	UserEditorDialog* editorWindow = new UserEditorDialog(*it, validator, m_clients, false, this);
 	connect(editorWindow, &UserEditorDialog::userChanged, [this, index](Core::User user) { updateUser(index, user); });
 
 	editorWindow->show();
@@ -141,7 +141,7 @@ void UserListEditorWidget::onItemCreateRequested()
 		return true;
 	};
 
-	UserEditorDialog* editorWindow = new UserEditorDialog(user, validator, m_clients, this);
+	UserEditorDialog* editorWindow = new UserEditorDialog(user, validator, m_clients, true, this);
 	connect(editorWindow, &UserEditorDialog::userChanged, [this](Core::User user) { addUser(user); });
 
 	editorWindow->show();

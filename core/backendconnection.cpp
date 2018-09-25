@@ -28,14 +28,18 @@ QByteArray toString(const QJsonObject& object)
 QJsonObject toJson(const User& user)
 {
 	QJsonObject result = {
-		{ "username", user.name },
-		{ "password", user.name },
-		{ "admin", user.admin }
+		{ "Username", user.name },
+		{ "Admin", user.admin }
 	};
+
+	if (user.password.isValid())
+	{
+		result["Password"] = user.password.toString();
+	}
 
 	if (!user.admin)
 	{
-		result["clientId"] = user.clientId;
+		result["ClientId"] = user.clientId;
 	}
 
 	return result;

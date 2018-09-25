@@ -17,7 +17,8 @@ class UserEditorDialog
 
 public:
 	typedef std::function<bool(const QString&)> UniquenessValidator;
-	UserEditorDialog(const Core::User& user, const UniquenessValidator& validator, const QList<Core::Client>& clients, QWidget* parent = 0);
+	UserEditorDialog(const Core::User& user, const UniquenessValidator& validator, const QList<Core::Client>& clients,
+		bool showPasswordInputs, QWidget* parent = 0);
 	~UserEditorDialog();
 
 signals:
@@ -33,6 +34,7 @@ private:
 	Core::User m_user;
 	UniquenessValidator m_uniquenessValidator;
 	QList<Core::Client> m_clients;
+	bool m_showPasswordInputs;
 };
 
 #endif // USEREDITORWIDGET_H
