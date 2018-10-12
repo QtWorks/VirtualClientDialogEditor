@@ -152,7 +152,7 @@ void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 
 void DialogListEditorWidget::onItemCreateRequested()
 {
-	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, { }, {} };
+	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, { }, {}, 0.0 };
 
 	const auto validator = [this](const QString& name, Core::Dialog::Difficulty difficulty)
 	{

@@ -140,6 +140,7 @@ QJsonObject DialogJsonWriter::writeToObject(const Dialog& dialog)
 	QJsonObject result = QJsonObject({
 		{ "name", dialog.name },
 		{ "difficulty", static_cast<int>(dialog.difficulty) },
+		{ "successRatio", (dialog.successRatio / 100) },
 		{ "phases", dump(dialog.phases, dumpPhase) }
 	});
 

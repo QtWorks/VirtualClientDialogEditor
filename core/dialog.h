@@ -20,7 +20,7 @@ public:
 	};
 
 	Dialog();
-	Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode>& phases, const ErrorReplica& errorReplica);
+	Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode>& phases, const ErrorReplica& errorReplica, double successRatio);
 	Dialog(const Dialog& other);
 	~Dialog();
 
@@ -37,6 +37,7 @@ public:
 	QList<PhaseNode> phases;
 	ErrorReplica errorReplica;
 	QVariant phaseRepeatReplica;
+	double successRatio;
 };
 
 bool operator<(const Dialog& left, const Dialog& right);

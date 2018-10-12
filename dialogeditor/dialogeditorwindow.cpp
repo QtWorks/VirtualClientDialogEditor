@@ -158,6 +158,11 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, const Uniquen
 			updateSaveControls();
 		});
 
+	m_ui->successRatioLineEdit->setText(QString::number(dialog.successRatio));
+	m_ui->successRatioLineEdit->setValidator(new QIntValidator(0, 100));
+	connect(m_ui->successRatioLineEdit, &QLineEdit::textEdited, [this](const QString& successRatio) { m_dialog.successRatio = successRatio.toDouble(); });
+	connect(m_ui->successRatioLineEdit, &QLineEdit::textEdited, this, &DialogEditorWindow::updateSaveControls);
+
 	QIcon warningIcon = style()->standardIcon(QStyle::SP_MessageBoxWarning);
 	QPixmap warningPixmap = warningIcon.pixmap(QSize(16, 16));
 	m_ui->errorIconLabel->setPixmap(warningPixmap);
