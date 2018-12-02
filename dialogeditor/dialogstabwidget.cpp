@@ -2,9 +2,9 @@
 
 using namespace Core;
 
-DialogsTabWidget::DialogsTabWidget(IBackendConnectionSharedPtr backendConnection, QWidget* parent)
+DialogsTabWidget::DialogsTabWidget(IBackendConnectionSharedPtr backendConnection, DialogGraphicsInfoStoragePtr dialogGraphicsInfoStorage, QWidget* parent)
 	: QWidget(parent)
-	, m_listEditorWidget(backendConnection, parent)
+	, m_listEditorWidget(backendConnection, dialogGraphicsInfoStorage, parent)
 {
 	m_ui.setupUi(this);
 	m_ui.verticalLayout->addWidget(&m_listEditorWidget);

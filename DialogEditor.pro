@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui widgets network websockets
+QT += core gui widgets network websockets sql
 
 TARGET = DialogEditor
 TEMPLATE = app
@@ -55,7 +55,8 @@ SOURCES += \
 	applicationsettings.cpp \
 	clienteditor/clientlisteditorwidget.cpp \
     clienteditor/clienteditordialog.cpp \
-    dialogeditor/dialogstabwidget.cpp
+	dialogeditor/dialogstabwidget.cpp \
+	dialogeditor/dialoggraphicsinfostorage.cpp
 
 HEADERS  += \
     listeditorwidget.h \
@@ -101,7 +102,9 @@ HEADERS  += \
 	clienteditor/clientlisteditorwidget.h \
 	core/client.h \
     clienteditor/clienteditordialog.h \
-    dialogeditor/dialogstabwidget.h
+    dialogeditor/dialogstabwidget.h \
+    dialogeditor/dialoggraphicsinfo.h \
+	dialogeditor/dialoggraphicsinfostorage.h
 
 FORMS    += \
     listeditorwidget.ui \

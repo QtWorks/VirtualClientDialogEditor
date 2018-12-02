@@ -54,6 +54,11 @@ void PhaseGraphicsItem::removeItem(NodeGraphicsItem* item)
 	item->setPhase(nullptr);
 }
 
+QList<NodeGraphicsItem*> PhaseGraphicsItem::items()
+{
+	return m_items;
+}
+
 void PhaseGraphicsItem::setDialog(Core::Dialog* dialog)
 {
 	m_dialog = dialog;

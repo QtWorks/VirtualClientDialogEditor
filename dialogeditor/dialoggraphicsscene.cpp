@@ -129,9 +129,10 @@ DialogGraphicsScene::~DialogGraphicsScene()
 	LOG;
 }
 
-void DialogGraphicsScene::setDialog(Core::Dialog* dialog)
+void DialogGraphicsScene::setDialog(Core::Dialog* dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo)
 {
 	m_dialog = dialog;
+	m_phasesGraphicsInfo = phasesGraphicsInfo;
 
 	refreshScene();
 }
@@ -242,7 +243,14 @@ void DialogGraphicsScene::refreshScene()
 	{
 		Core::PhaseNode& phase = phases[phaseIndex];
 
-		const std::pair<PhaseGraphicsItem*, NodeItemById> phaseInfo = renderPhase(phase, phaseIndex);
+		auto phaseGraphicsInfoIt = std::find_if(m_phasesGraphicsInfo.begin(), m_phasesGraphicsInfo.end(),
+			[&](const PhaseGraphicsInfo& info)
+			{
+				return info.name == phase.name();
+			});
+		PhaseGraphicsInfo phaseGraphicsInfo = phaseGraphicsInfoIt == m_phasesGraphicsInfo.end() ? PhaseGraphicsInfo() : *phaseGraphicsInfoIt;
+
+		const std::pair<PhaseGraphicsItem*, NodeItemById> phaseInfo = renderPhase(phase, phaseIndex, phaseGraphicsInfo);
 		phaseItems.push_back(phaseInfo.first);
 		graphicsItemByLabel.insert(phaseInfo.second.begin(), phaseInfo.second.end());
 
@@ -274,28 +282,27 @@ void DialogGraphicsScene::refreshScene()
 
 		connectNodes(from, to);
 	}
-
-	// align phases
-	for (size_t i = 1; i < phaseItems.size(); ++i)
-	{
-		PhaseGraphicsItem* previousPhase = phaseItems[i - 1];
-
-		QPointF point = previousPhase->sceneBoundingRect().topRight();
-		point.setX(point.x() + s_nodesInterval);
-
-		PhaseGraphicsItem* currentPhase = phaseItems[i];
-		currentPhase->setPos(point);
-	}
 }
 
-std::pair<PhaseGraphicsItem*, DialogGraphicsScene::NodeItemById> DialogGraphicsScene::renderPhase(Core::PhaseNode& phase, int phaseIndex)
+std::pair<PhaseGraphicsItem*, DialogGraphicsScene::NodeItemById> DialogGraphicsScene::renderPhase(
+	Core::PhaseNode& phase, int phaseIndex, const PhaseGraphicsInfo& phaseGraphicsInfo)
 {
 	const NodeGraphicsItem::Properties nodeProperties = NodeGraphicsItem::Resizable | NodeGraphicsItem::Editable | NodeGraphicsItem::Removable;
 
 	PhaseGraphicsItem* phaseItem = new PhaseGraphicsItem(&phase, m_dialog, nodeProperties, this);
 
 	ClientReplicaNodeGraphicsItem dummy(nullptr, NodeGraphicsItem::NoProperties);
-	const QPointF phasePos = QPointF((dummy.minWidth() + s_phaseLeftPadding + s_phaseRightPadding + s_nodesInterval) * phaseIndex, 0.0);
+
+	QPointF phasePos;
+
+	if (phaseGraphicsInfo.position.isNull())
+	{
+		phasePos = QPointF((dummy.minWidth() + s_phaseLeftPadding + s_phaseRightPadding + s_nodesInterval) * phaseIndex, 0.0);
+	}
+	else
+	{
+		phasePos = phaseGraphicsInfo.position;
+	}
 
 	LOG << "Place phase #" << phaseIndex << " at " << phasePos;
 	addNodeToScene(phaseItem, phasePos);
@@ -305,9 +312,18 @@ std::pair<PhaseGraphicsItem*, DialogGraphicsScene::NodeItemById> DialogGraphicsS
 	const GraphLayout::NodesByLayer graph = layout.render(phaseGraph);
 
 	const auto itemByNode = renderNodes(phaseItem, graph, phase.nodes());
+	placeNodes(phaseItem, itemByNode, graph, phaseGraphicsInfo.nodes);
+
 	renderEdges(phaseItem, graph, itemByNode);
 
-	phaseItem->resizeToMinimal();
+	if (phaseGraphicsInfo.size.isValid())
+	{
+		phaseItem->resize(phaseGraphicsInfo.size.width(), phaseGraphicsInfo.size.height());
+	}
+	else
+	{
+		phaseItem->resizeToMinimal();
+	}
 
 	return { phaseItem, itemByNode };
 }
@@ -338,9 +354,6 @@ DialogGraphicsScene::NodeItemById DialogGraphicsScene::renderNodes(PhaseGraphics
 
 			const NodeGraphicsItem::Properties nodeProperties = NodeGraphicsItem::Resizable | NodeGraphicsItem::Editable | NodeGraphicsItem::Removable;
 
-			const QPointF position = nodePosition(*phaseItem, graphNode);
-			LOG << "Draw node (" << graphNode.x << ", " << graphNode.y << ") at " << position.x() << "," << position.y();
-
 			const auto nodeIt = Core::findNodeById(dataNodes, graphNode.label);
 			NodeGraphicsItem* nodeGraphicsItem = makeGraphicsItem(*nodeIt, nodeProperties, this);
 
@@ -349,12 +362,90 @@ DialogGraphicsScene::NodeItemById DialogGraphicsScene::renderNodes(PhaseGraphics
 			phaseItem->addItem(nodeGraphicsItem);
 
 			itemByNode.insert({ graphNode.label, nodeGraphicsItem });
-
-			addNodeToScene(nodeGraphicsItem, position);
 		}
 	}
 
 	return itemByNode;
+}
+
+template <typename Key, typename Value>
+QList<Value> values(const std::map<Key, Value>& m)
+{
+	QList<Value> result;
+
+	for (const auto& x : m)
+	{
+		result.append(x.second);
+	}
+
+	return result;
+}
+
+void DialogGraphicsScene::placeNodes(
+	PhaseGraphicsItem* phaseItem, const NodeItemById& nodeItemById, const GraphLayout::NodesByLayer& graph, const QList<NodeGraphicsInfo>& nodesGraphicsInfo)
+{
+	QList<NodeGraphicsItem*> nodes = values(nodeItemById);
+
+	auto newItemIt = std::partition(nodes.begin(), nodes.end(),
+		[&](NodeGraphicsItem* node)
+		{
+			const auto& id = node->data()->id();
+			return std::find_if(nodesGraphicsInfo.begin(), nodesGraphicsInfo.end(),
+				[&](const NodeGraphicsInfo& x) { return x.id == id; }) != nodesGraphicsInfo.end();
+		});
+
+	if (nodesGraphicsInfo.isEmpty() || newItemIt == nodes.begin())
+	{
+		for (const auto& nodesByLayer : graph)
+		{
+			for (const auto& graphNode : nodesByLayer.second)
+			{
+				if (graphNode.virt)
+				{
+					continue;
+				}
+
+				auto nodeIt = nodeItemById.find(graphNode.label);
+				if (nodeIt == nodeItemById.end())
+				{
+					continue;
+				}
+
+				NodeGraphicsItem* nodeGraphicsItem = nodeIt->second;
+				const QPointF position = nodePosition(*phaseItem, graphNode);
+				addNodeToScene(nodeGraphicsItem, position);
+			}
+		}
+
+		return;
+	}
+
+	for (auto it = nodes.begin(); it != newItemIt; ++it)
+	{
+		NodeGraphicsItem* nodeGraphicsItem = *it;
+
+		auto nodeGraphicsInfoIt = std::find_if(nodesGraphicsInfo.begin(), nodesGraphicsInfo.end(),
+			[&](const NodeGraphicsInfo& info){ return info.id == nodeGraphicsItem->data()->id(); });
+		Q_ASSERT(nodeGraphicsInfoIt != nodesGraphicsInfo.end());
+		const NodeGraphicsInfo& nodeGraphicsInfo = *nodeGraphicsInfoIt;
+
+		addNodeToScene(nodeGraphicsItem, nodeGraphicsInfo.position);
+
+		if (nodeGraphicsInfo.size.isValid())
+		{
+			nodeGraphicsItem->resize(nodeGraphicsInfo.size.width(), nodeGraphicsInfo.size.height());
+		}
+	}
+
+	for (auto it = newItemIt; it != nodes.end(); ++it)
+	{
+		GraphLayout::GraphNode node;
+		node.x = 0;
+		node.y = 0;
+
+		QPointF position = nodePosition(*phaseItem, node);
+		addNodeToScene(*it, position);
+	}
 }
 
 void DialogGraphicsScene::renderEdges(PhaseGraphicsItem* phaseItem, const GraphLayout::NodesByLayer& nodes, const NodeItemById& itemByNode)

@@ -30,6 +30,7 @@ public:
 	~NodeGraphicsItem();
 
 	void setProperties(Properties properties);
+	// TODO: add overload with QSizeF ?
 	void resize(qreal width, qreal height);
 	void resizeToMinimal();
 

@@ -10,7 +10,7 @@ class DialogsTabWidget
 	Q_OBJECT
 
 public:
-	DialogsTabWidget(IBackendConnectionSharedPtr backendConnection, QWidget* parent = nullptr);
+	DialogsTabWidget(IBackendConnectionSharedPtr backendConnection, DialogGraphicsInfoStoragePtr dialogGraphicsInfoStorage, QWidget* parent = nullptr);
 
 	void loadData();
 

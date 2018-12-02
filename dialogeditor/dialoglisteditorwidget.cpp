@@ -17,9 +17,11 @@ QString toLowerCase(const QString& str)
 
 }
 
-DialogListEditorWidget::DialogListEditorWidget(IBackendConnectionSharedPtr backendConnection, QWidget* parent)
+DialogListEditorWidget::DialogListEditorWidget(IBackendConnectionSharedPtr backendConnection, DialogGraphicsInfoStoragePtr dialogGraphicsInfoStorage,
+	QWidget* parent)
 	: ListEditorWidget(parent)
 	, m_backendConnection(backendConnection)
+	, m_dialogGraphicsInfoStorage(dialogGraphicsInfoStorage)
 	, m_updating(false)
 {
 	connect(this, &ListEditorWidget::itemEditRequested, this, &DialogListEditorWidget::onItemEditRequested);
@@ -77,20 +79,38 @@ void DialogListEditorWidget::removeItems(const QStringList& dialogs)
 
 	const auto& sourceDialogs = m_model[m_currentClient];
 	QList<Core::Dialog> removingDialogs;
+	QList<DialogGraphicsInfoStorage::Key> removingDialogGraphicsInfoKeys;
 	for (const QString& dialogName : dialogs)
 	{		
 		const auto it = std::find_if(sourceDialogs.begin(), sourceDialogs.end(),
 			[&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
 		Q_ASSERT(it != sourceDialogs.end());
 		removingDialogs.append(*it);
+		removingDialogGraphicsInfoKeys.append({ m_currentClient, dialogName, it->difficulty });
+	}
+
+	for (const auto& key : removingDialogGraphicsInfoKeys)
+	{
+		m_dialogGraphicsInfoStorage->remove(key);
 	}
 
 	m_backendConnection->updateDialogs(m_currentClient, { {}, removingDialogs, {} });
 }
 
-void DialogListEditorWidget::updateDialog(int index, const Core::Dialog& dialog)
+void DialogListEditorWidget::updateDialog(int index, const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo)
 {
 	const Core::Dialog& sourceDialog = m_model[m_currentClient][index];
+
+	if (sourceDialog.name != dialog.name || sourceDialog.difficulty != dialog.difficulty)
+	{
+		m_dialogGraphicsInfoStorage->remove({ m_currentClient, sourceDialog.name, sourceDialog.difficulty });
+		m_dialogGraphicsInfoStorage->insert({ m_currentClient, dialog.name, dialog.difficulty }, phasesGraphicsInfo);
+	}
+	else
+	{
+		m_dialogGraphicsInfoStorage->update({ m_currentClient, dialog.name, dialog.difficulty }, phasesGraphicsInfo);
+	}
+
 	if (dialog == sourceDialog)
 	{
 		return;
@@ -104,12 +124,15 @@ void DialogListEditorWidget::updateDialog(int index, const Core::Dialog& dialog)
 	m_backendConnection->updateDialogs(m_currentClient, { updated, {}, {} });
 }
 
-void DialogListEditorWidget::addDialog(const Core::Dialog& dialog)
+void DialogListEditorWidget::addDialog(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo)
 {
 	Core::DialogJsonWriter writer;
 	LOG << writer.write(dialog);
 
 	showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
+
+	m_dialogGraphicsInfoStorage->insert({ m_currentClient, dialog.name, dialog.difficulty }, phasesGraphicsInfo);
+
 	m_backendConnection->updateDialogs(m_currentClient, { {}, {}, { dialog } });
 }
 
@@ -141,11 +164,12 @@ void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 		return true;
 	};
 
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(*it, validator, true);
+	auto dialogGraphicsInfo = m_dialogGraphicsInfoStorage->read({ m_currentClient, it->name, it->difficulty });
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(*it, dialogGraphicsInfo, validator, true);
 	connect(editorWindow, &DialogEditorWindow::dialogModified,
-		[this, index](Core::Dialog dialog) { updateDialog(index, dialog); });
+		[this, index](Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo) { updateDialog(index, dialog, phasesGraphicsInfo); });
 	connect(editorWindow, &DialogEditorWindow::dialogCreated,
-		[this](Core::Dialog dialog) { addDialog(dialog); });
+		[this](Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo) { addDialog(dialog, phasesGraphicsInfo); });
 
 	editorWindow->show();
 }
@@ -171,9 +195,10 @@ void DialogListEditorWidget::onItemCreateRequested()
 		return true;
 	};
 
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(dialog, validator, false);
+	auto dialogGraphicsInfo = m_dialogGraphicsInfoStorage->read({ m_currentClient, dialog.name, dialog.difficulty });
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(dialog, dialogGraphicsInfo, validator, false);
 	connect(editorWindow, &DialogEditorWindow::dialogModified,
-		[this](Core::Dialog dialog) { addDialog(dialog); });
+		[this](Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo) { addDialog(dialog, phasesGraphicsInfo); });
 
 	editorWindow->show();
 }

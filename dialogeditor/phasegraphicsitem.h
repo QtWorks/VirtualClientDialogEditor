@@ -21,6 +21,7 @@ public:
 
 	void addItem(NodeGraphicsItem* item);
 	void removeItem(NodeGraphicsItem* item);
+	QList<NodeGraphicsItem*> items();
 
 	void setDialog(Core::Dialog* dialog);
 

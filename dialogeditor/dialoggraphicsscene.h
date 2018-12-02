@@ -3,6 +3,7 @@
 
 #include "nodegraphicsitem.h"
 #include "graphlayout.h"
+#include "dialoggraphicsinfo.h"
 #include <QGraphicsView>
 #include <QGraphicsScene>
 
@@ -20,7 +21,7 @@ public:
 	DialogGraphicsScene(QObject* parent = nullptr);
 	~DialogGraphicsScene();
 
-	void setDialog(Core::Dialog* dialog);
+	void setDialog(Core::Dialog* dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
 
 	void addNodeToScene(NodeGraphicsItem* node, const QPointF& position);
 	void removeNodeFromScene(NodeGraphicsItem* node);
@@ -56,10 +57,12 @@ private:
 
 	typedef std::map<QString, NodeGraphicsItem*> NodeItemById;
 
-	std::pair<PhaseGraphicsItem*, NodeItemById> renderPhase(Core::PhaseNode& phase, int phaseIndex);
+	std::pair<PhaseGraphicsItem*, NodeItemById> renderPhase(Core::PhaseNode& phase, int phaseIndex,
+		const PhaseGraphicsInfo& phaseGraphicsInfo);
 	NodeItemById renderNodes(PhaseGraphicsItem* phaseItem, const GraphLayout::NodesByLayer& nodes, const QList<Core::AbstractDialogNode*>& dataNodes);
-	void renderEdges(PhaseGraphicsItem* phaseItem, const GraphLayout::NodesByLayer& nodes, const NodeItemById& itemByNode);
+	void placeNodes(PhaseGraphicsItem* phaseItem, const NodeItemById& nodes, const GraphLayout::NodesByLayer& graph, const QList<NodeGraphicsInfo>& nodesGraphicsInfo);
 
+	void renderEdges(PhaseGraphicsItem* phaseItem, const GraphLayout::NodesByLayer& nodes, const NodeItemById& itemByNode);
 
 	void removeLinkFromScene(ArrowLineGraphicsItem* line);
 
@@ -69,6 +72,7 @@ private:
 
 private:
 	Core::Dialog* m_dialog;
+	QList<PhaseGraphicsInfo> m_phasesGraphicsInfo;
 };
 
 #endif // DIALOGVIEW_H

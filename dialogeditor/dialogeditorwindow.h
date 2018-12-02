@@ -2,6 +2,7 @@
 #define DIALOGEDITORWINDOW_H
 
 #include "dialoggraphicsscene.h"
+#include "dialoggraphicsinfo.h"
 #include <QWidget>
 #include <QDialog>
 #include <memory>
@@ -17,12 +18,13 @@ class DialogEditorWindow
 
 public:
 	typedef std::function<bool(const QString&, Core::Dialog::Difficulty)> UniquenessValidator;
-	DialogEditorWindow(const Core::Dialog& dialog, const UniquenessValidator& uniquenessValidator, bool enableSaveAs, QWidget* parent = 0);
+	DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo,
+		const UniquenessValidator& uniquenessValidator, bool enableSaveAs, QWidget* parent = 0);
 	~DialogEditorWindow();
 
 signals:
-	void dialogModified(Core::Dialog dialog);
-	void dialogCreated(Core::Dialog dialog);
+	void dialogModified(Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
+	void dialogCreated(Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
 
 public slots:
 	void onNodeAdded(NodeGraphicsItem* node);

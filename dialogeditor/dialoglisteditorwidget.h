@@ -3,12 +3,16 @@
 #include "core/ibackendconnection.h"
 #include "core/dialog.h"
 #include "listeditorwidget.h"
+#include "dialoggraphicsinfostorage.h"
 
 class DialogListEditorWidget
 	: public ListEditorWidget
 {
 public:
-	DialogListEditorWidget(IBackendConnectionSharedPtr backendConnection, QWidget* parent = nullptr);
+	DialogListEditorWidget(
+		IBackendConnectionSharedPtr backendConnection,
+		DialogGraphicsInfoStoragePtr dialogGraphicsInfoStorage,
+		QWidget* parent = nullptr);
 
 	void loadData();
 	void setCurrentClient(const QString& client);
@@ -27,11 +31,12 @@ private slots:
 	void onDialogsUpdateFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
 
 private:
-	void updateDialog(int index, const Core::Dialog& dialog);
-	void addDialog(const Core::Dialog& dialog);
+	void updateDialog(int index, const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
+	void addDialog(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
 
 private:
 	IBackendConnectionSharedPtr m_backendConnection;
+	DialogGraphicsInfoStoragePtr m_dialogGraphicsInfoStorage;
 
 	typedef QMap<QString, QList<Core::Dialog>> DialogListDataModel;
 	DialogListDataModel m_model;

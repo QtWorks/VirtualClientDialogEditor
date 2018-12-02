@@ -8,14 +8,15 @@
 
 #include <QDesktopWidget>
 
-MainWindow::MainWindow(ApplicationSettings* settings, IBackendConnectionSharedPtr backendConnection, QWidget* parent)
+MainWindow::MainWindow(ApplicationSettings* settings, IBackendConnectionSharedPtr backendConnection,
+	DialogGraphicsInfoStoragePtr dialogGraphicsInfoStoragePtr, QWidget* parent)
 	: QMainWindow(parent)
 	, m_ui(new Ui::MainWindow)
 	, m_loginDialog(new LoginDialog(backendConnection, this))
 	, m_settingsDialog(new SettingsDialog(this))
 	, m_clientListEditorWidget(new ClientListEditorWidget(backendConnection, this))
 	, m_usersListEditorWidget(new UserListEditorWidget(backendConnection, this))
-	, m_dialogsTabWidget(new DialogsTabWidget(backendConnection, this))
+	, m_dialogsTabWidget(new DialogsTabWidget(backendConnection, dialogGraphicsInfoStoragePtr, this))
 {
 	m_ui->setupUi(this);
 

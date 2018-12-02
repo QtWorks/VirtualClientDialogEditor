@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/ibackendconnection.h"
+#include "dialogeditor/dialoggraphicsinfostorage.h"
 #include <QMainWindow>
 
 namespace Ui
@@ -21,7 +22,7 @@ class MainWindow
 	Q_OBJECT
 
 public:
-	MainWindow(ApplicationSettings* settings, IBackendConnectionSharedPtr backendConnection, QWidget* parent = 0);
+	MainWindow(ApplicationSettings* settings, IBackendConnectionSharedPtr backendConnection, DialogGraphicsInfoStoragePtr dialogGraphicsInfoStoragePtr, QWidget* parent = 0);
 	~MainWindow();
 
 	void show();

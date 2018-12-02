@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "core/backendconnection.h"
+#include "dialogeditor/dialoggraphicsinfostorage.h"
 #include "applicationsettings.h"
 #include <QApplication>
 #include <memory>
@@ -12,7 +13,11 @@ int main(int argc, char* argv[])
 
 	IBackendConnectionSharedPtr backendConection = std::make_shared<Core::BackendConnection>(QUrl(settings.hostname()));
 
-	MainWindow window(&settings, backendConection);
+	const QString dbPath = a.applicationDirPath() + "\\" + "graphics.sqlite";
+	auto dialogGraphicsInfoStorage = std::make_shared<DialogGraphicsInfoStorage>(dbPath);
+	dialogGraphicsInfoStorage->open();
+
+	MainWindow window(&settings, backendConection, dialogGraphicsInfoStorage);
 	window.show();
 
 	return a.exec();

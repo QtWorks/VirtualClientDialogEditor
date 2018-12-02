@@ -130,9 +130,45 @@ bool hasCycles(Core::AbstractDialogNode* childNode, const QList<Core::AbstractDi
 	return !paths.isEmpty();
 }
 
+QList<PhaseGraphicsInfo> getPhasesGraphicsInfo(QList<PhaseGraphicsItem*> phases)
+{
+	QList<PhaseGraphicsInfo> result;
+
+	for (PhaseGraphicsItem* phaseGraphicsItem : phases)
+	{
+		PhaseGraphicsInfo phaseGraphicsInfo;
+
+		auto* phaseNode = phaseGraphicsItem->data()->as<Core::PhaseNode>();
+
+		phaseGraphicsInfo.name = phaseNode->name();
+		phaseGraphicsInfo.position = phaseGraphicsItem->pos();
+		phaseGraphicsInfo.size = phaseGraphicsItem->boundingRect().size();
+		phaseGraphicsInfo.nodes = ([&]() -> QList<NodeGraphicsInfo>
+		{
+			QList<NodeGraphicsInfo> nodes;
+
+			for (NodeGraphicsItem* nodeGraphicsItem : phaseGraphicsItem->items())
+			{
+				NodeGraphicsInfo nodeGraphicsInfo;
+				nodeGraphicsInfo.id = nodeGraphicsItem->data()->id();
+				nodeGraphicsInfo.position = nodeGraphicsItem->pos();
+				nodeGraphicsInfo.size = nodeGraphicsItem->boundingRect().size();
+				nodes.append(nodeGraphicsInfo);
+			}
+
+			return nodes;
+		})();
+
+		result.append(phaseGraphicsInfo);
+	}
+
+	return result;
 }
 
-DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, const UniquenessValidator& uniquenessValidator, bool enableSaveAs, QWidget* parent)
+}
+
+DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo,
+	const UniquenessValidator& uniquenessValidator, bool enableSaveAs, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::DialogEditorWindow)
 	, m_dialogConstructorGraphicsScene(new DialogConstructorGraphicsScene(this))
@@ -171,9 +207,11 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, const Uniquen
 	{
 		Q_ASSERT(validateDialog());
 
+		QList<PhaseGraphicsInfo> graphicsInfo = getPhasesGraphicsInfo(getOrderedPhases());
+
 		m_dialog.phases = getPhases();
 
-		emit dialogModified(m_dialog);
+		emit dialogModified(m_dialog, graphicsInfo);
 
 		close();
 	});
@@ -208,10 +246,12 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, const Uniquen
 				validName = true;
 			}
 
+			QList<PhaseGraphicsInfo> graphicsInfo = getPhasesGraphicsInfo(getOrderedPhases());
+
 			m_dialog.name = newDialogName;
 			m_dialog.phases = getPhases();
 
-			emit dialogCreated(m_dialog);
+			emit dialogCreated(m_dialog, graphicsInfo);
 
 			close();
 		});
@@ -268,7 +308,7 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, const Uniquen
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesDisconnected, this, &DialogEditorWindow::updateSaveControls);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesDisconnected, this, &DialogEditorWindow::updateRemoveControls);
 
-	m_dialogGraphicsScene->setDialog(&m_dialog);
+	m_dialogGraphicsScene->setDialog(&m_dialog, phasesGraphicsInfo);
 
 	m_ui->dialogGraphicsView->setScene(m_dialogGraphicsScene);
 	m_ui->dialogGraphicsView->setMinRatio(50.0);
