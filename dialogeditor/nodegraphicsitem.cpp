@@ -153,10 +153,10 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 		painter->setBrush(getHeaderBackgroundColor());
 	}
 
-	const int headerHeight = painter->fontMetrics().height() + padding() * 2;
+	m_headerHeight = painter->fontMetrics().height() + padding() * 2;
 	const int roundRadius = 6;
 
-	const QRectF headerRect = QRectF(0, 0, m_width, headerHeight);
+	const QRectF headerRect = QRectF(0, 0, m_width, m_headerHeight);
 	QPainterPath headerRectPath;
 	headerRectPath.setFillRule(Qt::WindingFill);
 	headerRectPath.addRoundedRect(headerRect, roundRadius, roundRadius);
@@ -175,7 +175,7 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 	painter->setPen(pen);
 	painter->setBrush(getContentBackgroundColor());
 
-	const QRectF contentRect = QRectF(0, headerHeight, m_width, m_height - headerHeight);
+	const QRectF contentRect = QRectF(0, m_headerHeight, m_width, m_height - m_headerHeight);
 	QPainterPath contentRectPath;
 	contentRectPath.setFillRule(Qt::WindingFill);
 	contentRectPath.addRoundedRect(contentRect, roundRadius, roundRadius);

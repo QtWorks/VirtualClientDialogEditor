@@ -29,6 +29,9 @@ public:
 	virtual Core::AbstractDialogNode* data() override;
 	virtual const Core::AbstractDialogNode* data() const override;
 
+	virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+	virtual void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+	virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 	virtual void keyPressEvent(QKeyEvent* event) override;
 	virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 

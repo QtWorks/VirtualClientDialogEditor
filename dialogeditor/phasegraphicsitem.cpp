@@ -79,6 +79,41 @@ const Core::AbstractDialogNode* PhaseGraphicsItem::data() const
 	return m_phase;
 }
 
+void PhaseGraphicsItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+	if (event->pos().y() < m_headerHeight)
+	{
+		setToolTip(getHeaderText());
+	}
+	else
+	{
+		setToolTip("");
+	}
+
+	NodeGraphicsItem::hoverEnterEvent(event);
+}
+
+void PhaseGraphicsItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+{
+	if (event->pos().y() < m_headerHeight)
+	{
+		setToolTip(getHeaderText());
+	}
+	else
+	{
+		setToolTip("");
+	}
+
+	NodeGraphicsItem::hoverMoveEvent(event);
+}
+
+void PhaseGraphicsItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+	setToolTip("");
+
+	NodeGraphicsItem::hoverLeaveEvent(event);
+}
+
 void PhaseGraphicsItem::keyPressEvent(QKeyEvent* event)
 {
 	if (m_properties & Removable && event->key() == Qt::Key_Delete)

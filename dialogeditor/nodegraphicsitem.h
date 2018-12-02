@@ -75,6 +75,7 @@ public:
 
 protected:
 	Properties m_properties;
+	qreal m_headerHeight;
 
 private:
 	static int padding();
