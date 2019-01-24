@@ -39,6 +39,32 @@ void UserListEditorWidget::setClients(const QList<Core::Client>& clients)
 	m_clients = clients;
 }
 
+void UserListEditorWidget::setClientFilter(const QString& client)
+{
+	m_currentClient = client;
+
+	m_model.clear();
+
+	for (const Core::User& user : m_originalModel)
+	{
+		if (user.clientId == m_currentClient)
+		{
+			m_model.append(user);
+		}
+	}
+
+	qSort(m_model);
+
+	updateData();
+}
+
+void UserListEditorWidget::resetClientFilter()
+{
+	m_model = m_originalModel;
+	qSort(m_model);
+	updateData();
+}
+
 QStringList UserListEditorWidget::items() const
 {
 	QStringList result;
@@ -100,14 +126,14 @@ void UserListEditorWidget::onItemEditRequested(const QString& username)
 
 	const auto validator = [this, index](const QString& name)
 	{
-		for (int i = 0; i < m_model.length(); i++)
+		for (int i = 0; i < m_originalModel.length(); i++)
 		{
 			if (i == index)
 			{
 				continue;
 			}
 
-			const Core::User& user = m_model[i];
+			const Core::User& user = m_originalModel[i];
 			if (user.name.compare(name, Qt::CaseInsensitive) == 0)
 			{
 				return false;
@@ -129,9 +155,8 @@ void UserListEditorWidget::onItemCreateRequested()
 
 	const auto validator = [this](const QString& name)
 	{
-		for (int i = 0; i < m_model.length(); i++)
+		for (const Core::User& user : m_originalModel)
 		{
-			const Core::User& user = m_model[i];
 			if (user.name.compare(name, Qt::CaseInsensitive) == 0)
 			{
 				return false;
@@ -149,9 +174,8 @@ void UserListEditorWidget::onItemCreateRequested()
 
 void UserListEditorWidget::onUsersLoaded(Core::IBackendConnection::QueryId /*queryId*/, const QList<Core::User>& users)
 {
-	m_model = users;
-
-	updateData();
+	m_originalModel = users;
+	setClientFilter(m_currentClient);
 
 	hideProgressDialog();
 

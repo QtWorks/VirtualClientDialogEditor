@@ -13,6 +13,9 @@ public:
 	void loadData();
 	void setClients(const QList<Core::Client>& clients);
 
+	void setClientFilter(const QString& client);
+	void resetClientFilter();
+
 private:
 	virtual QStringList items() const override;
 	virtual void removeItems(const QStringList& items) override;
@@ -34,6 +37,8 @@ private:
 	IBackendConnectionSharedPtr m_backendConnection;
 
 	typedef QList<Core::User> UserListDataModel;
+	UserListDataModel m_originalModel;
+	QString m_currentClient;
 	UserListDataModel m_model;
 	QList<Core::Client> m_clients;
 

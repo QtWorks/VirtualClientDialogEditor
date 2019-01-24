@@ -13,7 +13,7 @@ class ApplicationSettings;
 class LoginDialog;
 class SettingsDialog;
 class ClientListEditorWidget;
-class UserListEditorWidget;
+class UsersTabWidget;
 class DialogsTabWidget;
 
 class MainWindow
@@ -38,6 +38,6 @@ private:
 	LoginDialog* m_loginDialog;
 	SettingsDialog* m_settingsDialog;
 	ClientListEditorWidget* m_clientListEditorWidget;
-	UserListEditorWidget* m_usersListEditorWidget;
+	UsersTabWidget* m_usersTabWidget;
 	DialogsTabWidget* m_dialogsTabWidget;
 };

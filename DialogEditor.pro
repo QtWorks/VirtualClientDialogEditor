@@ -56,7 +56,8 @@ SOURCES += \
 	clienteditor/clientlisteditorwidget.cpp \
     clienteditor/clienteditordialog.cpp \
 	dialogeditor/dialogstabwidget.cpp \
-	dialogeditor/dialoggraphicsinfostorage.cpp
+	dialogeditor/dialoggraphicsinfostorage.cpp \
+    usereditor/userstabwidget.cpp
 
 HEADERS  += \
     listeditorwidget.h \
@@ -104,7 +105,8 @@ HEADERS  += \
     clienteditor/clienteditordialog.h \
     dialogeditor/dialogstabwidget.h \
     dialogeditor/dialoggraphicsinfo.h \
-	dialogeditor/dialoggraphicsinfostorage.h
+	dialogeditor/dialoggraphicsinfostorage.h \
+    usereditor/userstabwidget.h
 
 FORMS    += \
     listeditorwidget.ui \
@@ -118,7 +120,8 @@ FORMS    += \
     dialogeditor/phaseeditorwindow.ui \
 	settingsdialog.ui \
     clienteditor/clienteditordialog.ui \
-    dialogeditor/dialogstabwidget.ui
+    dialogeditor/dialogstabwidget.ui \
+    usereditor/userstabwidget.ui
 
 RESOURCES += \
 	resources.qrc
