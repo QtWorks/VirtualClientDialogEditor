@@ -15,13 +15,14 @@ public:
 	void loadData();
 
 private slots:
-	void updateClientsList(Core::IBackendConnection::QueryId queryId, const QMap<QString, QList<Core::Dialog>>& dialogs);
-	void updateDialogsList(const QString& client);
+	void updateClientsList(Core::IBackendConnection::QueryId queryId, const QList<Core::Client>& clients);
+	void updateDialogsList(int clientIndex);
 
 private:
 	Ui::DialogsTabWidget m_ui;
 	DialogListEditorWidget m_listEditorWidget;
-	QString m_currentClient;
+	Core::Client m_currentClient;
+	QList<Core::Client> m_clients;
 };
 
 #endif // DIALOGSTABWIDGET_H
