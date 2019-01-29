@@ -57,7 +57,8 @@ SOURCES += \
     clienteditor/clienteditordialog.cpp \
 	dialogeditor/dialogstabwidget.cpp \
 	dialogeditor/dialoggraphicsinfostorage.cpp \
-    usereditor/userstabwidget.cpp
+    usereditor/userstabwidget.cpp \
+    dialogeditor/saveasdialog.cpp
 
 HEADERS  += \
     listeditorwidget.h \
@@ -106,7 +107,8 @@ HEADERS  += \
     dialogeditor/dialogstabwidget.h \
     dialogeditor/dialoggraphicsinfo.h \
 	dialogeditor/dialoggraphicsinfostorage.h \
-    usereditor/userstabwidget.h
+    usereditor/userstabwidget.h \
+    dialogeditor/saveasdialog.h
 
 FORMS    += \
     listeditorwidget.ui \
@@ -121,7 +123,8 @@ FORMS    += \
 	settingsdialog.ui \
     clienteditor/clienteditordialog.ui \
     dialogeditor/dialogstabwidget.ui \
-    usereditor/userstabwidget.ui
+    usereditor/userstabwidget.ui \
+    dialogeditor/saveasdialog.ui
 
 RESOURCES += \
 	resources.qrc

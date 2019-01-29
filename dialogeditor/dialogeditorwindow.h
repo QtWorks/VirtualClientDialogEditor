@@ -3,6 +3,7 @@
 
 #include "dialoggraphicsscene.h"
 #include "dialoggraphicsinfo.h"
+#include "core/client.h"
 #include <QWidget>
 #include <QDialog>
 #include <memory>
@@ -17,14 +18,16 @@ class DialogEditorWindow
 	Q_OBJECT
 
 public:
-	typedef std::function<bool(const QString&, Core::Dialog::Difficulty)> UniquenessValidator;
-	DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo,
-		const UniquenessValidator& uniquenessValidator, bool enableSaveAs, QWidget* parent = 0);
+	typedef std::function<bool(const QString&, Core::Dialog::Difficulty)> NameValidator;
+	DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo, const NameValidator& nameValidator, QWidget* parent = 0);
 	~DialogEditorWindow();
+
+	typedef std::function<bool(const Core::Client& client, const QString&, Core::Dialog::Difficulty)> NameValidatorEx;
+	void enableSaveAs(const QList<Core::Client>& clients, const Core::Client& selectedClient, NameValidatorEx nameValidator);
 
 signals:
 	void dialogModified(Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
-	void dialogCreated(Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
+	void dialogCreated(Core::Client client, Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
 
 public slots:
 	void onNodeAdded(NodeGraphicsItem* node);
@@ -72,7 +75,8 @@ private:
 	QGraphicsScene* m_dialogConstructorGraphicsScene;
 	DialogGraphicsScene* m_dialogGraphicsScene;
 	Core::Dialog m_dialog;
-	UniquenessValidator m_uniquenessValidator;
+	Core::Client m_selectedClient;
+	NameValidator m_nameValidator;
 
 	QVector<NodeGraphicsItem*> m_selectedNodes;
 

@@ -8,11 +8,11 @@
 #include "clientreplicanodegraphicsitem.h"
 #include "expectedwordsnodegraphicsitem.h"
 #include "arrowlinegraphicsitem.h"
+#include "saveasdialog.h"
 
 #include "logger.h"
 #include <QPushButton>
 #include <QMessageBox>
-#include <QInputDialog>
 
 #include <set>
 
@@ -168,13 +168,13 @@ QList<PhaseGraphicsInfo> getPhasesGraphicsInfo(QList<PhaseGraphicsItem*> phases)
 }
 
 DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo,
-	const UniquenessValidator& uniquenessValidator, bool enableSaveAs, QWidget* parent)
+	const NameValidator& nameValidator, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::DialogEditorWindow)
 	, m_dialogConstructorGraphicsScene(new DialogConstructorGraphicsScene(this))
 	, m_dialogGraphicsScene(new DialogGraphicsScene(this))
 	, m_dialog(dialog)
-	, m_uniquenessValidator(uniquenessValidator)
+	, m_nameValidator(nameValidator)
 {
 	m_ui->setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, true);
@@ -216,50 +216,7 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGr
 		close();
 	});
 
-	if (enableSaveAs)
-	{
-		connect(m_ui->saveAsButton, QPushButton::clicked, [this]()
-		{
-			bool validName = false;
-
-			bool accepted = false;
-			QString newDialogName = QInputDialog::getText(this, "Введите имя диалога", "Имя диалога:", QLineEdit::Normal, "", &accepted);
-			while (!validName)
-			{
-				if (!accepted)
-				{
-					return;
-				}
-
-				if (newDialogName.trimmed().isEmpty())
-				{
-					newDialogName = QInputDialog::getText(this, "Введите имя диалога", "Имя не может быть пустым.\nИмя диалога:", QLineEdit::Normal, "", &accepted);
-					continue;
-				}
-
-				if (!m_uniquenessValidator(newDialogName, m_dialog.difficulty))
-				{
-					newDialogName = QInputDialog::getText(this, "Введите имя диалога", "Имя должно быть уникальным.\nИмя диалога:", QLineEdit::Normal, "", &accepted);
-					continue;
-				}
-
-				validName = true;
-			}
-
-			QList<PhaseGraphicsInfo> graphicsInfo = getPhasesGraphicsInfo(getOrderedPhases());
-
-			m_dialog.name = newDialogName;
-			m_dialog.phases = getPhases();
-
-			emit dialogCreated(m_dialog, graphicsInfo);
-
-			close();
-		});
-	}
-	else
-	{
-		m_ui->saveAsButton->hide();
-	}
+	m_ui->saveAsButton->hide();
 
 	connect(m_ui->closeButton, &QPushButton::clicked, [this]()
 	{
@@ -322,6 +279,32 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGr
 DialogEditorWindow::~DialogEditorWindow()
 {
 	delete m_ui;
+}
+
+void DialogEditorWindow::enableSaveAs(const QList<Core::Client>& clients, const Core::Client& selectedClient, NameValidatorEx nameValidator)
+{
+	m_ui->saveAsButton->show();
+
+	connect(m_ui->saveAsButton, QPushButton::clicked, [=]()
+	{
+		SaveAsDialog::NameValidator validator = [&](const Core::Client& client, const QString& name)
+		{
+			return nameValidator(client, name, m_dialog.difficulty);
+		};
+
+		SaveAsDialog* dialog = new SaveAsDialog(clients, selectedClient, validator, this);
+		dialog->show();
+
+		connect(dialog, &SaveAsDialog::accepted, [this](Core::Client client, QString newDialogName)
+		{
+			QList<PhaseGraphicsInfo> graphicsInfo = getPhasesGraphicsInfo(getOrderedPhases());
+			m_dialog.name = newDialogName;
+			m_dialog.phases = getPhases();
+
+			emit dialogCreated(client, m_dialog, graphicsInfo);
+			close();
+		});
+	});
 }
 
 void DialogEditorWindow::onNodeAdded(NodeGraphicsItem* /*node*/)
@@ -633,7 +616,7 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 		return false;
 	}
 
-	if (!m_uniquenessValidator(m_dialog.name, m_dialog.difficulty))
+	if (!m_nameValidator(m_dialog.name, m_dialog.difficulty))
 	{
 		error = "Имя диалога должно быть уникальным";
 		return false;

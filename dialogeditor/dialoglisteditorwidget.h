@@ -15,7 +15,7 @@ public:
 		QWidget* parent = nullptr);
 
 	void loadData();
-	void setCurrentClient(const QString& client);
+	void setCurrentClient(const Core::Client& client);
 
 private:
 	virtual QStringList items() const override;
@@ -25,6 +25,7 @@ private slots:
 	void onItemEditRequested(const QString& dialogName);
 	void onItemCreateRequested();
 
+	void onClientsLoaded(Core::IBackendConnection::QueryId queryId, const QList<Core::Client>& clients);
 	void onDialogsLoaded(Core::IBackendConnection::QueryId queryId, const QMap<QString, QList<Core::Dialog>>& dialogs);
 	void onDialogsLoadFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
 	void onDialogsUpdated(Core::IBackendConnection::QueryId queryId);
@@ -32,7 +33,7 @@ private slots:
 
 private:
 	void updateDialog(int index, const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
-	void addDialog(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
+	void addDialog(const QString& clientId, const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
 
 private:
 	IBackendConnectionSharedPtr m_backendConnection;
@@ -41,6 +42,7 @@ private:
 	typedef QMap<QString, QList<Core::Dialog>> DialogListDataModel;
 	DialogListDataModel m_model;
 	QString m_currentClient;
+	QList<Core::Client> m_clients;
 
 	bool m_updating;
 };

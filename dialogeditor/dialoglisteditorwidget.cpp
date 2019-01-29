@@ -27,6 +27,7 @@ DialogListEditorWidget::DialogListEditorWidget(IBackendConnectionSharedPtr backe
 	connect(this, &ListEditorWidget::itemEditRequested, this, &DialogListEditorWidget::onItemEditRequested);
 	connect(this, &ListEditorWidget::itemCreateRequested, this, &DialogListEditorWidget::onItemCreateRequested);
 
+	connect(m_backendConnection.get(), &Core::IBackendConnection::clientsLoaded, this, &DialogListEditorWidget::onClientsLoaded);
 	connect(m_backendConnection.get(), &Core::IBackendConnection::dialogsLoaded, this, &DialogListEditorWidget::onDialogsLoaded);
 	connect(m_backendConnection.get(), &Core::IBackendConnection::dialogsLoadFailed, this, &DialogListEditorWidget::onDialogsLoadFailed);
 	connect(m_backendConnection.get(), &Core::IBackendConnection::dialogsUpdated, this, &DialogListEditorWidget::onDialogsUpdated);
@@ -40,14 +41,14 @@ void DialogListEditorWidget::loadData()
 	m_backendConnection->loadDialogs();
 }
 
-void DialogListEditorWidget::setCurrentClient(const QString& client)
+void DialogListEditorWidget::setCurrentClient(const Core::Client& client)
 {
-	if (!m_model.contains(client))
+	if (!m_model.contains(client.databaseName))
 	{
 		return;
 	}
 
-	m_currentClient = client;
+	m_currentClient = client.databaseName;
 
 	updateData();
 }
@@ -124,16 +125,17 @@ void DialogListEditorWidget::updateDialog(int index, const Core::Dialog& dialog,
 	m_backendConnection->updateDialogs(m_currentClient, { updated, {}, {} });
 }
 
-void DialogListEditorWidget::addDialog(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo)
+// TODO: clientId is databaseName - rename or pass whole Client structure
+void DialogListEditorWidget::addDialog(const QString& clientId, const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo)
 {
 	Core::DialogJsonWriter writer;
 	LOG << writer.write(dialog);
 
 	showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
 
-	m_dialogGraphicsInfoStorage->insert({ m_currentClient, dialog.name, dialog.difficulty }, phasesGraphicsInfo);
+	m_dialogGraphicsInfoStorage->insert({ clientId, dialog.name, dialog.difficulty }, phasesGraphicsInfo);
 
-	m_backendConnection->updateDialogs(m_currentClient, { {}, {}, { dialog } });
+	m_backendConnection->updateDialogs(clientId, { {}, {}, { dialog } });
 }
 
 void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
@@ -165,11 +167,45 @@ void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 	};
 
 	auto dialogGraphicsInfo = m_dialogGraphicsInfoStorage->read({ m_currentClient, it->name, it->difficulty });
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(*it, dialogGraphicsInfo, validator, true);
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(*it, dialogGraphicsInfo, validator);
+
+	DialogEditorWindow::NameValidatorEx nameValidator = [&](const Core::Client& client, const QString& name, Core::Dialog::Difficulty difficulty) -> bool
+	{
+		const auto dialogsIt = m_model.find(client.databaseName);
+		if (dialogsIt == m_model.end())
+		{
+			return true;
+		}
+
+		const auto& dialogs = *dialogsIt;
+
+		const QString newName = Core::Dialog::printableName(name, difficulty);
+		for (int i = 0; i < dialogs.length(); i++)
+		{
+			if (i == index)
+			{
+				continue;
+			}
+
+			if (dialogs[i].printableName().compare(newName, Qt::CaseInsensitive) == 0)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+	const auto clientIt = std::find_if(m_clients.begin(), m_clients.end(),
+		[this](const Core::Client& client) { return client.databaseName == m_currentClient; });
+	Q_ASSERT(clientIt != m_clients.end());
+
+	editorWindow->enableSaveAs(m_clients, *clientIt, nameValidator);
+
 	connect(editorWindow, &DialogEditorWindow::dialogModified,
 		[this, index](Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo) { updateDialog(index, dialog, phasesGraphicsInfo); });
 	connect(editorWindow, &DialogEditorWindow::dialogCreated,
-		[this](Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo) { addDialog(dialog, phasesGraphicsInfo); });
+		[this](Core::Client client, Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo) { addDialog(client.databaseName, dialog, phasesGraphicsInfo); });
 
 	editorWindow->show();
 }
@@ -196,11 +232,16 @@ void DialogListEditorWidget::onItemCreateRequested()
 	};
 
 	auto dialogGraphicsInfo = m_dialogGraphicsInfoStorage->read({ m_currentClient, dialog.name, dialog.difficulty });
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(dialog, dialogGraphicsInfo, validator, false);
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(dialog, dialogGraphicsInfo, validator);
 	connect(editorWindow, &DialogEditorWindow::dialogModified,
-		[this](Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo) { addDialog(dialog, phasesGraphicsInfo); });
+		[this](Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo) { addDialog(m_currentClient, dialog, phasesGraphicsInfo); });
 
 	editorWindow->show();
+}
+
+void DialogListEditorWidget::onClientsLoaded(Core::IBackendConnection::QueryId /*queryId*/, const QList<Core::Client>& clients)
+{
+	m_clients = clients;
 }
 
 void DialogListEditorWidget::onDialogsLoaded(Core::IBackendConnection::QueryId /*queryId*/,

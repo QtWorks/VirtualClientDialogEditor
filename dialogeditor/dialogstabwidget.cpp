@@ -11,7 +11,7 @@ DialogsTabWidget::DialogsTabWidget(IBackendConnectionSharedPtr backendConnection
 
 	connect(m_ui.clientsComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DialogsTabWidget::updateDialogsList);
 	connect(backendConnection.get(), &IBackendConnection::clientsLoaded, this, &DialogsTabWidget::updateClientsList);
-	connect(backendConnection.get(), &IBackendConnection::dialogsLoaded, [this]() { m_listEditorWidget.setCurrentClient(m_currentClient.databaseName); });
+	connect(backendConnection.get(), &IBackendConnection::dialogsLoaded, [this]() { m_listEditorWidget.setCurrentClient(m_currentClient); });
 }
 
 void DialogsTabWidget::loadData()
@@ -45,5 +45,5 @@ void DialogsTabWidget::updateClientsList(IBackendConnection::QueryId /*queryId*/
 void DialogsTabWidget::updateDialogsList(int clientIndex)
 {
 	m_currentClient = m_clients[clientIndex];
-	m_listEditorWidget.setCurrentClient(m_currentClient.databaseName);
+	m_listEditorWidget.setCurrentClient(m_currentClient);
 }
