@@ -194,6 +194,10 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGr
 			updateSaveControls();
 		});
 
+	m_ui->noteTextEdit->setText(dialog.note);
+	connect(m_ui->noteTextEdit, &QTextEdit::textChanged, [this]() { m_dialog.note = m_ui->noteTextEdit->toPlainText().trimmed(); });
+	connect(m_ui->noteTextEdit, &QTextEdit::textChanged, this, &DialogEditorWindow::updateSaveControls);
+
 	m_ui->successRatioLineEdit->setText(QString::number(dialog.successRatio));
 	m_ui->successRatioLineEdit->setValidator(new QIntValidator(0, 100));
 	connect(m_ui->successRatioLineEdit, &QLineEdit::textEdited, [this](const QString& successRatio) { m_dialog.successRatio = successRatio.toDouble(); });

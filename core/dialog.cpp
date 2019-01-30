@@ -8,9 +8,10 @@ Dialog::Dialog()
 {
 }
 
-Dialog::Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode>& phases, const ErrorReplica& errorReplica, double successRatio)
+Dialog::Dialog(const QString& name, Difficulty difficulty, const QString& note, const QList<PhaseNode>& phases, const ErrorReplica& errorReplica, double successRatio)
 	: name(name)
 	, difficulty(difficulty)
+	, note(note)
 	, phases(phases)
 	, errorReplica(errorReplica)
 	, successRatio(successRatio)
@@ -20,6 +21,7 @@ Dialog::Dialog(const QString& name, Difficulty difficulty, const QList<PhaseNode
 Dialog::Dialog(const Dialog& other)
 	: name(other.name)
 	, difficulty(other.difficulty)
+	, note(other.note)
 	, errorReplica(other.errorReplica)
 	, phaseRepeatReplica(other.phaseRepeatReplica)
 	, successRatio(other.successRatio)
@@ -88,7 +90,7 @@ bool operator<(const Dialog& left, const Dialog& right)
 bool operator==(const Dialog& left, const Dialog& right)
 {
 	return left.name == right.name && left.difficulty == right.difficulty &&
-		left.phases.size() == right.phases.size() &&
+		left.note == right.note && left.phases.size() == right.phases.size() &&
 		std::equal(left.phases.begin(), left.phases.end(), right.phases.begin()) &&
 		left.errorReplica == right.errorReplica &&
 		left.phaseRepeatReplica == right.phaseRepeatReplica &&

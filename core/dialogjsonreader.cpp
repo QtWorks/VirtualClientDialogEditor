@@ -244,6 +244,7 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 		static const PropertiesList s_requiredProperties = {
 			{ "name", QJsonValue::String },
 			{ "difficulty", QJsonValue::Double },
+			{ "note", QJsonValue::String },
 			{ "successRatio", QJsonValue::Double },
 			{ "phases", QJsonValue::Array }
 		};
@@ -251,6 +252,7 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 
 		const QString name = dialogObject["name"].toString();
 		const Dialog::Difficulty difficulty = static_cast<Dialog::Difficulty>(dialogObject["difficulty"].toInt());
+		const QString note = dialogObject["note"].toString();
 		const double successRatio = dialogObject["successRatio"].toDouble() * 100;
 		const ErrorReplica errorReplica = parseError(dialogObject["errorReplica"].toObject());
 
@@ -278,7 +280,7 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 			return Dialog();
 		}
 
-		Dialog dialog = Dialog(name, difficulty, phases, errorReplica, successRatio);
+		Dialog dialog = Dialog(name, difficulty, note, phases, errorReplica, successRatio);
 		if (hasProperty(dialogObject, "phaseRepeatReplica", QJsonValue::String))
 		{
 			dialog.phaseRepeatReplica = dialogObject["phaseRepeatReplica"].toString();
