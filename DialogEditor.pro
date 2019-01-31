@@ -4,6 +4,9 @@
 #
 #-------------------------------------------------
 
+VERSION = 1.0.0.0
+RC_ICONS += ./icons/app_icon.ico
+
 QT += core gui widgets network websockets sql
 
 TARGET = DialogEditor
