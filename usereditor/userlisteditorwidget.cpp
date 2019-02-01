@@ -97,7 +97,7 @@ void UserListEditorWidget::removeItems(const QStringList& usernames)
 
 void UserListEditorWidget::updateUser(int index, const Core::User& user)
 {
-	const Core::User& sourceUser = m_model[index];
+	const Core::User& sourceUser = m_originalModel[index];
 	if (sourceUser == user)
 	{
 		return;
@@ -119,10 +119,10 @@ void UserListEditorWidget::addUser(const Core::User& user)
 
 void UserListEditorWidget::onItemEditRequested(const QString& username)
 {
-	const auto it = std::find_if(m_model.begin(), m_model.end(),
+	const auto it = std::find_if(m_originalModel.begin(), m_originalModel.end(),
 		[&username](const Core::User& user){ return user.name == username; });
-	Q_ASSERT(it != m_model.end());
-	const int index = std::distance(m_model.begin(), it);
+	Q_ASSERT(it != m_originalModel.end());
+	const int index = std::distance(m_originalModel.begin(), it);
 
 	const auto validator = [this, index](const QString& name)
 	{

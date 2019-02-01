@@ -4,9 +4,24 @@
 #include "applicationsettings.h"
 #include <QApplication>
 #include <memory>
+#include <iostream>
+
+void messageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
+{
+	switch (type)
+	{
+	case QtCriticalMsg:
+		std::cerr << QString("Critical: %1 (%2:%3, %4)\n").arg(msg).arg(context.file).arg(context.line).arg(context.function).toStdString();
+		break;
+	case QtFatalMsg:
+		std::cerr << QString("Fatal: %1 (%2:%3, %4)\n").arg(msg).arg(context.file).arg(context.line).arg(context.function).toStdString();
+		abort();
+	}
+}
 
 int main(int argc, char* argv[])
 {
+	qInstallMessageHandler(messageHandler);
 	QApplication a(argc, argv);
 
 	ApplicationSettings settings;

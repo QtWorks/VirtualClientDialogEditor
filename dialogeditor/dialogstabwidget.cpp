@@ -44,6 +44,11 @@ void DialogsTabWidget::updateClientsList(IBackendConnection::QueryId /*queryId*/
 
 void DialogsTabWidget::updateDialogsList(int clientIndex)
 {
+	if (clientIndex == -1)
+	{
+		return;
+	}
+
 	m_currentClient = m_clients[clientIndex];
 	m_listEditorWidget.setCurrentClient(m_currentClient);
 }
