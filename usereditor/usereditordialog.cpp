@@ -7,6 +7,7 @@ UserEditorDialog::UserEditorDialog(const Core::User& user, const UniquenessValid
 	bool showPasswordInputs, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::UserEditorDialog)
+	, m_user(user)
 	, m_uniquenessValidator(validator)
 	, m_clients(clients)
 	, m_showPasswordInputs(showPasswordInputs)
@@ -26,6 +27,8 @@ UserEditorDialog::UserEditorDialog(const Core::User& user, const UniquenessValid
 
 	m_ui->adminCheckBox->setChecked(user.admin);
 
+	connect(m_ui->clientsComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &UserEditorDialog::onClientChanged);
+
 	if (!user.admin)
 	{
 		const auto it = std::find_if(clients.begin(), clients.end(),
@@ -44,6 +47,19 @@ UserEditorDialog::UserEditorDialog(const Core::User& user, const UniquenessValid
 UserEditorDialog::~UserEditorDialog()
 {
 	delete m_ui;
+}
+
+void UserEditorDialog::onClientChanged(int clientIndex)
+{
+	m_ui->groupsListWidget->clear();
+
+	if (clientIndex == -1)
+	{
+		return;
+	}
+
+	m_ui->groupsListWidget->setItems(m_clients[clientIndex].groups);
+	m_ui->groupsListWidget->setCheckedItems(m_user.groups);
 }
 
 void UserEditorDialog::saveChanges()
@@ -92,6 +108,15 @@ void UserEditorDialog::saveChanges()
 
 		const QString clientId = m_clients[clientIndex].id;
 		user.clientId = clientId;
+
+		QList<QString> checkedGroups = m_ui->groupsListWidget->checkedItems();
+		if (checkedGroups.isEmpty())
+		{
+			QMessageBox::warning(this, "Ошибка валидации", "Необходимо выбрать хотя бы одну группу или сделать пользователя администратором.");
+			return;
+		}
+
+		user.groups = checkedGroups;
 	}
 
 	emit userChanged(user);

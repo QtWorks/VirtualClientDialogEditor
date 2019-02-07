@@ -61,7 +61,12 @@ SOURCES += \
 	dialogeditor/dialogstabwidget.cpp \
 	dialogeditor/dialoggraphicsinfostorage.cpp \
     usereditor/userstabwidget.cpp \
-    dialogeditor/saveasdialog.cpp
+    dialogeditor/saveasdialog.cpp \
+    clienteditor/groupslisteditorwidget.cpp \
+    clienteditor/groupstabwidget.cpp \
+    clienteditor/groupeditordialog.cpp \
+    dialogeditor/groupsdialog.cpp \
+    groupslistwidget.cpp
 
 HEADERS  += \
     listeditorwidget.h \
@@ -111,7 +116,12 @@ HEADERS  += \
     dialogeditor/dialoggraphicsinfo.h \
 	dialogeditor/dialoggraphicsinfostorage.h \
     usereditor/userstabwidget.h \
-    dialogeditor/saveasdialog.h
+    dialogeditor/saveasdialog.h \
+    clienteditor/groupslisteditorwidget.h \
+    clienteditor/groupstabwidget.h \
+    clienteditor/groupeditordialog.h \
+    dialogeditor/groupsdialog.h \
+    groupslistwidget.h
 
 FORMS    += \
     listeditorwidget.ui \
@@ -127,7 +137,10 @@ FORMS    += \
     clienteditor/clienteditordialog.ui \
     dialogeditor/dialogstabwidget.ui \
     usereditor/userstabwidget.ui \
-    dialogeditor/saveasdialog.ui
+    dialogeditor/saveasdialog.ui \
+    clienteditor/groupstabwidget.ui \
+    clienteditor/groupeditordialog.ui \
+    dialogeditor/groupsdialog.ui
 
 RESOURCES += \
 	resources.qrc

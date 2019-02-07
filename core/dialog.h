@@ -1,5 +1,4 @@
-#ifndef DIALOG_H
-#define DIALOG_H
+#pragma once
 
 #include "phasenode.h"
 #include "clientreplicanode.h"
@@ -20,7 +19,7 @@ public:
 	};
 
 	Dialog();
-	Dialog(const QString& name, Difficulty difficulty, const QString& note, const QList<PhaseNode>& phases, const ErrorReplica& errorReplica, double successRatio);
+	Dialog(const QString& name, Difficulty difficulty, const QString& note, const QList<PhaseNode>& phases, const ErrorReplica& errorReplica, double successRatio, QList<QString> groups);
 	Dialog(const Dialog& other);
 	~Dialog();
 
@@ -39,6 +38,7 @@ public:
 	ErrorReplica errorReplica;
 	QVariant phaseRepeatReplica;
 	double successRatio;
+	QList<QString> groups;
 };
 
 bool operator<(const Dialog& left, const Dialog& right);
@@ -47,5 +47,3 @@ bool operator==(const Dialog& left, const Dialog& right);
 bool operator!=(const Dialog& left, const Dialog& right);
 
 }
-
-#endif // DIALOG_H

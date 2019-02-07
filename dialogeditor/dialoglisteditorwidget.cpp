@@ -142,10 +142,10 @@ void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 {
 	const auto& dialogs = m_model[m_currentClient];
 
-	const auto it = std::find_if(dialogs.begin(), dialogs.end(),
+	const auto dialogIt = std::find_if(dialogs.begin(), dialogs.end(),
 		[&dialogName](const Core::Dialog& dialog){ return dialog.printableName() == dialogName; });
-	Q_ASSERT(it != dialogs.end());
-	const int index = std::distance(dialogs.begin(), it);
+	Q_ASSERT(dialogIt != dialogs.end());
+	const int index = std::distance(dialogs.begin(), dialogIt);
 
 	const auto validator = [this, index, &dialogs](const QString& name, Core::Dialog::Difficulty difficulty)
 	{
@@ -166,8 +166,12 @@ void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 		return true;
 	};
 
-	auto dialogGraphicsInfo = m_dialogGraphicsInfoStorage->read({ m_currentClient, it->name, it->difficulty });
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(*it, dialogGraphicsInfo, validator);
+	auto currentClientIt = std::find_if(m_clients.begin(), m_clients.end(),
+		[this](const Core::Client& client) { return client.databaseName == m_currentClient; });
+	Q_ASSERT(currentClientIt != m_clients.end());
+
+	auto dialogGraphicsInfo = m_dialogGraphicsInfoStorage->read({ m_currentClient, dialogIt->name, dialogIt->difficulty });
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(*currentClientIt, *dialogIt, dialogGraphicsInfo, validator);
 
 	DialogEditorWindow::NameValidatorEx nameValidator = [&](const Core::Client& client, const QString& name, Core::Dialog::Difficulty difficulty) -> bool
 	{
@@ -212,7 +216,7 @@ void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 
 void DialogListEditorWidget::onItemCreateRequested()
 {
-	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, "", { }, {}, 0.0 };
+	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, "", { }, {}, 0.0, {} };
 
 	const auto validator = [this](const QString& name, Core::Dialog::Difficulty difficulty)
 	{
@@ -231,8 +235,12 @@ void DialogListEditorWidget::onItemCreateRequested()
 		return true;
 	};
 
+	auto currentClientIt = std::find_if(m_clients.begin(), m_clients.end(),
+		[this](const Core::Client& client) { return client.databaseName == m_currentClient; });
+	Q_ASSERT(currentClientIt != m_clients.end());
+
 	auto dialogGraphicsInfo = m_dialogGraphicsInfoStorage->read({ m_currentClient, dialog.name, dialog.difficulty });
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(dialog, dialogGraphicsInfo, validator);
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(*currentClientIt, dialog, dialogGraphicsInfo, validator);
 	connect(editorWindow, &DialogEditorWindow::dialogModified,
 		[this](Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo) { addDialog(m_currentClient, dialog, phasesGraphicsInfo); });
 

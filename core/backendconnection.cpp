@@ -40,6 +40,7 @@ QJsonObject toJson(const User& user)
 	if (!user.admin)
 	{
 		result["ClientId"] = user.clientId;
+		result["Groups"] = QJsonArray::fromStringList(user.groups);
 	}
 
 	return result;
@@ -47,7 +48,18 @@ QJsonObject toJson(const User& user)
 
 QJsonObject toJson(const Client& client)
 {
-	return QJsonObject{ { "name", client.name }, { "databaseName", client.databaseName } };
+	QJsonArray groups;
+	for (const Group& group : client.groups)
+	{
+		QJsonObject groupObject = { { "name", group.name } };
+		groups.append(groupObject);
+	}
+
+	return QJsonObject{
+		{ "name", client.name },
+		{ "databaseName", client.databaseName },
+		{ "groups", groups }
+	};
 }
 
 }
@@ -375,10 +387,46 @@ void BackendConnection::onClientsLoadSuccess(IBackendConnection::QueryId queryId
 			continue;
 		}
 
+		if (!clientObject.contains("Groups") || !clientObject["Groups"].isArray())
+		{
+			LOG << "Faled to parse client #" << i << " - object must have \"Groups\" array property";
+			continue;
+		}
+
+		QList<Group> groups;
+		QJsonArray groupsArray = clientObject["Groups"].toArray();
+
+		for (int groupIndex = 0; groupIndex < groupsArray.size(); ++groupIndex)
+		{
+			const QJsonValue& groupValue = groupsArray[groupIndex];
+			if (!groupValue.isObject())
+			{
+				continue;
+			}
+			const QJsonObject groupObject = groupValue.toObject();
+
+			if (!groupObject.contains("Name") || !groupObject["Name"].isString())
+			{
+				continue;
+			}
+
+			if (!groupObject.contains("Id") || !groupObject["Id"].isString())
+			{
+				continue;
+			}
+
+			groups << Group(
+				groupObject["Name"].toString(),
+				groupObject["Id"].toString().toLatin1()
+			);
+		}
+
+
 		result << Client(
 			clientObject["Name"].toString(),
 			clientObject["DatabaseName"].toString(),
-			clientObject["Id"].toString().toLatin1()
+			clientObject["Id"].toString().toLatin1(),
+			groups
 		);
 	}
 
@@ -464,8 +512,20 @@ void BackendConnection::onUsersLoadSuccess(IBackendConnection::QueryId queryId, 
 			continue;
 		}
 
+		if (!userObject.contains("Groups") || !userObject["Groups"].isArray())
+		{
+			LOG << "Faled to parse user #" << i << " - object must have \"Groups\" array property";
+			continue;
+		}
+
+		QList<QString> groups;
+		for (const QJsonValue& groupValue : userObject["Groups"].toArray())
+		{
+			groups.append(groupValue.toString());
+		}
+
 		const QString clientId = userObject["ClientId"].toString();
-		result << User(username, clientId);
+		result << User(username, clientId, groups);
 	}
 
 	emit usersLoaded(queryId, result);

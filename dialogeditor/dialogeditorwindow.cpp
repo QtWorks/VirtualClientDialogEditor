@@ -9,6 +9,7 @@
 #include "expectedwordsnodegraphicsitem.h"
 #include "arrowlinegraphicsitem.h"
 #include "saveasdialog.h"
+#include "groupsdialog.h"
 
 #include "logger.h"
 #include <QPushButton>
@@ -167,7 +168,7 @@ QList<PhaseGraphicsInfo> getPhasesGraphicsInfo(QList<PhaseGraphicsItem*> phases)
 
 }
 
-DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo,
+DialogEditorWindow::DialogEditorWindow(const Core::Client& client, const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo,
 	const NameValidator& nameValidator, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::DialogEditorWindow)
@@ -193,6 +194,19 @@ DialogEditorWindow::DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGr
 			m_dialog.difficulty = Core::Dialog::difficultyFromString(difficulty);
 			updateSaveControls();
 		});
+
+	QList<Core::Group> clientGroups = client.groups;
+	connect(m_ui->selectGroupsButton, &QPushButton::clicked, [this, clientGroups]()
+	{
+		GroupsDialog* groupsDialog = new GroupsDialog(clientGroups, m_dialog.groups, this);
+
+		connect(groupsDialog, &GroupsDialog::accepted, [this](const QList<QString>& checkedGroups)
+		{
+			m_dialog.groups = checkedGroups;
+		});
+
+		groupsDialog->show();
+	});
 
 	m_ui->noteTextEdit->setText(dialog.note);
 	connect(m_ui->noteTextEdit, &QTextEdit::textChanged, [this]() { m_dialog.note = m_ui->noteTextEdit->toPlainText().trimmed(); });

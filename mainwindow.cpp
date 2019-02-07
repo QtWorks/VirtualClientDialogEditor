@@ -3,6 +3,7 @@
 #include "logindialog.h"
 #include "settingsdialog.h"
 #include "clienteditor/clientlisteditorwidget.h"
+#include "clienteditor/groupstabwidget.h"
 #include "dialogeditor/dialogstabwidget.h"
 #include "usereditor/userstabwidget.h"
 
@@ -15,12 +16,14 @@ MainWindow::MainWindow(ApplicationSettings* settings, IBackendConnectionSharedPt
 	, m_loginDialog(new LoginDialog(backendConnection, this))
 	, m_settingsDialog(new SettingsDialog(this))
 	, m_clientListEditorWidget(new ClientListEditorWidget(backendConnection, this))
+	, m_groupsTabWidget(new GroupsTabWidget(backendConnection, this))
 	, m_usersTabWidget(new UsersTabWidget(backendConnection, this))
 	, m_dialogsTabWidget(new DialogsTabWidget(backendConnection, dialogGraphicsInfoStoragePtr, this))
 {
 	m_ui->setupUi(this);
 
 	m_ui->tabWidget->addTab(m_clientListEditorWidget, "Клиенты");
+	m_ui->tabWidget->addTab(m_groupsTabWidget, "Группы");
 	m_ui->tabWidget->addTab(m_usersTabWidget, "Пользователи");
 	m_ui->tabWidget->addTab(m_dialogsTabWidget, "Диалоги");
 

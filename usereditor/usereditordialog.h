@@ -1,5 +1,4 @@
-#ifndef USEREDITORWIDGET_H
-#define USEREDITORWIDGET_H
+#pragma once
 
 #include "core/user.h"
 #include "core/client.h"
@@ -26,6 +25,7 @@ signals:
 	void canceled();
 
 private slots:
+	void onClientChanged(int clientIndex);
 	void saveChanges();
 	void discardChanges();
 
@@ -36,5 +36,3 @@ private:
 	QList<Core::Client> m_clients;
 	bool m_showPasswordInputs;
 };
-
-#endif // USEREDITORWIDGET_H

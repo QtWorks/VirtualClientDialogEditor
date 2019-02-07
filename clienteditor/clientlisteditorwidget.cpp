@@ -119,7 +119,7 @@ void ClientListEditorWidget::onItemEditRequested(const QString& clientName)
 
 void ClientListEditorWidget::onItemCreateRequested()
 {
-	const Core::Client client = { "", "", "" };
+	const Core::Client client = { "", "", "", {} };
 
 	const auto nameValidator = [this](const QString& name)
 	{

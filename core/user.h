@@ -19,10 +19,11 @@ struct User
 	{
 	}
 
-	User(const QString& name, const QString& clientId)
+	User(const QString& name, const QString& clientId, const QList<QString>& groups)
 		: name(name)
 		, admin(false)
 		, clientId(clientId)
+		, groups(groups)
 	{
 	}
 
@@ -30,6 +31,7 @@ struct User
 	QVariant password;
 	bool admin;
 	QString clientId;
+	QList<QString> groups;
 };
 
 inline bool operator<(const User& left, const User& right)
@@ -39,7 +41,7 @@ inline bool operator<(const User& left, const User& right)
 
 inline bool operator==(const User& left, const User& right)
 {
-	return left.name == right.name && left.admin == right.admin && left.clientId == right.clientId;
+	return left.name == right.name && left.admin == right.admin && left.clientId == right.clientId && left.groups == right.groups;
 }
 
 inline bool operator!=(const User& left, const User& right)

@@ -122,6 +122,11 @@ QJsonValue dumpPhase(const Core::PhaseNode& phase)
 	return result;
 }
 
+QJsonValue dumpGroup(const QString& group)
+{
+	return group;
+}
+
 }
 
 DialogJsonWriter::DialogJsonWriter()
@@ -142,7 +147,8 @@ QJsonObject DialogJsonWriter::writeToObject(const Dialog& dialog)
 		{ "difficulty", static_cast<int>(dialog.difficulty) },
 		{ "note", dialog.note },
 		{ "successRatio", (dialog.successRatio / 100) },
-		{ "phases", dump(dialog.phases, dumpPhase) }
+		{ "phases", dump(dialog.phases, dumpPhase) },
+		{ "groups", dump(dialog.groups, dumpGroup) }
 	});
 
 	if (dialog.errorReplica.hasAnyField())

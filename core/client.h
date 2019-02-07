@@ -1,26 +1,46 @@
 #pragma once
 
 #include <QString>
+#include <QList>
 
 namespace Core
 {
 
-struct Client
+struct Group
 {
-	typedef QByteArray Id;
+	Group() = default;
 
-	Client() = default;
-
-	Client(const QString& name, const QString& databaseName, const Id& id)
+	Group(const QString& name, const QString& id)
 		: name(name)
-		, databaseName(databaseName)
 		, id(id)
 	{
 	}
 
 	QString name;
-	QString databaseName;
 	QString id;
+};
+
+inline bool operator==(const Group& left, const Group& right)
+{
+	return left.name == right.name && left.id == right.id;
+}
+
+struct Client
+{
+	Client() = default;
+
+	Client(const QString& name, const QString& databaseName, const QByteArray& id, const QList<Group>& groups)
+		: name(name)
+		, databaseName(databaseName)
+		, id(id)
+		, groups(groups)
+	{
+	}
+
+	QString name;
+	QString databaseName;
+	QByteArray id;
+	QList<Group> groups;
 };
 
 inline bool operator<(const Client& left, const Client& right)

@@ -246,7 +246,8 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 			{ "difficulty", QJsonValue::Double },
 			{ "note", QJsonValue::String },
 			{ "successRatio", QJsonValue::Double },
-			{ "phases", QJsonValue::Array }
+			{ "phases", QJsonValue::Array },
+			{ "groups", QJsonValue::Array }
 		};
 		checkProperties(dialogObject, s_requiredProperties);
 
@@ -261,6 +262,13 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 		for (const QJsonValue& phase : phasesArray)
 		{
 			phases << parsePhase(phase.toObject());
+		}
+
+		const QJsonArray groupesArray = dialogObject["groups"].toArray();
+		QList<QString> groups;
+		for (const QJsonValue& group : groupesArray)
+		{
+			groups << group.toString();
 		}
 
 		const auto hasField = [&errorReplica, &phases](ErrorReplica::Field field)
@@ -280,7 +288,7 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 			return Dialog();
 		}
 
-		Dialog dialog = Dialog(name, difficulty, note, phases, errorReplica, successRatio);
+		Dialog dialog = Dialog(name, difficulty, note, phases, errorReplica, successRatio, groups);
 		if (hasProperty(dialogObject, "phaseRepeatReplica", QJsonValue::String))
 		{
 			dialog.phaseRepeatReplica = dialogObject["phaseRepeatReplica"].toString();

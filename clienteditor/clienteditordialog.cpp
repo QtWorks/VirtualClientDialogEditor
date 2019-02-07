@@ -7,6 +7,7 @@ ClientEditorDialog::ClientEditorDialog(const Core::Client& client, const Uniquen
 	const UniquenessValidator& databaseNameValidator, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::ClientEditorDialog)
+	, m_client(client)
 	, m_nameValidator(nameValidator)
 	, m_databaseNameValidator(databaseNameValidator)
 {
@@ -55,7 +56,7 @@ void ClientEditorDialog::saveChanges()
 		return;
 	}
 
-	emit clientChanged({ name, databaseName, "" });
+	emit clientChanged({ name, databaseName, "", m_client.groups});
 	accept();
 }
 

@@ -1,5 +1,4 @@
-#ifndef DIALOGEDITORWINDOW_H
-#define DIALOGEDITORWINDOW_H
+#pragma once
 
 #include "dialoggraphicsscene.h"
 #include "dialoggraphicsinfo.h"
@@ -19,7 +18,8 @@ class DialogEditorWindow
 
 public:
 	typedef std::function<bool(const QString&, Core::Dialog::Difficulty)> NameValidator;
-	DialogEditorWindow(const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo, const NameValidator& nameValidator, QWidget* parent = 0);
+	DialogEditorWindow(const Core::Client& client, const Core::Dialog& dialog,
+		QList<PhaseGraphicsInfo> phasesGraphicsInfo, const NameValidator& nameValidator, QWidget* parent = 0);
 	~DialogEditorWindow();
 
 	typedef std::function<bool(const Core::Client& client, const QString&, Core::Dialog::Difficulty)> NameValidatorEx;
@@ -83,5 +83,3 @@ private:
 	QVector<NodeGraphicsItem*> m_nodeItems;
 	QMap<PhaseGraphicsItem*, QList<NodeGraphicsItem*>> m_nodesByPhase;
 };
-
-#endif // DIALOGEDITORWINDOW_H
