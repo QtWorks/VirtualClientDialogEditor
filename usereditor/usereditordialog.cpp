@@ -34,6 +34,9 @@ UserEditorDialog::UserEditorDialog(const Core::User& user, const UniquenessValid
 		const auto it = std::find_if(clients.begin(), clients.end(),
 			[&user](const Core::Client& client) { return user.clientId == client.id; });
 
+		// "reset" index, so currentIndexChanged will be emitted after setCurrentIndex
+		m_ui->clientsComboBox->setCurrentIndex(-1);
+
 		const int index = it == clients.end() ? -1 : std::distance(clients.begin(), it);
 		m_ui->clientsComboBox->setCurrentIndex(index);
 	}
