@@ -203,6 +203,7 @@ DialogEditorWindow::DialogEditorWindow(const Core::Client& client, const Core::D
 		connect(groupsDialog, &GroupsDialog::accepted, [this](const QList<QString>& checkedGroups)
 		{
 			m_dialog.groups = checkedGroups;
+			updateSaveControls();
 		});
 
 		groupsDialog->show();
@@ -637,6 +638,12 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 	if (!m_nameValidator(m_dialog.name, m_dialog.difficulty))
 	{
 		error = "Имя диалога должно быть уникальным";
+		return false;
+	}
+
+	if (m_dialog.groups.isEmpty())
+	{
+		error = "Нужно выбрать хотя бы одну группу";
 		return false;
 	}
 
