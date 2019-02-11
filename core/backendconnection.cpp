@@ -293,6 +293,13 @@ void BackendConnection::onWebSocketMessage(const QJsonObject& message)
 
 	const IBackendConnection::QueryId queryId = message["queryId"].toInt();
 
+	auto activeQueryIt = m_activeQueries.find(queryId);
+	if (activeQueryIt == m_activeQueries.end())
+	{
+		LOG << "Received response for listener which is already unsubscribed";
+		return;
+	}
+
 	const auto processor = m_activeQueries.take(queryId);
 
 	const QJsonObject payload = message["payload"].toObject();
