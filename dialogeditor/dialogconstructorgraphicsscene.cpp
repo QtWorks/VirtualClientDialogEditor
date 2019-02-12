@@ -4,13 +4,18 @@
 #include "arrowlinegraphicsitem.h"
 #include "phasegraphicsitem.h"
 
-DialogConstructorGraphicsScene::DialogConstructorGraphicsScene(QObject* parent)
+DialogConstructorGraphicsScene::DialogConstructorGraphicsScene(ApplicationSettings* settings, QObject* parent)
 	: QGraphicsScene(parent)
-	, m_phase("", 0, false, {}, {})
-	, m_replica("")
-	, m_allowedExpectedWords({}, false)
-	, m_forbiddenExpectedWords({}, true)
 {
+	m_phase.setRepeatReplica(settings->phaseRepeatReplica());
+
+	Core::ErrorReplica errorReplica;
+	errorReplica.setErrorReplica(settings->phaseErrorReplica());
+	errorReplica.setErrorPenalty(settings->phaseErrorPenalty());
+	errorReplica.setFinishingExpectedWords({ settings->phaseFinishingExpectedWords() });
+	errorReplica.setFinishingReplica(settings->phaseFinishingReplica());
+	m_phase.setErrorReplica(errorReplica);
+
 	addConstructorItems();
 }
 

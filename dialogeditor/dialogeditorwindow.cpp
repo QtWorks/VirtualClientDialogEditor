@@ -168,11 +168,11 @@ QList<PhaseGraphicsInfo> getPhasesGraphicsInfo(QList<PhaseGraphicsItem*> phases)
 
 }
 
-DialogEditorWindow::DialogEditorWindow(const Core::Client& client, const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo,
-	const NameValidator& nameValidator, QWidget* parent)
+DialogEditorWindow::DialogEditorWindow(ApplicationSettings* settings, const Core::Client& client, const Core::Dialog& dialog,
+	QList<PhaseGraphicsInfo> phasesGraphicsInfo, const NameValidator& nameValidator, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::DialogEditorWindow)
-	, m_dialogConstructorGraphicsScene(new DialogConstructorGraphicsScene(this))
+	, m_dialogConstructorGraphicsScene(new DialogConstructorGraphicsScene(settings, this))
 	, m_dialogGraphicsScene(new DialogGraphicsScene(this))
 	, m_dialog(dialog)
 	, m_nameValidator(nameValidator)

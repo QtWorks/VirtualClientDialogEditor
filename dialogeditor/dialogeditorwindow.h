@@ -11,6 +11,8 @@ namespace Ui {
 class DialogEditorWindow;
 }
 
+class ApplicationSettings;
+
 class DialogEditorWindow
 	: public QDialog
 {
@@ -18,7 +20,7 @@ class DialogEditorWindow
 
 public:
 	typedef std::function<bool(const QString&, Core::Dialog::Difficulty)> NameValidator;
-	DialogEditorWindow(const Core::Client& client, const Core::Dialog& dialog,
+	DialogEditorWindow(ApplicationSettings* settings, const Core::Client& client, const Core::Dialog& dialog,
 		QList<PhaseGraphicsInfo> phasesGraphicsInfo, const NameValidator& nameValidator, QWidget* parent = 0);
 	~DialogEditorWindow();
 

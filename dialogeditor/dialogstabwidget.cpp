@@ -19,6 +19,11 @@ void DialogsTabWidget::loadData()
 	m_listEditorWidget.loadData();
 }
 
+void DialogsTabWidget::setSettings(ApplicationSettings* settings)
+{
+	m_listEditorWidget.setSettings(settings);
+}
+
 void DialogsTabWidget::updateClientsList(IBackendConnection::QueryId /*queryId*/, const QList<Core::Client>& clients)
 {
 	m_clients = clients;

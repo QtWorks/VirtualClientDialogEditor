@@ -37,6 +37,7 @@ MainWindow::MainWindow(ApplicationSettings* settings, IBackendConnectionSharedPt
 	m_loginDialog->setSettings(settings);
 
 	m_settingsDialog->setSettings(settings);
+	m_dialogsTabWidget->setSettings(settings);
 
 	connect(backendConnection.get(), &Core::IBackendConnection::clientsLoaded,
 		[this](Core::IBackendConnection::QueryId /*queryId*/, const QList<Core::Client>& /*clients*/)

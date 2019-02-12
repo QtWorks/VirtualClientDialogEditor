@@ -343,7 +343,9 @@ AbstractDialogNode* PhaseNode::shallowCopy() const
 		clonedNodes.append(node->clone(false));
 	}
 
-	return new PhaseNode(m_name, m_score, m_repeatOnInsufficientScore, clonedNodes, m_errorReplica);
+	PhaseNode* result = new PhaseNode(m_name, m_score, m_repeatOnInsufficientScore, clonedNodes, m_errorReplica);
+	result->m_repeatReplica = m_repeatReplica;
+	return result;
 }
 
 bool PhaseNode::compareData(AbstractDialogNode* other) const

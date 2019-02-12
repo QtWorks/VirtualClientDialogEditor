@@ -5,6 +5,8 @@
 #include "listeditorwidget.h"
 #include "dialoggraphicsinfostorage.h"
 
+class ApplicationSettings;
+
 class DialogListEditorWidget
 	: public ListEditorWidget
 {
@@ -16,6 +18,7 @@ public:
 
 	void loadData();
 	void setCurrentClient(const Core::Client& client);
+	void setSettings(ApplicationSettings* settings);
 
 private:
 	virtual QStringList items() const override;
@@ -36,6 +39,7 @@ private:
 	void addDialog(const QString& clientId, const Core::Dialog& dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo);
 
 private:
+	ApplicationSettings* m_settings { nullptr };
 	IBackendConnectionSharedPtr m_backendConnection;
 	DialogGraphicsInfoStoragePtr m_dialogGraphicsInfoStorage;
 
@@ -44,5 +48,5 @@ private:
 	QString m_currentClient;
 	QList<Core::Client> m_clients;
 
-	bool m_updating;
+	bool m_updating { false };
 };

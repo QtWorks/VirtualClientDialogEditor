@@ -31,12 +31,42 @@ void SettingsDialog::updateSettingsInterface()
 {
 	const QString hostname = m_settings->hostname();
 	m_ui.hostnameLineEdit->setText(hostname);
+
+	const QString phaseErrorReplica = m_settings->phaseErrorReplica();
+	m_ui.phaseErrorReplicaLineEdit->setText(phaseErrorReplica);
+
+	const double phaseErrorPenalty = m_settings->phaseErrorPenalty();
+	m_ui.phaseErrorPenaltyLineEdit->setText(QString::number(phaseErrorPenalty));
+
+	const QString phaseFinishingExpectedWords = m_settings->phaseFinishingExpectedWords();
+	m_ui.phaseFinishingExpectedWordsLineEdit->setText(phaseFinishingExpectedWords);
+
+	const QString phaseFinishingReplica = m_settings->phaseFinishingReplica();
+	m_ui.phaseFinishingReplicaLineEdit->setText(phaseFinishingReplica);
+
+	const QString phaseRepeatReplica = m_settings->phaseRepeatReplica();
+	m_ui.phaseRepeatReplicaLineEdit->setText(phaseRepeatReplica);
 }
 
 void SettingsDialog::updateSettings()
 {
 	const QString hostname = m_ui.hostnameLineEdit->text().trimmed();
 	m_settings->setHostname(hostname);
+
+	const QString phaseErrorReplica = m_ui.phaseErrorReplicaLineEdit->text().trimmed();
+	m_settings->setPhaseErrorReplica(phaseErrorReplica);
+
+	const double phaseErrorPenalty = m_ui.phaseErrorPenaltyLineEdit->text().trimmed().toDouble();
+	m_settings->setPhaseErrorPenalty(phaseErrorPenalty);
+
+	const QString phaseFinishingExpectedWords = m_ui.phaseFinishingExpectedWordsLineEdit->text().trimmed();
+	m_settings->setPhaseFinishingExpectedWords(phaseFinishingExpectedWords);
+
+	const QString phaseFinishingReplica = m_ui.phaseFinishingReplicaLineEdit->text().trimmed();
+	m_settings->setPhaseFinishingReplica(phaseFinishingReplica);
+
+	const QString phaseRepeatReplica = m_ui.phaseRepeatReplicaLineEdit->text().trimmed();
+	m_settings->setPhaseRepeatReplica(phaseRepeatReplica);
 }
 
 void SettingsDialog::updateWarning()

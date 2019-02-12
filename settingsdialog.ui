@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>475</width>
-    <height>136</height>
+    <height>301</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Настройки приложения</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
@@ -37,6 +37,69 @@
         </item>
         <item row="0" column="1">
          <widget class="QLineEdit" name="hostnameLineEdit"/>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Настройки фаз диалогов</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QFormLayout" name="formLayout_2">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Ошибочная реплика:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Кол-во штрафных баллов:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Завершающие опорные слова:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Завершающая реплика:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Реплика повтора фазы:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="phaseErrorReplicaLineEdit"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="phaseErrorPenaltyLineEdit"/>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="phaseFinishingExpectedWordsLineEdit"/>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="phaseFinishingReplicaLineEdit"/>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="phaseRepeatReplicaLineEdit"/>
         </item>
        </layout>
       </item>
