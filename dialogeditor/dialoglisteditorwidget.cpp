@@ -2,6 +2,7 @@
 #include "dialogeditorwindow.h"
 #include "core/dialogjsonwriter.h"
 #include "core/ibackendconnection.h"
+#include "applicationsettings.h"
 
 #include "logger.h"
 
@@ -175,7 +176,7 @@ void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 	Q_ASSERT(currentClientIt != m_clients.end());
 
 	auto dialogGraphicsInfo = m_dialogGraphicsInfoStorage->read({ m_currentClient, dialogIt->name, dialogIt->difficulty });
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(m_settings, *currentClientIt, *dialogIt, dialogGraphicsInfo, validator);
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(*currentClientIt, *dialogIt, dialogGraphicsInfo, validator);
 
 	DialogEditorWindow::NameValidatorEx nameValidator = [&](const Core::Client& client, const QString& name, Core::Dialog::Difficulty difficulty) -> bool
 	{
@@ -220,7 +221,12 @@ void DialogListEditorWidget::onItemEditRequested(const QString& dialogName)
 
 void DialogListEditorWidget::onItemCreateRequested()
 {
-	const Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, "", { }, {}, 0.0, {} };
+	Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, "", { }, {}, 0.0, {} };
+	dialog.phaseRepeatReplica = m_settings->phaseRepeatReplica();
+	dialog.errorReplica.setErrorReplica(m_settings->phaseErrorReplica());
+	dialog.errorReplica.setErrorPenalty(m_settings->phaseErrorPenalty());
+	dialog.errorReplica.setFinishingExpectedWords({ m_settings->phaseFinishingExpectedWords() });
+	dialog.errorReplica.setFinishingReplica(m_settings->phaseFinishingReplica());
 
 	const auto validator = [this](const QString& name, Core::Dialog::Difficulty difficulty)
 	{
@@ -245,7 +251,7 @@ void DialogListEditorWidget::onItemCreateRequested()
 
 	auto dialogGraphicsInfo = m_dialogGraphicsInfoStorage->read({ m_currentClient, dialog.name, dialog.difficulty });
 
-	DialogEditorWindow* editorWindow = new DialogEditorWindow(m_settings, *currentClientIt, dialog, dialogGraphicsInfo, validator);
+	DialogEditorWindow* editorWindow = new DialogEditorWindow(*currentClientIt, dialog, dialogGraphicsInfo, validator);
 
 	connect(editorWindow, &DialogEditorWindow::dialogModified,
 		[this](Core::Dialog dialog, QList<PhaseGraphicsInfo> phasesGraphicsInfo) { addDialog(m_currentClient, dialog, phasesGraphicsInfo); });

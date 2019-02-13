@@ -1,6 +1,5 @@
 #pragma once
 
-#include "applicationsettings.h"
 #include "core/dialog.h"
 #include <QGraphicsScene>
 
@@ -8,7 +7,7 @@ class DialogConstructorGraphicsScene
 	: public QGraphicsScene
 {
 public:
-	DialogConstructorGraphicsScene(ApplicationSettings* settings, QObject* parent = nullptr);
+	DialogConstructorGraphicsScene(QObject* parent = nullptr);
 	~DialogConstructorGraphicsScene();
 
 private:
