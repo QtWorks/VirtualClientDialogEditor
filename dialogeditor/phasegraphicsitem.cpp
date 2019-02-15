@@ -299,7 +299,7 @@ void PhaseGraphicsItem::onPhaseAccepted(const Core::PhaseNode& phase,
 
 	emit changed();
 
-	closeEditor();
+	closeEditor(true);
 }
 
 void PhaseGraphicsItem::createEditorIfNeeded()
@@ -319,7 +319,7 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 
 	QObject::connect(m_editor, &PhaseEditorWindow::rejected, [this]()
 	{
-		closeEditor();
+		closeEditor(false);
 	});
 
 	QObject::connect(m_editor, &PhaseEditorWindow::changed, [this]()
@@ -340,9 +340,11 @@ void PhaseGraphicsItem::showEditor()
 	m_editor->show();
 }
 
-void PhaseGraphicsItem::closeEditor()
+void PhaseGraphicsItem::closeEditor(bool accepted)
 {
 	Q_ASSERT(m_editor);
+
+	emit editorClosed(accepted);
 
 	m_editor->close();
 	m_editor = nullptr;

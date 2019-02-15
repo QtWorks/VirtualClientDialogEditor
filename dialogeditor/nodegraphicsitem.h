@@ -63,6 +63,8 @@ signals:
 	void positionChanged(QPointF oldPosition, QPointF newPosition);
 	void changed();
 
+	void editorClosed(bool accepted);
+
 public:
 	virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 	virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;

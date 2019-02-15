@@ -55,7 +55,7 @@ private:
 private:
 	void createEditorIfNeeded();
 	void showEditor();
-	void closeEditor();
+	void closeEditor(bool accepted);
 
 private:
 	Core::PhaseNode* m_phase;

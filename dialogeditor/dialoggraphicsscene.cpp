@@ -197,6 +197,21 @@ void DialogGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
 		addNodeToScene(item, dropPosition);
 		LOG << "Drop item at " << dropPosition << ARG2(item->pos(), "itemPosition");
 
+		if (item->type() == PhaseGraphicsItem::Type)
+		{
+			QMetaObject::Connection* connection = new QMetaObject::Connection();
+			*connection = connect(item, &NodeGraphicsItem::editorClosed, [this, connection, item](bool accepted)
+			{
+				QObject::disconnect(*connection);
+				delete connection;
+
+				if (!accepted)
+				{
+					removeNodeFromScene(item);
+				}
+			});
+		}
+
 		item->showNodeEditor();
 	}
 	else
