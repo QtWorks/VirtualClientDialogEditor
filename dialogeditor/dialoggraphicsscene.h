@@ -45,6 +45,8 @@ signals:
 	void nodeAddedToPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase);
 	void nodeRemovedFromPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase);
 
+	void primaryPhaseChanged(PhaseGraphicsItem* phase);
+
 private:
 	// Just to remove red cursor
 	virtual void dragMoveEvent(QGraphicsSceneDragDropEvent*) override { }

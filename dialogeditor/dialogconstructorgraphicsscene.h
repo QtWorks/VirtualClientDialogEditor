@@ -10,6 +10,8 @@ public:
 	DialogConstructorGraphicsScene(QObject* parent = nullptr);
 	~DialogConstructorGraphicsScene();
 
+	void setDefaults(const Core::ErrorReplica& errorReplica, const Optional<QString>& phaseRepeatReplica);
+
 private:
 	// Just to remove red cursor
 	virtual void dragMoveEvent(QGraphicsSceneDragDropEvent*) override { }

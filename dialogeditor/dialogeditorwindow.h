@@ -11,6 +11,8 @@ namespace Ui {
 class DialogEditorWindow;
 }
 
+class DialogConstructorGraphicsScene;
+
 class DialogEditorWindow
 	: public QDialog
 {
@@ -55,6 +57,8 @@ public slots:
 	void nodeAddedToPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase);
 	void nodeRemovedFromPhase(NodeGraphicsItem* node, PhaseGraphicsItem* phase);
 
+	void onPrimaryPhaseChanged(PhaseGraphicsItem* phase);
+
 private:
 	bool validateDialog() const;
 	bool validateDialog(QString& error) const;
@@ -72,7 +76,7 @@ private:
 private:
 	Ui::DialogEditorWindow* m_ui;
 
-	QGraphicsScene* m_dialogConstructorGraphicsScene;
+	DialogConstructorGraphicsScene* m_dialogConstructorGraphicsScene;
 	DialogGraphicsScene* m_dialogGraphicsScene;
 	Core::Dialog m_dialog;
 	Core::Client m_selectedClient;

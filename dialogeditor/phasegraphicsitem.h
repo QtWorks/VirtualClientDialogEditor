@@ -25,6 +25,9 @@ public:
 
 	void setDialog(Core::Dialog* dialog);
 
+	void setPrimary(bool primary);
+	bool isPrimary() const;
+
 	virtual int type() const override;
 	virtual Core::AbstractDialogNode* data() override;
 	virtual const Core::AbstractDialogNode* data() const override;
@@ -36,6 +39,7 @@ public:
 	virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
 private slots:
+	void onPhaseAccepted(const Core::PhaseNode& phase);
 	void onPhaseAccepted(const Core::PhaseNode& phase, const Core::ErrorReplica& globalErrorReplica, const Optional<QString>& globalRepeatReplica);
 
 private:
@@ -60,8 +64,10 @@ private:
 private:
 	Core::PhaseNode* m_phase;
 	Core::Dialog* m_dialog;
-	PhaseEditorWindow* m_editor;
+	PhaseEditorWindow* m_editor { nullptr };
 	QList<NodeGraphicsItem*> m_items;
+
+	bool m_primary { false };
 };
 
 #endif // PHASEGRAPHICSITEM_H

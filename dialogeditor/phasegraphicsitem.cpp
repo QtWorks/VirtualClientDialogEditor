@@ -19,7 +19,6 @@ PhaseGraphicsItem::PhaseGraphicsItem(Core::PhaseNode* phase, Core::Dialog* dialo
 	: NodeGraphicsItem(properties, parent)
 	, m_phase(phase)
 	, m_dialog(dialog)
-	, m_editor(nullptr)
 {
 	setZValue(1.0);
 }
@@ -62,6 +61,26 @@ QList<NodeGraphicsItem*> PhaseGraphicsItem::items()
 void PhaseGraphicsItem::setDialog(Core::Dialog* dialog)
 {
 	m_dialog = dialog;
+}
+
+void PhaseGraphicsItem::setPrimary(bool primary)
+{
+	m_primary = primary;
+
+	if (m_editor)
+	{
+		m_editor->close();
+		m_editor = nullptr;
+	}
+
+	update();
+
+	emit changed();
+}
+
+bool PhaseGraphicsItem::isPrimary() const
+{
+	return m_primary;
 }
 
 int PhaseGraphicsItem::type() const
@@ -151,7 +170,11 @@ QVariant PhaseGraphicsItem::itemChange(GraphicsItemChange change, const QVariant
 
 QString PhaseGraphicsItem::getHeaderText() const
 {
-	return QString("Фаза: %1 (%2 / %3)").arg(m_phase->name()).arg(m_phase->bestPossibleScore()).arg(m_phase->score());
+	return QString("%1Фаза: %2 (%3 / %4)")
+		.arg(m_primary ? "* " : "")
+		.arg(m_phase->name())
+		.arg(m_phase->bestPossibleScore())
+		.arg(m_phase->score());
 }
 
 QColor PhaseGraphicsItem::getHeaderTextColor() const
@@ -231,6 +254,21 @@ qreal PhaseGraphicsItem::minWidth() const
 	return mostRight + 15.0;
 }
 
+void PhaseGraphicsItem::onPhaseAccepted(const Core::PhaseNode& phase)
+{
+	m_phase->setName(phase.name());
+	m_phase->setScore(phase.score());
+	m_phase->setRepeatOnInsufficientScore(phase.repeatOnInsufficientScore());
+	m_phase->setErrorReplica(phase.errorReplica());
+	m_phase->repeatReplica() = phase.repeatReplica();
+
+	update();
+
+	emit changed();
+
+	closeEditor(true);
+}
+
 void PhaseGraphicsItem::onPhaseAccepted(const Core::PhaseNode& phase, const Core::ErrorReplica& globalErrorReplica, const Optional<QString>& globalRepeatReplica)
 {
 	m_phase->setName(phase.name());
@@ -305,6 +343,8 @@ void PhaseGraphicsItem::onPhaseAccepted(const Core::PhaseNode& phase, const Core
 		{
 			phase.repeatReplica() = Optional<QString>();
 		}
+
+		m_phase->repeatReplica() = Optional<QString>();
 	}
 	else
 	{
@@ -325,9 +365,28 @@ void PhaseGraphicsItem::createEditorIfNeeded()
 		return;
 	}
 
-	m_editor = new PhaseEditorWindow(*m_phase, *m_dialog);
+	m_editor = new PhaseEditorWindow(*m_phase, *m_dialog, m_primary);
 
-	QObject::connect(m_editor, &PhaseEditorWindow::accepted, this, &PhaseGraphicsItem::onPhaseAccepted);
+	if (m_primary)
+	{
+		QObject::connect(
+			m_editor,
+			QOverload<const Core::PhaseNode&, const Core::ErrorReplica&, const Optional<QString>&>::of(&PhaseEditorWindow::accepted),
+			[this](const Core::PhaseNode& phase, const Core::ErrorReplica& globalErrorReplica, const Optional<QString>& globalRepeatReplica)
+			{
+				onPhaseAccepted(phase, globalErrorReplica, globalRepeatReplica);
+			});
+	}
+	else
+	{
+		QObject::connect(
+			m_editor,
+			QOverload<const Core::PhaseNode&>::of(&PhaseEditorWindow::accepted),
+			[this](const Core::PhaseNode& phase)
+			{
+				onPhaseAccepted(phase);
+			});
+	}
 
 	QObject::connect(m_editor, &PhaseEditorWindow::rejected, [this]()
 	{

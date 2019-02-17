@@ -284,6 +284,8 @@ DialogEditorWindow::DialogEditorWindow(const Core::Client& client, const Core::D
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesDisconnected, this, &DialogEditorWindow::updateSaveControls);
 	connect(m_dialogGraphicsScene, &DialogGraphicsScene::nodesDisconnected, this, &DialogEditorWindow::updateRemoveControls);
 
+	connect(m_dialogGraphicsScene, &DialogGraphicsScene::primaryPhaseChanged, this, &DialogEditorWindow::onPrimaryPhaseChanged);
+
 	m_dialogGraphicsScene->setDialog(&m_dialog, phasesGraphicsInfo);
 
 	m_ui->dialogGraphicsView->setScene(m_dialogGraphicsScene);
@@ -570,8 +572,15 @@ void DialogEditorWindow::nodeChanged(NodeGraphicsItem* node)
 
 	auto it = std::find_if(m_dialog.phases.begin(), m_dialog.phases.end(),
 		[phaseNode](const Core::PhaseNode& phase) { return phase.id() == phaseNode->id(); });
-	Q_ASSERT(it != m_dialog.phases.end());
-	*it = *phaseNode;
+	if (it != m_dialog.phases.end())
+	{
+		*it = *phaseNode;
+	}
+
+	if (phaseItem->isPrimary())
+	{
+		m_dialogConstructorGraphicsScene->setDefaults(phaseNode->errorReplica(), phaseNode->repeatReplica());
+	}
 }
 
 void DialogEditorWindow::nodesConnected(NodeGraphicsItem* parent, NodeGraphicsItem* child)
@@ -619,6 +628,12 @@ void DialogEditorWindow::nodeRemovedFromPhase(NodeGraphicsItem* node, PhaseGraph
 
 	m_nodesByPhase[phase].removeOne(node);
 	phase->data()->as<Core::PhaseNode>()->removeNode(node->data());
+}
+
+void DialogEditorWindow::onPrimaryPhaseChanged(PhaseGraphicsItem* phase)
+{
+	const auto& phaseNode = phase->data()->as<Core::PhaseNode>();
+	m_dialogConstructorGraphicsScene->setDefaults(phaseNode->errorReplica(), phaseNode->repeatReplica());
 }
 
 bool DialogEditorWindow::validateDialog() const

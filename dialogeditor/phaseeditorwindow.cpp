@@ -21,11 +21,12 @@ QList<QString> splitExpectedWords(const QString& expectedWords)
 
 }
 
-PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, const Core::Dialog& dialog, QWidget* parent)
+PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, const Core::Dialog& dialog, bool replicationEnabled, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::PhaseEditorWindow)
 	, m_phase(phase)
 	, m_dialog(dialog)
+	, m_replicationEnabled(replicationEnabled)
 {
 	m_ui->setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, true);
@@ -43,14 +44,6 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, const Core::D
 
 	connect(m_ui->repeatOnInsufficientScoreCheckBox, &QCheckBox::clicked, this, &PhaseEditorWindow::onRepeatOnInsufficientScoreChanged);
 
-	connect(m_ui->errorReplicaPlainTextEdit, &QPlainTextEdit::textChanged, this, &PhaseEditorWindow::onErrorReplicaChanged);
-
-	m_ui->errorPenaltyLineEdit->setValidator(new QDoubleValidator(0, INT_MAX, 2, this));
-	connect(m_ui->errorPenaltyLineEdit, &QLineEdit::textChanged, this, &PhaseEditorWindow::onErrorPenaltyChanged);
-	connect(m_ui->finishingExpectedWordsPlainTextEdit, &QPlainTextEdit::textChanged, this, &PhaseEditorWindow::onFinishingExpectedWordsChanged);
-	connect(m_ui->finishingReplicaPlainTextEdit, &QPlainTextEdit::textChanged, this, &PhaseEditorWindow::onFinishingReplicaChanged);
-	connect(m_ui->repeatReplicaPlainTextEdit, &QPlainTextEdit::textChanged, this, &PhaseEditorWindow::onRepeatReplicaChanged);
-
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setText("Сохранить");
 	m_ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("Отменить");
 	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, PhaseEditorWindow::onSaveClicked);
@@ -58,7 +51,7 @@ PhaseEditorWindow::PhaseEditorWindow(const Core::PhaseNode& phase, const Core::D
 
 	connect(this, &PhaseEditorWindow::changed, this, &PhaseEditorWindow::validate);
 
-	updateInterface();
+	bindControls();
 }
 
 PhaseEditorWindow::~PhaseEditorWindow()
@@ -72,6 +65,12 @@ void PhaseEditorWindow::onSaveClicked()
 	Q_ASSERT(m_phase.validate(error));
 
 	hide();
+
+	if (!m_replicationEnabled)
+	{
+		emit accepted(m_phase);
+		return;
+	}
 
 	Core::ErrorReplica globalErrorReplica;
 	if (m_ui->errorReplicaCheckBox->isChecked())
@@ -215,7 +214,7 @@ void PhaseEditorWindow::removeError()
 	m_ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(true);
 }
 
-void PhaseEditorWindow::updateInterface()
+void PhaseEditorWindow::bindControls()
 {
 	m_ui->errorIconLabel->hide();
 
@@ -230,23 +229,65 @@ void PhaseEditorWindow::updateInterface()
 	const Core::ErrorReplica& phaseError = m_phase.errorReplica();
 	const Core::ErrorReplica& dialogError = dialog.errorReplica;
 
-	m_ui->errorReplicaCheckBox->setChecked(!phaseError.errorReplica);
+	initCheckbox(m_ui->errorReplicaCheckBox, phaseError.errorReplica);
 	const QString errorReplica = phaseError.errorReplica ? *phaseError.errorReplica : *dialogError.errorReplica;
-	m_ui->errorReplicaPlainTextEdit->document()->setPlainText(errorReplica);
+	initPlainTextEdit(m_ui->errorReplicaPlainTextEdit, errorReplica, phaseError.errorReplica, &PhaseEditorWindow::onErrorReplicaChanged);
 
-	m_ui->errorPenaltyCheckBox->setChecked(!phaseError.errorPenalty);
-	const double errorPenalty = phaseError.errorPenalty ? *phaseError.errorPenalty : *dialogError.errorPenalty;
-	m_ui->errorPenaltyLineEdit->setText(QString::number(errorPenalty));
+	initCheckbox(m_ui->errorPenaltyCheckBox, phaseError.errorPenalty);
+	m_ui->errorPenaltyLineEdit->setValidator(new QDoubleValidator(0, INT_MAX, 2, this));
+	const QString errorPenalty = QString::number(phaseError.errorPenalty ? *phaseError.errorPenalty : *dialogError.errorPenalty);
+	initLineEdit(m_ui->errorPenaltyLineEdit, errorPenalty, phaseError.errorPenalty, &PhaseEditorWindow::onErrorPenaltyChanged);
 
-	m_ui->finishingExpectedWordsCheckBox->setChecked(!phaseError.finishingExpectedWords);
-	const QList<QString> finishingExpectedWords = phaseError.finishingExpectedWords ? *phaseError.finishingExpectedWords : *dialogError.finishingExpectedWords;
-	m_ui->finishingExpectedWordsPlainTextEdit->document()->setPlainText(finishingExpectedWords.join(c_delimiter + " "));
+	initCheckbox(m_ui->finishingExpectedWordsCheckBox, phaseError.finishingExpectedWords);
+	const QString finishingExpectedWords = (phaseError.finishingExpectedWords ? *phaseError.finishingExpectedWords : *dialogError.finishingExpectedWords).join(c_delimiter + " ");
+	initPlainTextEdit(m_ui->finishingExpectedWordsPlainTextEdit, finishingExpectedWords, phaseError.finishingExpectedWords, &PhaseEditorWindow::onFinishingExpectedWordsChanged);
 
-	m_ui->finishingReplicaCheckBox->setChecked(!phaseError.finishingReplica);
-	const QString finishingReplica = phaseError.finishingReplica ?* phaseError.finishingReplica : *dialogError.finishingReplica;
-	m_ui->finishingReplicaPlainTextEdit->document()->setPlainText(finishingReplica);
+	initCheckbox(m_ui->finishingReplicaCheckBox, phaseError.finishingReplica);
+	const QString finishingReplica = phaseError.finishingReplica ? *phaseError.finishingReplica : *dialogError.finishingReplica;
+	initPlainTextEdit(m_ui->finishingReplicaPlainTextEdit, finishingReplica, phaseError.finishingReplica, &PhaseEditorWindow::onFinishingReplicaChanged);
 
-	m_ui->repeatReplicaCheckBox->setChecked(!m_phase.repeatReplica());
+	initCheckbox(m_ui->repeatReplicaCheckBox, m_phase.repeatReplica());
 	const QString repeatReplica = m_phase.repeatReplica() ? *m_phase.repeatReplica() : *dialog.phaseRepeatReplica;
-	m_ui->repeatReplicaPlainTextEdit->document()->setPlainText(repeatReplica);
+	initPlainTextEdit(m_ui->repeatReplicaPlainTextEdit, repeatReplica, m_phase.repeatReplica(), &PhaseEditorWindow::onRepeatReplicaChanged);
+}
+
+void PhaseEditorWindow::initCheckbox(QCheckBox* checkbox, bool isOverridenField)
+{
+	if (m_replicationEnabled)
+	{
+		checkbox->setVisible(true);
+		checkbox->setChecked(!isOverridenField);
+	}
+	else
+	{
+		checkbox->setVisible(false);
+	}
+}
+
+void PhaseEditorWindow::initPlainTextEdit(QPlainTextEdit* textEdit, const QString& value, bool isOverridenField, PointerToMemeberFunction onTextChanged)
+{
+	if (m_replicationEnabled || isOverridenField)
+	{
+		connect(textEdit, &QPlainTextEdit::textChanged, this, onTextChanged);
+	}
+	else
+	{
+		textEdit->setDisabled(true);
+	}
+
+	textEdit->document()->setPlainText(value);
+}
+
+void PhaseEditorWindow::initLineEdit(QLineEdit* textEdit, const QString& value, bool isOverridenField, PointerToMemeberFunction onTextChanged)
+{
+	if (m_replicationEnabled || isOverridenField)
+	{
+		connect(textEdit, &QLineEdit::textChanged, this, onTextChanged);
+	}
+	else
+	{
+		textEdit->setDisabled(true);
+	}
+
+	textEdit->setText(value);
 }

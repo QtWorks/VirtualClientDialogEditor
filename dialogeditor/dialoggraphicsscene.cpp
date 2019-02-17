@@ -543,6 +543,22 @@ void DialogGraphicsScene::addNodeToScene(NodeGraphicsItem* node, const QPointF& 
 
 	addItem(node);
 
+	if (node->type() == PhaseGraphicsItem::Type)
+	{
+		QList<QGraphicsItem*> sceneItems = items();
+		auto primaryPhaseIt = std::find_if(sceneItems.begin(), sceneItems.end(),
+			[](QGraphicsItem* item)
+			{
+				return item->type() == PhaseGraphicsItem::Type && qgraphicsitem_cast<PhaseGraphicsItem*>(item)->isPrimary();
+			});
+		if (primaryPhaseIt == sceneItems.end())
+		{
+			PhaseGraphicsItem* phaseNode = qgraphicsitem_cast<PhaseGraphicsItem*>(node);
+			phaseNode->setPrimary(true);
+			emit primaryPhaseChanged(phaseNode);
+		}
+	}
+
 	emit nodeAdded(node);
 }
 
@@ -592,6 +608,22 @@ void DialogGraphicsScene::removeNodeFromScene(NodeGraphicsItem* node)
 	}
 
 	removeItem(node);
+
+	if (node->type() == PhaseGraphicsItem::Type && qgraphicsitem_cast<PhaseGraphicsItem*>(node)->isPrimary())
+	{
+		QList<QGraphicsItem*> sceneItems = items(Qt::AscendingOrder);
+		auto phaseIt = std::find_if(sceneItems.begin(), sceneItems.end(),
+			[](QGraphicsItem* item)
+			{
+				return item->type() == PhaseGraphicsItem::Type;
+			});
+		if (phaseIt != sceneItems.end())
+		{
+			PhaseGraphicsItem* phaseItem = qgraphicsitem_cast<PhaseGraphicsItem*>(*phaseIt);
+			phaseItem->setPrimary(true);
+			emit primaryPhaseChanged(phaseItem);
+		}
+	}
 
 	if (node->type() != PhaseGraphicsItem::Type && node->getPhase())
 	{

@@ -14,6 +14,12 @@ DialogConstructorGraphicsScene::~DialogConstructorGraphicsScene()
 {
 }
 
+void DialogConstructorGraphicsScene::setDefaults(const Core::ErrorReplica& errorReplica, const Optional<QString>& phaseRepeatReplica)
+{
+	m_phase.setErrorReplica(errorReplica);
+	m_phase.repeatReplica() = phaseRepeatReplica;
+}
+
 void DialogConstructorGraphicsScene::addConstructorItems()
 {
 	NodeGraphicsItem* phaseNode = new PhaseGraphicsItem(&m_phase, &m_dialog, NodeGraphicsItem::Draggable, this);
