@@ -32,9 +32,9 @@ QJsonObject toJson(const User& user)
 		{ "Admin", user.admin }
 	};
 
-	if (user.password.isValid())
+	if (user.password)
 	{
-		result["Password"] = user.password.toString();
+		result["Password"] = *user.password;
 	}
 
 	if (!user.admin)

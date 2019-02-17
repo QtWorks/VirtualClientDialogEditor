@@ -648,25 +648,25 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 	}
 
 	const Core::ErrorReplica& errorReplica = m_dialog.errorReplica;	
-	if (errorReplica.hasErrorReplica() && errorReplica.errorReplica().trimmed().isEmpty())
+	if (errorReplica.errorReplica && (*errorReplica.errorReplica).trimmed().isEmpty())
 	{
 		error = "Ошибочная реплика не может быть пустой";
 		return false;
 	}
 
-	if (errorReplica.hasErrorPenalty() && errorReplica.errorPenalty() <= 0.0)
+	if (errorReplica.errorPenalty && (*errorReplica.errorPenalty) <= 0.0)
 	{
 		error = "Количество штрафных баллов должно быть больше 0";
 		return false;
 	}
 
-	if (errorReplica.hasFinishingReplica() && errorReplica.finishingReplica().trimmed().isEmpty())
+	if (errorReplica.finishingReplica && (*errorReplica.finishingReplica).trimmed().isEmpty())
 	{
 		error = "Завершающая реплика не может быть пустой";
 		return false;
 	}
 
-	if (errorReplica.hasFinishingExpectedWords() && errorReplica.finishingExpectedWords().isEmpty())
+	if (errorReplica.finishingExpectedWords && (*errorReplica.finishingExpectedWords).isEmpty())
 	{
 		error = "Завершающие опорные слова не могут быть пустыми";
 		return false;

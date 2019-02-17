@@ -76,24 +76,24 @@ QJsonObject dumpError(const ErrorReplica& error)
 {
 	QJsonObject result;
 
-	if (error.hasErrorReplica())
+	if (error.errorReplica)
 	{
-		result["errorReplica"] = error.errorReplica();
+		result["errorReplica"] = *error.errorReplica;
 	}
 
-	if (error.hasErrorPenalty())
+	if (error.errorPenalty)
 	{
-		result["errorPenalty"] = error.errorPenalty();
+		result["errorPenalty"] = *error.errorPenalty;
 	}
 
-	if (error.hasFinishingExpectedWords())
+	if (error.finishingExpectedWords)
 	{
-		result["finishingExpectedWords"] = QJsonArray::fromStringList(error.finishingExpectedWords());
+		result["finishingExpectedWords"] = QJsonArray::fromStringList(*error.finishingExpectedWords);
 	}
 
-	if (error.hasFinishingReplica())
+	if (error.finishingReplica)
 	{
-		result["finishingReplica"] = error.finishingReplica();
+		result["finishingReplica"] = *error.finishingReplica;
 	}
 
 	return result;
@@ -114,9 +114,9 @@ QJsonValue dumpPhase(const Core::PhaseNode& phase)
 		result["errorReplica"] = dumpError(phase.errorReplica());
 	}
 
-	if (phase.hasRepeatReplica())
+	if (phase.repeatReplica())
 	{
-		result["repeatReplica"] = phase.repeatReplica();
+		result["repeatReplica"] = *phase.repeatReplica();
 	}
 
 	return result;
@@ -156,9 +156,9 @@ QJsonObject DialogJsonWriter::writeToObject(const Dialog& dialog)
 		result["errorReplica"] = dumpError(dialog.errorReplica);
 	}
 
-	if (dialog.phaseRepeatReplica.isValid())
+	if (dialog.phaseRepeatReplica)
 	{
-		result["phaseRepeatReplica"] = dialog.phaseRepeatReplica.toString();
+		result["phaseRepeatReplica"] = *dialog.phaseRepeatReplica;
 	}
 
 	return result;

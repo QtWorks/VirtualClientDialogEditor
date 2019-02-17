@@ -121,7 +121,8 @@ HEADERS  += \
     clienteditor/groupstabwidget.h \
     clienteditor/groupeditordialog.h \
     dialogeditor/groupsdialog.h \
-    groupslistwidget.h
+    groupslistwidget.h \
+    optional.h
 
 FORMS    += \
     listeditorwidget.ui \

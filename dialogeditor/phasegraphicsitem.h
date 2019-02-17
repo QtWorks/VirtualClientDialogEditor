@@ -36,7 +36,7 @@ public:
 	virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
 private slots:
-	void onPhaseAccepted(const Core::PhaseNode& phase, QVector<Core::ErrorReplica::Field> replicatingErrorFields, bool replicateRepeatReplica);
+	void onPhaseAccepted(const Core::PhaseNode& phase, const Core::ErrorReplica& globalErrorReplica, const Optional<QString>& globalRepeatReplica);
 
 private:
 	virtual QString getHeaderText() const override;

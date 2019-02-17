@@ -18,7 +18,7 @@ public:
 	~PhaseEditorWindow();
 
 signals:
-	void accepted(const Core::PhaseNode& phase, QVector<Core::ErrorReplica::Field> replicatingErrorFields, bool replicateRepeatReplica);
+	void accepted(const Core::PhaseNode& phase, const Core::ErrorReplica& globalErrorReplica, const Optional<QString>& globalRepeatReplica);
 	void rejected();
 	void changed();
 

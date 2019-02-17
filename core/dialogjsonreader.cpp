@@ -161,12 +161,12 @@ ErrorReplica parseError(const QJsonObject& object)
 
 	if (hasProperty(object, "errorReplica", QJsonValue::String))
 	{
-		result.setErrorReplica(object["errorReplica"].toString());
+		result.errorReplica = object["errorReplica"].toString();
 	}
 
 	if (hasProperty(object, "errorPenalty", QJsonValue::Double))
 	{
-		result.setErrorPenalty(object["errorPenalty"].toDouble());
+		result.errorPenalty = object["errorPenalty"].toDouble();
 	}
 
 	if (hasProperty(object, "finishingExpectedWords", QJsonValue::Array))
@@ -181,12 +181,12 @@ ErrorReplica parseError(const QJsonObject& object)
 			}
 		}
 
-		result.setFinishingExpectedWords(list);
+		result.finishingExpectedWords = list;
 	}
 
 	if (hasProperty(object, "finishingReplica", QJsonValue::String))
 	{
-		result.setFinishingReplica(object["finishingReplica"].toString());
+		result.finishingReplica = object["finishingReplica"].toString();
 	}
 
 	return result;
@@ -215,7 +215,7 @@ PhaseNode parsePhase(const QJsonObject& object)
 
 	if (hasProperty(object, "repeatReplica", QJsonValue::String))
 	{
-		result.setRepeatReplica(object["repeatReplica"].toString());
+		result.repeatReplica() = object["repeatReplica"].toString();
 	}
 
 	return result;
@@ -271,7 +271,7 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 			groups << group.toString();
 		}
 
-		const auto hasField = [&errorReplica, &phases](ErrorReplica::Field field)
+		/*const auto hasField = [&errorReplica, &phases](ErrorReplica::Field field)
 		{
 			return errorReplica.has(field) ||
 				std::all_of(phases.begin(), phases.end(),
@@ -286,7 +286,7 @@ Dialog DialogJsonReader::read(const QByteArray& json, bool& ok)
 			LOG << "Some error replica fields are missing";
 			ok = false;
 			return Dialog();
-		}
+		}*/
 
 		Dialog dialog = Dialog(name, difficulty, note, phases, errorReplica, successRatio, groups);
 		if (hasProperty(dialogObject, "phaseRepeatReplica", QJsonValue::String))

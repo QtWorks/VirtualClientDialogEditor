@@ -4,6 +4,7 @@
 #include "clientreplicanode.h"
 #include "expectedwordsnode.h"
 #include "errorreplica.h"
+#include "optional.h"
 #include <QString>
 
 namespace Core
@@ -36,7 +37,7 @@ public:
 	QString note;
 	QList<PhaseNode> phases;
 	ErrorReplica errorReplica;
-	QVariant phaseRepeatReplica;
+	Optional<QString> phaseRepeatReplica;
 	double successRatio;
 	QList<QString> groups;
 };

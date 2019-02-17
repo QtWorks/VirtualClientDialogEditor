@@ -223,10 +223,10 @@ void DialogListEditorWidget::onItemCreateRequested()
 {
 	Core::Dialog dialog = { "", Core::Dialog::Difficulty::Easy, "", { }, {}, 0.0, {} };
 	dialog.phaseRepeatReplica = m_settings->phaseRepeatReplica();
-	dialog.errorReplica.setErrorReplica(m_settings->phaseErrorReplica());
-	dialog.errorReplica.setErrorPenalty(m_settings->phaseErrorPenalty());
-	dialog.errorReplica.setFinishingExpectedWords({ m_settings->phaseFinishingExpectedWords() });
-	dialog.errorReplica.setFinishingReplica(m_settings->phaseFinishingReplica());
+	dialog.errorReplica.errorReplica = m_settings->phaseErrorReplica();
+	dialog.errorReplica.errorPenalty = m_settings->phaseErrorPenalty();
+	dialog.errorReplica.finishingExpectedWords = { m_settings->phaseFinishingExpectedWords() };
+	dialog.errorReplica.finishingReplica = m_settings->phaseFinishingReplica();
 
 	const auto validator = [this](const QString& name, Core::Dialog::Difficulty difficulty)
 	{

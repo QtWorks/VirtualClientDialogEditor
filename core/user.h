@@ -1,7 +1,7 @@
 #pragma once
 
+#include "optional.h"
 #include <QString>
-#include <QVariant>
 
 namespace Core
 {
@@ -28,7 +28,7 @@ struct User
 	}
 
 	QString name;
-	QVariant password;
+	Optional<QString> password;
 	bool admin;
 	QString clientId;
 	QList<QString> groups;

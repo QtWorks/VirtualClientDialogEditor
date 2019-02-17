@@ -259,24 +259,14 @@ void PhaseNode::resetErrorReplica()
 	m_errorReplica = ErrorReplica();
 }
 
-bool PhaseNode::hasRepeatReplica() const
+Optional<QString>& PhaseNode::repeatReplica()
 {
-	return m_repeatReplica.isValid();
+	return m_repeatReplica;
 }
 
-QString PhaseNode::repeatReplica() const
+const Optional<QString>& PhaseNode::repeatReplica() const
 {
-	return m_repeatReplica.toString();
-}
-
-void PhaseNode::setRepeatReplica(const QString& value)
-{
-	m_repeatReplica = value;
-}
-
-void PhaseNode::resetRepeatReplica()
-{
-	m_repeatReplica = QVariant();
+	return m_repeatReplica;
 }
 
 int PhaseNode::type() const
@@ -302,31 +292,31 @@ bool PhaseNode::validate(QString& errorMessage) const
 		}
 	}
 
-	if (m_errorReplica.hasErrorReplica() && m_errorReplica.errorReplica().trimmed().isEmpty())
+	if (m_errorReplica.errorReplica && (*m_errorReplica.errorReplica).trimmed().isEmpty())
 	{
 		errorMessage = "Реплика для ошибки не может быть пустой";
 		return false;
 	}
 
-	if (m_errorReplica.hasErrorPenalty() && m_errorReplica.errorPenalty() <= 0.0)
+	if (m_errorReplica.errorPenalty && (*m_errorReplica.errorPenalty) <= 0.0)
 	{
 		errorMessage = "Количество штрафных баллов должно быть больше 0";
 		return false;
 	}
 
-	if (m_errorReplica.hasFinishingReplica() && m_errorReplica.finishingReplica().trimmed().isEmpty())
+	if (m_errorReplica.finishingReplica && (*m_errorReplica.finishingReplica).trimmed().isEmpty())
 	{
 		errorMessage = "Завершающая реплика не может быть пустой";
 		return false;
 	}
 
-	if (m_errorReplica.hasFinishingExpectedWords() && m_errorReplica.finishingExpectedWords().isEmpty())
+	if (m_errorReplica.finishingExpectedWords && (*m_errorReplica.finishingExpectedWords).isEmpty())
 	{
 		errorMessage = "Завершающие опорные слова не могут быть пустыми";
 		return false;
 	}
 
-	if (hasRepeatReplica() && repeatReplica().trimmed().isEmpty())
+	if (m_repeatReplica && (*m_repeatReplica).trimmed().isEmpty())
 	{
 		errorMessage = "Реплика для повтора не может быть пустой";
 		return false;
