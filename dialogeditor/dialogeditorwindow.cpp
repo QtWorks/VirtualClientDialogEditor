@@ -504,11 +504,35 @@ void DialogEditorWindow::updateConnectControls()
 		return;
 	}*/
 
-	m_ui->connectNodesButton->setEnabled(
-		(parentNode->type() == ClientReplicaNodeGraphicsItem::Type && childNode->type() == ExpectedWordsNodeGraphicsItem::Type) ||
-		(parentNode->type() == ExpectedWordsNodeGraphicsItem::Type && childNode->type() == ClientReplicaNodeGraphicsItem::Type) ||
-		(parentNode->type() == ClientReplicaNodeGraphicsItem::Type && childNode->type() == ClientReplicaNodeGraphicsItem::Type)
-	);
+	if (parentNode->type() == ExpectedWordsNodeGraphicsItem::Type)
+	{
+		m_ui->connectNodesButton->setEnabled(childNode->type() == ClientReplicaNodeGraphicsItem::Type);
+		return;
+	}
+
+	Q_ASSERT(parentNode->type() == ClientReplicaNodeGraphicsItem::Type);
+
+	const auto parentChilds = parentNode->data()->childNodes();
+	if (parentChilds.isEmpty())
+	{
+		m_ui->connectNodesButton->setEnabled(true);
+		return;
+	}
+
+	if (childNode->type() == ExpectedWordsNodeGraphicsItem::Type)
+	{
+		m_ui->connectNodesButton->setEnabled(false);
+		return;
+	}
+
+	const auto targetChildId = *parentChilds.begin();
+	auto it = std::find_if(m_nodeItems.begin(), m_nodeItems.end(),
+	[&targetChildId](const NodeGraphicsItem* child)
+	{
+		return child->data()->id() == targetChildId;
+	});
+	Q_ASSERT(it != m_nodeItems.end());
+	m_ui->connectNodesButton->setEnabled((*it)->type() == ClientReplicaNodeGraphicsItem::Type);
 }
 
 void DialogEditorWindow::nodeAdded(NodeGraphicsItem* node)
