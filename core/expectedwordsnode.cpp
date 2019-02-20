@@ -31,20 +31,40 @@ bool operator==(const ExpectedWords& left, const ExpectedWords& right)
 	return left.words == right.words && left.score == right.score;
 }
 
-ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, bool forbidden)
+ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, int minScore, bool forbidden)
 	: m_expectedWords(expectedWords)
+	, m_minScore(minScore)
 	, m_customHint(false)
 	, m_hint(join(expectedWords, "; "))
 	, m_forbidden(forbidden)
 {
 }
 
-ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, const QString& hint, bool forbidden)
+ExpectedWordsNode::ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, int minScore, const QString& hint, bool forbidden)
 	: m_expectedWords(expectedWords)
+	, m_minScore(minScore)
 	, m_customHint(true)
 	, m_hint(hint)
 	, m_forbidden(forbidden)
 {
+}
+
+int ExpectedWordsNode::bestPossibleScore() const
+{
+	if (m_expectedWords.empty())
+	{
+		return 0;
+	}
+
+	int score = 0;
+	for (const ExpectedWords& words : m_expectedWords)
+	{
+		if (words.score > 0.0)
+		{
+			score += words.score;
+		}
+	}
+	return score;
 }
 
 const QList<ExpectedWords>& ExpectedWordsNode::expectedWords() const
@@ -55,6 +75,16 @@ const QList<ExpectedWords>& ExpectedWordsNode::expectedWords() const
 void ExpectedWordsNode::setExpectedWords(const QList<ExpectedWords>& expectedWords)
 {
 	m_expectedWords = expectedWords;
+}
+
+int ExpectedWordsNode::minScore() const
+{
+	return m_minScore;
+}
+
+void ExpectedWordsNode::setMinScore(int score)
+{
+	m_minScore = score;
 }
 
 bool ExpectedWordsNode::customHint() const
@@ -107,20 +137,24 @@ bool ExpectedWordsNode::validate(QString& error) const
 		return false;
 	}
 
+	if (!m_forbidden && m_minScore > bestPossibleScore())
+	{
+		error = QString("Проходной балл (%1) не может быть больше суммы баллов всех опорных слов (%2)").arg(m_minScore).arg(bestPossibleScore());
+		return false;
+	}
+
 	if (m_customHint && m_hint.isEmpty())
 	{
 		error = "Подсказка не может быть пустой";
 		return false;
 	}
 
-	// TODO: validate score according to "m_forbidden" flag
-
 	return true;
 }
 
 AbstractDialogNode* ExpectedWordsNode::shallowCopy() const
 {
-	return m_customHint ? new ExpectedWordsNode(m_expectedWords, m_hint, m_forbidden) : new ExpectedWordsNode(m_expectedWords, m_forbidden);
+	return m_customHint ? new ExpectedWordsNode(m_expectedWords, m_minScore, m_hint, m_forbidden) : new ExpectedWordsNode(m_expectedWords, m_minScore, m_forbidden);
 }
 
 bool ExpectedWordsNode::compareData(AbstractDialogNode* other) const
@@ -139,6 +173,7 @@ size_t ExpectedWordsNode::calculateHash() const
 		hashCombine(seed, words.score);
 	}
 
+	hashCombine(seed, m_minScore);
 	hashCombine(seed, m_customHint);
 	hashCombine(seed, m_hint);
 	hashCombine(seed, m_forbidden);
@@ -149,6 +184,7 @@ size_t ExpectedWordsNode::calculateHash() const
 bool operator==(const ExpectedWordsNode& left, const ExpectedWordsNode& right)
 {
 	return left.expectedWords() == right.expectedWords()
+		&& left.minScore() == right.minScore()
 		&& left.customHint() == right.customHint()
 		&& left.hint() == right.hint()
 		&& left.forbidden() == right.forbidden();

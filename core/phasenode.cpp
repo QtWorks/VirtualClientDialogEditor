@@ -90,23 +90,10 @@ double calculateBestPossibleScore(const QString& name, const QList<AbstractDialo
 			double score = 0.0;
 			for (AbstractDialogNode* node : path)
 			{
-				if (node->type() != ExpectedWordsNode::Type)
+				ExpectedWordsNode* expectedWordsNode = node->as<ExpectedWordsNode>();
+				if (expectedWordsNode)
 				{
-					continue;
-				}
-
-				const QList<ExpectedWords>& expectedWords = node->as<ExpectedWordsNode>()->expectedWords();
-				if (expectedWords.empty())
-				{
-					continue;
-				}
-
-				for (const ExpectedWords& words : expectedWords)
-				{
-					if (words.score > 0.0)
-					{
-						score += words.score;
-					}
+					score += expectedWordsNode->bestPossibleScore();
 				}
 			}
 			return score;

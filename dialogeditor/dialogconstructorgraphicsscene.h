@@ -23,6 +23,6 @@ private:
 	Core::Dialog m_dialog;
 	Core::PhaseNode m_phase { "", 0, false, {}, {} };
 	Core::ClientReplicaNode m_replica { "" };
-	Core::ExpectedWordsNode m_allowedExpectedWords { {}, false };
-	Core::ExpectedWordsNode m_forbiddenExpectedWords { {}, true };
+	Core::ExpectedWordsNode m_allowedExpectedWords { {}, 0, false };
+	Core::ExpectedWordsNode m_forbiddenExpectedWords { {}, 0, true };
 };

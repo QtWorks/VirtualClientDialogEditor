@@ -24,16 +24,21 @@ class ExpectedWordsNode
 	: public AbstractDialogNode
 {
 public:
-	ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, bool forbidden);
-	ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, const QString& hint, bool forbidden);
+	ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, int minScore, bool forbidden);
+	ExpectedWordsNode(const QList<ExpectedWords>& expectedWords, int minScore, const QString& hint, bool forbidden);
 
 	enum Type
 	{
 		Type = AbstractDialogNode::Type + 3
 	};
 
+	int bestPossibleScore() const;
+
 	const QList<ExpectedWords>& expectedWords() const;
 	void setExpectedWords(const QList<ExpectedWords>& expectedWords);
+
+	int minScore() const;
+	void setMinScore(int score);
 
 	bool customHint() const;
 	void setCustomHint(bool customHint);
@@ -53,6 +58,7 @@ private:
 
 private:
 	QList<ExpectedWords> m_expectedWords;
+	int m_minScore;
 	bool m_customHint;
 	QString m_hint;
 	bool m_forbidden;

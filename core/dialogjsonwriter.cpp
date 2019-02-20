@@ -41,6 +41,11 @@ QJsonObject dumpExpectedWordsNode(const ExpectedWordsNode& node)
 		{ "forbidden", node.forbidden() }
 	};
 
+	if (!node.forbidden())
+	{
+		result.insert("minScore", node.minScore());
+	}
+
 	if (node.customHint())
 	{
 		result.insert("hint", node.hint());

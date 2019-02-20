@@ -74,15 +74,22 @@ ExpectedWordsNode* parseExpectedWordsNode(const QJsonObject& object)
 		expectedWords << ExpectedWords(expectedWordObject["words"].toString(), expectedWordObject["score"].toDouble());
 	}
 
+	int minScore = 0;
+	if (object.contains("minScore"))
+	{
+		checkProperties(object, { { "minScore", QJsonValue::Double } });
+		minScore = object["minScore"].toDouble();
+	}
+
 	bool forbidden = object["forbidden"].toBool();
 
 	if (!object.contains("hint"))
 	{
-		return new ExpectedWordsNode(expectedWords, forbidden);
+		return new ExpectedWordsNode(expectedWords, minScore, forbidden);
 	}
 
 	checkProperties(object, { { "hint", QJsonValue::String } });
-	return new ExpectedWordsNode(expectedWords, object["hint"].toString(), forbidden);
+	return new ExpectedWordsNode(expectedWords, minScore, object["hint"].toString(), forbidden);
 }
 
 AbstractDialogNode* parseNode(const QJsonObject& object)

@@ -12,6 +12,9 @@ ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNo
 	setAttribute(Qt::WA_DeleteOnClose, true);
 	setModal(true);
 
+	connect(m_ui->minScoreLineEdit, &QLineEdit::textChanged, this, &ExpectedWordsEditorWindow::validate);
+	m_ui->minScoreLineEdit->setValidator(new QIntValidator(0, INT_MAX, this));
+
 	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, this, &ExpectedWordsEditorWindow::validate);
 	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, m_ui->hintLabel, &QLabel::setEnabled);
 	connect(m_ui->useHintCheckBox, &QCheckBox::stateChanged, m_ui->hintPlainTextEdit, &QPlainTextEdit::setEnabled);
@@ -143,16 +146,16 @@ Core::ExpectedWordsNode ExpectedWordsEditorWindow::getNode() const
 		words.append(editor->expectedWords());
 	}
 
+	int minScore = m_initialNode.forbidden() ? 0 : m_ui->minScoreLineEdit->text().toInt();
+
 	const bool useCustomHint = m_ui->useHintCheckBox->isChecked();
 	if (useCustomHint)
 	{
 		const QString hint = m_ui->hintPlainTextEdit->toPlainText().trimmed();
-		const Core::ExpectedWordsNode expectedWordsNode = Core::ExpectedWordsNode(words, hint, m_initialNode.forbidden());
-		return expectedWordsNode;
+		return Core::ExpectedWordsNode(words, minScore, hint, m_initialNode.forbidden());
 	}
 
-	const Core::ExpectedWordsNode expectedWordsNode = Core::ExpectedWordsNode(words, m_initialNode.forbidden());
-	return expectedWordsNode;
+	return Core::ExpectedWordsNode(words, minScore, m_initialNode.forbidden());
 }
 
 void ExpectedWordsEditorWindow::setNode(const Core::ExpectedWordsNode& node)
@@ -160,6 +163,21 @@ void ExpectedWordsEditorWindow::setNode(const Core::ExpectedWordsNode& node)
 	for (const Core::ExpectedWords& expectedWord : node.expectedWords())
 	{
 		addItemWidget(expectedWord);
+	}
+
+	if (!node.forbidden())
+	{
+		m_ui->minScoreLineEdit->setText(QString::number(node.minScore()));
+	}
+	else
+	{
+		const QString tooltip = "Проходной балл не нужно заполнять для блоков запрещенных опорных слов";
+
+		m_ui->minScoreLabel->setDisabled(true);
+		m_ui->minScoreLabel->setToolTip(tooltip);
+
+		m_ui->minScoreLineEdit->setDisabled(true);
+		m_ui->minScoreLineEdit->setToolTip(tooltip);
 	}
 
 	m_ui->useHintCheckBox->setChecked(node.customHint());

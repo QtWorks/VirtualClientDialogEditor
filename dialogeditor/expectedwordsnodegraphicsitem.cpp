@@ -86,6 +86,11 @@ void ExpectedWordsNodeGraphicsItem::createEditorIfNeeded()
 	{
 		m_expectedWords->setExpectedWords(expectedWords.expectedWords());
 
+		if (!m_expectedWords->forbidden())
+		{
+			m_expectedWords->setMinScore(expectedWords.minScore());
+		}
+
 		if (expectedWords.customHint())
 		{
 			m_expectedWords->setCustomHint(true);
