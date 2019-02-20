@@ -45,7 +45,7 @@ public:
 	}
 
 	template <typename T>
-	const T* as(const AbstractDialogNode* node) const
+	const T* as() const
 	{
 		return type() == T::Type ? static_cast<const T*>(this) : nullptr;
 	}
