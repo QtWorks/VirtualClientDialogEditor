@@ -12,6 +12,11 @@ ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNo
 	setAttribute(Qt::WA_DeleteOnClose, true);
 	setModal(true);
 
+	if (m_initialNode.expectedWords().isEmpty())
+	{
+		m_initialNode.setExpectedWords({ Core::ExpectedWords("", 0.0) });
+	}
+
 	connect(m_ui->minScoreLineEdit, &QLineEdit::textChanged, this, &ExpectedWordsEditorWindow::validate);
 	m_ui->minScoreLineEdit->setValidator(new QIntValidator(0, INT_MAX, this));
 
@@ -39,7 +44,7 @@ ExpectedWordsEditorWindow::ExpectedWordsEditorWindow(const Core::ExpectedWordsNo
 	connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, ExpectedWordsEditorWindow::onSaveClicked);
 	connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, ExpectedWordsEditorWindow::onCancelClicked);
 
-	setNode(expectedWords);
+	setNode(m_initialNode);
 	validate();
 }
 
