@@ -504,24 +504,16 @@ void DialogEditorWindow::updateConnectControls()
 		return;
 	}*/
 
-	if (parentNode->type() == ExpectedWordsNodeGraphicsItem::Type)
+	if (parentNode->type() == ExpectedWordsNodeGraphicsItem::Type && childNode->type() == ExpectedWordsNodeGraphicsItem::Type)
 	{
-		m_ui->connectNodesButton->setEnabled(childNode->type() == ClientReplicaNodeGraphicsItem::Type);
+		m_ui->connectNodesButton->setEnabled(false);
 		return;
 	}
-
-	Q_ASSERT(parentNode->type() == ClientReplicaNodeGraphicsItem::Type);
 
 	const auto parentChilds = parentNode->data()->childNodes();
 	if (parentChilds.isEmpty())
 	{
 		m_ui->connectNodesButton->setEnabled(true);
-		return;
-	}
-
-	if (childNode->type() == ExpectedWordsNodeGraphicsItem::Type)
-	{
-		m_ui->connectNodesButton->setEnabled(false);
 		return;
 	}
 
@@ -532,7 +524,12 @@ void DialogEditorWindow::updateConnectControls()
 		return child->data()->id() == targetChildId;
 	});
 	Q_ASSERT(it != m_nodeItems.end());
-	m_ui->connectNodesButton->setEnabled((*it)->type() == ClientReplicaNodeGraphicsItem::Type);
+
+	m_ui->connectNodesButton->setEnabled(
+		(parentNode->type() == ClientReplicaNodeGraphicsItem::Type && childNode->type() == ExpectedWordsNodeGraphicsItem::Type) ||
+		(parentNode->type() == ClientReplicaNodeGraphicsItem::Type && childNode->type() == ClientReplicaNodeGraphicsItem::Type) ||
+		(parentNode->type() == ExpectedWordsNodeGraphicsItem::Type && childNode->type() == ClientReplicaNodeGraphicsItem::Type)
+	);
 }
 
 void DialogEditorWindow::nodeAdded(NodeGraphicsItem* node)
