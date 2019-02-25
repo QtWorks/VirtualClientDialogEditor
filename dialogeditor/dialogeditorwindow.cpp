@@ -690,9 +690,9 @@ bool DialogEditorWindow::validateDialog(QString& error) const
 		return false;
 	}
 
-	if (errorReplica.errorPenalty && (*errorReplica.errorPenalty) <= 0.0)
+	if (errorReplica.errorPenalty && (*errorReplica.errorPenalty) < 0.0)
 	{
-		error = "Количество штрафных баллов должно быть больше 0";
+		error = "Количество штрафных баллов должно быть больше или равно 0";
 		return false;
 	}
 

@@ -285,9 +285,9 @@ bool PhaseNode::validate(QString& errorMessage) const
 		return false;
 	}
 
-	if (m_errorReplica.errorPenalty && (*m_errorReplica.errorPenalty) <= 0.0)
+	if (m_errorReplica.errorPenalty && (*m_errorReplica.errorPenalty) < 0.0)
 	{
-		errorMessage = "Количество штрафных баллов должно быть больше 0";
+		errorMessage = "Количество штрафных баллов должно быть больше или равно 0";
 		return false;
 	}
 
