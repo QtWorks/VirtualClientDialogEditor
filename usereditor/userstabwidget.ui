@@ -59,6 +59,35 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QPushButton" name="importFromXlsxButton">
+       <property name="minimumSize">
+        <size>
+         <width>90</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Импорт из .xlsx</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="exportToXlsxButton">
+       <property name="minimumSize">
+        <size>
+         <width>90</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string>Экспорт в .xlsx</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>

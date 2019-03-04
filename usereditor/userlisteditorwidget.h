@@ -11,6 +11,11 @@ public:
 	UserListEditorWidget(IBackendConnectionSharedPtr backendConnection, QWidget* parent = nullptr);
 
 	void loadData();
+
+	QList<Core::User> currentUsers() const;
+	QList<Core::User> allUsers() const;
+	void addUsers(const QList<Core::User>& currentUsers);
+
 	void setClients(const QList<Core::Client>& clients);
 
 	void setClientFilter(const QString& client);
@@ -24,7 +29,7 @@ private slots:
 	void onItemEditRequested(const QString& username);
 	void onItemCreateRequested();
 
-	void onUsersLoaded(Core::IBackendConnection::QueryId queryId, const QList<Core::User>& users);
+	void onUsersLoaded(Core::IBackendConnection::QueryId queryId, const QList<Core::User>& currentUsers);
 	void onUsersLoadFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
 	void onUsersUpdated(Core::IBackendConnection::QueryId queryId);
 	void onUsersUpdateFailed(Core::IBackendConnection::QueryId queryId, const QString& error);

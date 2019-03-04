@@ -34,6 +34,23 @@ void UserListEditorWidget::loadData()
 	m_backendConnection->loadUsers();
 }
 
+QList<Core::User> UserListEditorWidget::currentUsers() const
+{
+	return m_model;
+}
+
+QList<Core::User> UserListEditorWidget::allUsers() const
+{
+	return m_originalModel;
+}
+
+void UserListEditorWidget::addUsers(const QList<Core::User>& users)
+{
+	showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
+
+	m_backendConnection->updateUsers({ {}, {}, users });
+}
+
 void UserListEditorWidget::setClients(const QList<Core::Client>& clients)
 {
 	m_clients = clients;
@@ -113,8 +130,7 @@ void UserListEditorWidget::updateUser(int index, const Core::User& user)
 
 void UserListEditorWidget::addUser(const Core::User& user)
 {
-	showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
-	m_backendConnection->updateUsers({ {}, {}, { user } });
+	addUsers({ user });
 }
 
 void UserListEditorWidget::onItemEditRequested(const QString& username)

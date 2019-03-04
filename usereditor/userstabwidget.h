@@ -19,8 +19,13 @@ private slots:
 	void updateClientsList(Core::IBackendConnection::QueryId queryId, const QList<Core::Client>& clients);
 	void updateUsersList(int clientIndex);
 	void updateUsersList(bool showAll);
-
 	QString clientIdToName(QString clientId);
+
+	void importUsers();
+	void exportUsers();
+
+	Core::Client currentClient() const;
+	void enableButtons(bool enabled);
 
 private:
 	Ui::UsersTabWidget m_ui;

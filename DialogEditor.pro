@@ -19,6 +19,9 @@ CONFIG(release, debug|release) {
 	QMAKE_POST_LINK += $$dirname(QMAKE_PATH)/windeployqt $$OUT_PWD/$$DESTDIR/DialogEditor.exe
 }
 
+include(3rdparty/qtxlsx/xlsx/qtxlsx.pri)
+INCLUDEPATH += 3rdparty/qtxlsx/xlsx
+
 SOURCES += \
     listeditorwidget.cpp \
     logindialog.cpp \
@@ -66,7 +69,8 @@ SOURCES += \
     clienteditor/groupstabwidget.cpp \
     clienteditor/groupeditordialog.cpp \
     dialogeditor/groupsdialog.cpp \
-    groupslistwidget.cpp
+    groupslistwidget.cpp \
+    usereditor/usersxlsxdocument.cpp
 
 HEADERS  += \
     listeditorwidget.h \
@@ -122,7 +126,8 @@ HEADERS  += \
     clienteditor/groupeditordialog.h \
     dialogeditor/groupsdialog.h \
     groupslistwidget.h \
-    optional.h
+    optional.h \
+    usereditor/usersxlsxdocument.h
 
 FORMS    += \
     listeditorwidget.ui \

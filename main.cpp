@@ -22,18 +22,24 @@ void messageHandler(QtMsgType type, const QMessageLogContext& context, const QSt
 int main(int argc, char* argv[])
 {
 	qInstallMessageHandler(messageHandler);
-	QApplication a(argc, argv);
+	QApplication app(argc, argv);
+
+	QTranslator translator;
+	if (translator.load("qt_ru", QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+	{
+		app.installTranslator(&translator);
+	}
 
 	ApplicationSettings settings;
 
 	IBackendConnectionSharedPtr backendConection = std::make_shared<Core::BackendConnection>(QUrl(settings.hostname()));
 
-	const QString dbPath = a.applicationDirPath() + "\\" + "graphics.sqlite";
+	const QString dbPath = app.applicationDirPath() + "\\" + "graphics.sqlite";
 	auto dialogGraphicsInfoStorage = std::make_shared<DialogGraphicsInfoStorage>(dbPath);
 	dialogGraphicsInfoStorage->open();
 
 	MainWindow window(&settings, backendConection, dialogGraphicsInfoStorage);
 	window.show();
 
-	return a.exec();
+	return app.exec();
 }
