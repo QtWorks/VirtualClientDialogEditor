@@ -1,10 +1,12 @@
 #include "clientlisteditorwidget.h"
 #include "clienteditordialog.h"
 #include "core/ibackendconnection.h"
+#include "ui_listeditorwidget.h"
 
 #include "logger.h"
 
 #include <QMessageBox>
+#include <QPushButton>
 
 namespace
 {
@@ -28,6 +30,15 @@ ClientListEditorWidget::ClientListEditorWidget(IBackendConnectionSharedPtr backe
 	connect(m_backendConnection.get(), &Core::IBackendConnection::clientsLoadFailed, this, &ClientListEditorWidget::onClientsLoadFailed);
 	connect(m_backendConnection.get(), &Core::IBackendConnection::clientsUpdated, this, &ClientListEditorWidget::onClientsUpdated);
 	connect(m_backendConnection.get(), &Core::IBackendConnection::clientsUpdateFailed, this, &ClientListEditorWidget::onClientsUpdateFailed);
+	connect(m_backendConnection.get(), &Core::IBackendConnection::statisticsCleanupSuccess, this, &ClientListEditorWidget::onCleanupStatisticsSuccess);
+	connect(m_backendConnection.get(), &Core::IBackendConnection::statisticsCleanupFailure, this, &ClientListEditorWidget::onCleanupStatisticsFailure);
+
+	m_cleanupStatisticsButton = new QPushButton("Очистить статистику", this);
+	connect(m_cleanupStatisticsButton, &QPushButton::clicked, this, &ClientListEditorWidget::cleanupStatistics);
+	m_ui->horizontalLayout->insertWidget(3, m_cleanupStatisticsButton);
+
+	connect(m_ui->listWidget, &QListWidget::itemSelectionChanged, this, &ClientListEditorWidget::onClientSelectionChanged);
+	onClientSelectionChanged();
 }
 
 void ClientListEditorWidget::loadData()
@@ -190,6 +201,30 @@ void ClientListEditorWidget::onClientsUpdateFailed(Core::IBackendConnection::Que
 	QMessageBox::warning(this, "Сохранение данных", "Сохранение данных завершилось ошибкой: " + toLowerCase(error) + ".");
 }
 
+void ClientListEditorWidget::onCleanupStatisticsSuccess(Core::IBackendConnection::QueryId queryId)
+{
+	if (queryId != m_cleanupStatisticsQueryId)
+	{
+		return;
+	}
+
+	hideProgressDialog();
+
+	QMessageBox::information(this, "Очистка статистики", "Статистика успешно очищена.");
+}
+
+void ClientListEditorWidget::onCleanupStatisticsFailure(Core::IBackendConnection::QueryId queryId, const QString& error)
+{
+	if (queryId != m_cleanupStatisticsQueryId)
+	{
+		return;
+	}
+
+	hideProgressDialog();
+
+	QMessageBox::warning(this, "Очистка статистики", "Очистка статистики завершилось ошибкой: " + toLowerCase(error) + ".");
+}
+
 void ClientListEditorWidget::updateClient(int index, const Core::Client& client)
 {
 	const Core::Client& sourceClient = m_model[index];
@@ -210,4 +245,24 @@ void ClientListEditorWidget::addClient(const Core::Client& client)
 {
 	showProgressDialog("Добавление данных", "Идет добавление данных. Пожалуйста, подождите.");
 	m_backendConnection->updateClients({ {}, {}, { client } });
+}
+
+void ClientListEditorWidget::onClientSelectionChanged()
+{
+	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
+	m_cleanupStatisticsButton->setEnabled(selectedItems.size() == 1);
+}
+
+void ClientListEditorWidget::cleanupStatistics()
+{
+	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
+	Q_ASSERT(selectedItems.size() == 1);
+	const QString clientName = selectedItems.first()->text();
+
+	const auto it = std::find_if(m_model.begin(), m_model.end(),
+		[&clientName](const Core::Client& client){ return client.name == clientName; });
+	Q_ASSERT(it != m_model.end());
+	const Core::Client& client = *it;
+
+	m_cleanupStatisticsQueryId = m_backendConnection->cleanupClientStatistics(client.databaseName);
 }

@@ -44,6 +44,10 @@ public:
 	virtual QueryId loadDialogs() = 0;
 	virtual QueryId updateDialogs(const QString& cliendId, const Update<Dialog>& update) = 0;
 
+	virtual QueryId cleanupClientStatistics(const QString& clientId) = 0;
+	virtual QueryId cleanupGroupStatistics(const QString& clientId, const QString& groupName) = 0;
+	virtual QueryId cleanupUserStatistics(const QString& clientId, const QString& username) = 0;
+
 signals:
 	void loggedIn(QueryId queryId);
 	void logInFailed(QueryId queryId, const QString& error);
@@ -65,6 +69,9 @@ signals:
 
 	void dialogsUpdated(QueryId queryId);
 	void dialogsUpdateFailed(QueryId queryId, const QString& error);
+
+	void statisticsCleanupSuccess(QueryId queryId);
+	void statisticsCleanupFailure(QueryId queryId, const QString& error);
 };
 
 }

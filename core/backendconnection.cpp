@@ -276,6 +276,38 @@ IBackendConnection::QueryId BackendConnection::updateDialogs(const QString& clie
 	return sendMessage(message);
 }
 
+IBackendConnection::QueryId BackendConnection::cleanupClientStatistics(const QString& clientId)
+{
+	QJsonObject message = {
+		{ "queryId", generateQueryId() },
+		{ "type", "dialogs_history_cleanup" },
+		{ "clientId", clientId }
+	};
+	return sendMessage(message);
+}
+
+IBackendConnection::QueryId BackendConnection::cleanupGroupStatistics(const QString& clientId, const QString& groupName)
+{
+	QJsonObject message = {
+		{ "queryId", generateQueryId() },
+		{ "type", "dialogs_history_cleanup" },
+		{ "clientId", clientId },
+		{ "group", groupName }
+	};
+	return sendMessage(message);
+}
+
+IBackendConnection::QueryId BackendConnection::cleanupUserStatistics(const QString& clientId, const QString& username)
+{
+	QJsonObject message = {
+		{ "queryId", generateQueryId() },
+		{ "type", "dialogs_history_cleanup" },
+		{ "clientId", clientId },
+		{ "username", username }
+	};
+	return sendMessage(message);
+}
+
 void BackendConnection::onWebSocketDisconnected()
 {
 	while (!m_activeQueries.empty())
@@ -677,6 +709,24 @@ void BackendConnection::onDialogsUpdateFailure(IBackendConnection::QueryId query
 	emit dialogsUpdateFailed(queryId, error);
 }
 
+void BackendConnection::onStatisticsCleanupSuccess(IBackendConnection::QueryId queryId)
+{
+	emit statisticsCleanupSuccess(queryId);
+}
+
+void BackendConnection::onStatisticsCleanupFailure(IBackendConnection::QueryId queryId, const QJsonObject& message)
+{
+	if (!message.contains("error") || message["error"].type() != QJsonValue::String)
+	{
+		LOG << "Message" << ARG2(message["type"], "type") << " must have \"error\" string property";
+		return;
+	}
+
+	const QString error = message["error"].toString();
+	LOG << "Message" << ARG2(message["type"], "type") << ARG(error);
+	emit statisticsCleanupFailure(queryId, error);
+}
+
 BackendConnection::Processor BackendConnection::makeProcessor(const QString& queryType)
 {
 	if (queryType == "log_in")
@@ -746,6 +796,16 @@ BackendConnection::Processor BackendConnection::makeProcessor(const QString& que
 			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onDialogsUpdateFailure(queryId, error); },
 			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit dialogsUpdateFailed(queryId, errorMessage); },
 			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit dialogsUpdateFailed(queryId, errorMessage); }
+		);
+	}
+
+	if (queryType == "dialogs_history_cleanup")
+	{
+		return Processor(
+			[this](IBackendConnection::QueryId queryId, const QJsonObject&) { onStatisticsCleanupSuccess(queryId); },
+			[this](IBackendConnection::QueryId queryId, const QJsonObject& error) { onStatisticsCleanupFailure(queryId, error); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit statisticsCleanupFailure(queryId, errorMessage); },
+			[this](IBackendConnection::QueryId queryId, const QString& errorMessage) { emit statisticsCleanupFailure(queryId, errorMessage); }
 		);
 	}
 

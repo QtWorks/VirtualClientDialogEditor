@@ -2,6 +2,7 @@
 
 #include "ibackendconnection.h"
 #include "websocket.h"
+#include "optional.h"
 #include <functional>
 
 namespace Core
@@ -26,6 +27,10 @@ private:
 
 	virtual QueryId loadDialogs() override;
 	virtual QueryId updateDialogs(const QString& cliendId, const Update<Dialog>& update) override;
+
+	virtual QueryId cleanupClientStatistics(const QString& clientId) override;
+	virtual QueryId cleanupGroupStatistics(const QString& clientId, const QString& groupName) override;
+	virtual QueryId cleanupUserStatistics(const QString& clientId, const QString& username) override;
 
 private:
 	void onWebSocketDisconnected();
@@ -57,6 +62,9 @@ private:
 
 	void onDialogsUpdateSuccess(IBackendConnection::QueryId queryId);
 	void onDialogsUpdateFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
+
+	void onStatisticsCleanupSuccess(IBackendConnection::QueryId queryId);
+	void onStatisticsCleanupFailure(IBackendConnection::QueryId queryId, const QJsonObject& message);
 
 
 private:

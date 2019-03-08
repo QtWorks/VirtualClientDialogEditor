@@ -24,6 +24,11 @@ private slots:
 	void onClientsLoadFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
 	void onClientsUpdated(Core::IBackendConnection::QueryId queryId);
 	void onClientsUpdateFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
+	void onCleanupStatisticsSuccess(Core::IBackendConnection::QueryId queryId);
+	void onCleanupStatisticsFailure(Core::IBackendConnection::QueryId queryId, const QString& error);
+
+	void onClientSelectionChanged();
+	void cleanupStatistics();
 
 private:
 	void updateClient(int index, const Core::Client& client);
@@ -36,4 +41,7 @@ private:
 	ClientListDataModel m_model;
 
 	bool m_updating;
+
+	QPushButton* m_cleanupStatisticsButton;
+	Core::IBackendConnection::QueryId m_cleanupStatisticsQueryId { -1 };
 };

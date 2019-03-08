@@ -53,8 +53,9 @@ private:
 	virtual QStringList items() const = 0;
 	virtual void removeItems(const QStringList& items) = 0;
 
-private:
+protected:
 	Ui::ListEditorWidget* m_ui;
 
+private:
 	std::unique_ptr<QProgressDialog> m_progressDialog;
 };

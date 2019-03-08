@@ -25,8 +25,11 @@ private slots:
 	void onClientsLoadFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
 	void onClientsUpdated(Core::IBackendConnection::QueryId queryId);
 	void onClientsUpdateFailed(Core::IBackendConnection::QueryId queryId, const QString& error);
+	void onCleanupStatisticsSuccess(Core::IBackendConnection::QueryId queryId);
+	void onCleanupStatisticsFailure(Core::IBackendConnection::QueryId queryId, const QString& error);
 
-private:
+	void onGroupSelectionChanged();
+	void cleanupStatistics();
 
 private:
 	void updateGroup(int index, const Core::Group& group);
@@ -39,4 +42,7 @@ private:
 	Core::Client m_currentClient;
 
 	bool m_updating;
+
+	QPushButton* m_cleanupStatisticsButton;
+	Core::IBackendConnection::QueryId m_cleanupStatisticsQueryId { -1 };
 };

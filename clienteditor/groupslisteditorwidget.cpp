@@ -1,7 +1,9 @@
 #include "groupslisteditorwidget.h"
 #include "groupeditordialog.h"
+#include "ui_listeditorwidget.h"
 
 #include <QMessageBox>
+#include <QPushButton>
 
 using namespace Core;
 
@@ -37,6 +39,15 @@ GroupsListEditorWidget::GroupsListEditorWidget(IBackendConnectionSharedPtr backe
 	connect(m_backendConnection.get(), &IBackendConnection::clientsLoadFailed, this, &GroupsListEditorWidget::onClientsLoadFailed);
 	connect(m_backendConnection.get(), &IBackendConnection::clientsUpdated, this, &GroupsListEditorWidget::onClientsUpdated);
 	connect(m_backendConnection.get(), &IBackendConnection::clientsUpdateFailed, this, &GroupsListEditorWidget::onClientsUpdateFailed);
+	connect(m_backendConnection.get(), &IBackendConnection::statisticsCleanupSuccess, this, &GroupsListEditorWidget::onCleanupStatisticsSuccess);
+	connect(m_backendConnection.get(), &IBackendConnection::statisticsCleanupFailure, this, &GroupsListEditorWidget::onCleanupStatisticsFailure);
+
+	m_cleanupStatisticsButton = new QPushButton("Очистить статистику", this);
+	connect(m_cleanupStatisticsButton, &QPushButton::clicked, this, &GroupsListEditorWidget::cleanupStatistics);
+	m_ui->horizontalLayout->insertWidget(3, m_cleanupStatisticsButton);
+
+	connect(m_ui->listWidget, &QListWidget::itemSelectionChanged, this, &GroupsListEditorWidget::onGroupSelectionChanged);
+	onGroupSelectionChanged();
 }
 
 void GroupsListEditorWidget::loadData()
@@ -168,6 +179,30 @@ void GroupsListEditorWidget::onClientsUpdateFailed(IBackendConnection::QueryId /
 	QMessageBox::warning(this, "Сохранение данных", "Сохранение данных завершилось ошибкой: " + toLowerCase(error) + ".");
 }
 
+void GroupsListEditorWidget::onCleanupStatisticsSuccess(Core::IBackendConnection::QueryId queryId)
+{
+	if (queryId != m_cleanupStatisticsQueryId)
+	{
+		return;
+	}
+
+	hideProgressDialog();
+
+	QMessageBox::information(this, "Очистка статистики", "Статистика успешно очищена.");
+}
+
+void GroupsListEditorWidget::onCleanupStatisticsFailure(Core::IBackendConnection::QueryId queryId, const QString& error)
+{
+	if (queryId != m_cleanupStatisticsQueryId)
+	{
+		return;
+	}
+
+	hideProgressDialog();
+
+	QMessageBox::warning(this, "Очистка статистики", "Очистка статистики завершилось ошибкой: " + toLowerCase(error) + ".");
+}
+
 void GroupsListEditorWidget::updateGroup(int index, const Core::Group& group)
 {
 	const Core::Group& sourceGroup = m_currentClient.groups[index];
@@ -190,4 +225,23 @@ void GroupsListEditorWidget::addGroup(const Core::Group& group)
 	Client updatedClient = m_currentClient;
 	updatedClient.groups.append(group);
 	m_backendConnection->updateClients({ { { m_currentClient, updatedClient } }, {}, {} });
+}
+
+void GroupsListEditorWidget::onGroupSelectionChanged()
+{
+	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
+	m_cleanupStatisticsButton->setEnabled(selectedItems.size() == 1);
+}
+
+void GroupsListEditorWidget::cleanupStatistics()
+{
+	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
+	Q_ASSERT(selectedItems.size() == 1);
+	const QString groupName = selectedItems.first()->text();
+
+	const auto it = std::find_if(m_currentClient.groups.begin(), m_currentClient.groups.end(),
+		[&groupName](const Core::Group& group){ return group.name == groupName; });
+	Q_ASSERT(it != m_currentClient.groups.end());
+
+	m_cleanupStatisticsQueryId = m_backendConnection->cleanupGroupStatistics(m_currentClient.databaseName, it->id);
 }
