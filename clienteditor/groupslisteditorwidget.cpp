@@ -42,9 +42,10 @@ GroupsListEditorWidget::GroupsListEditorWidget(IBackendConnectionSharedPtr backe
 	connect(m_backendConnection.get(), &IBackendConnection::statisticsCleanupSuccess, this, &GroupsListEditorWidget::onCleanupStatisticsSuccess);
 	connect(m_backendConnection.get(), &IBackendConnection::statisticsCleanupFailure, this, &GroupsListEditorWidget::onCleanupStatisticsFailure);
 
-	m_cleanupStatisticsButton = new QPushButton("Очистить статистику", this);
-	connect(m_cleanupStatisticsButton, &QPushButton::clicked, this, &GroupsListEditorWidget::cleanupStatistics);
-	m_ui->horizontalLayout->insertWidget(3, m_cleanupStatisticsButton);
+	m_ui->additionalButtonsWidget->show();
+
+	connect(m_ui->cleanupStatisticsButton, &QPushButton::clicked, this, &GroupsListEditorWidget::cleanupStatistics);
+	connect(m_ui->banButton, &QPushButton::clicked, this, &GroupsListEditorWidget::processBanSelected);
 
 	connect(m_ui->listWidget, &QListWidget::itemSelectionChanged, this, &GroupsListEditorWidget::onGroupSelectionChanged);
 	onGroupSelectionChanged();
@@ -121,7 +122,7 @@ void GroupsListEditorWidget::onItemEditRequested(const QString& groupName)
 
 void GroupsListEditorWidget::onItemCreateRequested()
 {
-	const Core::Group group = { "", "" };
+	const Core::Group group = { "", "", false };
 
 	const auto groupNameValidator = [this](const QString& name)
 	{
@@ -230,7 +231,12 @@ void GroupsListEditorWidget::addGroup(const Core::Group& group)
 void GroupsListEditorWidget::onGroupSelectionChanged()
 {
 	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
-	m_cleanupStatisticsButton->setEnabled(selectedItems.size() == 1);
+	m_ui->cleanupStatisticsButton->setEnabled(selectedItems.size() == 1);
+
+	m_ui->banButton->setEnabled(selectedItems.size() == 1);
+
+	const bool isBanned = selectedItems.size() == 1 && m_currentClient.groups[m_ui->listWidget->currentRow()].banned;
+	m_ui->banButton->setText(isBanned ? "Разблокировать" : "Заблокировать");
 }
 
 void GroupsListEditorWidget::cleanupStatistics()
@@ -244,4 +250,14 @@ void GroupsListEditorWidget::cleanupStatistics()
 	Q_ASSERT(it != m_currentClient.groups.end());
 
 	m_cleanupStatisticsQueryId = m_backendConnection->cleanupGroupStatistics(m_currentClient.databaseName, it->id);
+}
+
+void GroupsListEditorWidget::processBanSelected()
+{
+	const int selectedIndex = m_ui->listWidget->currentRow();
+	Q_ASSERT(selectedIndex >= 0 && selectedIndex <= m_currentClient.groups.size());
+
+	Core::Group group = m_currentClient.groups[selectedIndex];
+	group.banned = !group.banned;
+	updateGroup(selectedIndex, group);
 }

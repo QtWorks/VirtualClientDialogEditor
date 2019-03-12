@@ -38,6 +38,7 @@ private slots:
 
 	void onUserSelectionChanged();
 	void cleanupStatistics();
+	void processBanSelected();
 
 private:
 	void updateUser(int index, const Core::User& user);
@@ -54,6 +55,5 @@ private:
 
 	bool m_updating;
 
-	QPushButton* m_cleanupStatisticsButton;
 	Core::IBackendConnection::QueryId m_cleanupStatisticsQueryId { -1 };
 };

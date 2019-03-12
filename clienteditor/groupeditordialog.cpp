@@ -43,7 +43,7 @@ void GroupEditorDialog::saveChanges()
 		return;
 	}
 
-	emit groupChanged({ name, m_group.id });
+	emit groupChanged({ name, m_group.id, m_group.banned });
 	accept();
 }
 

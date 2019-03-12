@@ -33,9 +33,10 @@ ClientListEditorWidget::ClientListEditorWidget(IBackendConnectionSharedPtr backe
 	connect(m_backendConnection.get(), &Core::IBackendConnection::statisticsCleanupSuccess, this, &ClientListEditorWidget::onCleanupStatisticsSuccess);
 	connect(m_backendConnection.get(), &Core::IBackendConnection::statisticsCleanupFailure, this, &ClientListEditorWidget::onCleanupStatisticsFailure);
 
-	m_cleanupStatisticsButton = new QPushButton("Очистить статистику", this);
-	connect(m_cleanupStatisticsButton, &QPushButton::clicked, this, &ClientListEditorWidget::cleanupStatistics);
-	m_ui->horizontalLayout->insertWidget(3, m_cleanupStatisticsButton);
+	m_ui->additionalButtonsWidget->show();
+
+	connect(m_ui->cleanupStatisticsButton, &QPushButton::clicked, this, &ClientListEditorWidget::cleanupStatistics);
+	connect(m_ui->banButton, &QPushButton::clicked, this, &ClientListEditorWidget::processBanSelected);
 
 	connect(m_ui->listWidget, &QListWidget::itemSelectionChanged, this, &ClientListEditorWidget::onClientSelectionChanged);
 	onClientSelectionChanged();
@@ -130,7 +131,7 @@ void ClientListEditorWidget::onItemEditRequested(const QString& clientName)
 
 void ClientListEditorWidget::onItemCreateRequested()
 {
-	const Core::Client client = { "", "", "", {} };
+	const Core::Client client = { "", "", "", {}, false };
 
 	const auto nameValidator = [this](const QString& name)
 	{
@@ -250,7 +251,12 @@ void ClientListEditorWidget::addClient(const Core::Client& client)
 void ClientListEditorWidget::onClientSelectionChanged()
 {
 	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
-	m_cleanupStatisticsButton->setEnabled(selectedItems.size() == 1);
+	m_ui->cleanupStatisticsButton->setEnabled(selectedItems.size() == 1);
+
+	m_ui->banButton->setEnabled(selectedItems.size() == 1);
+
+	const bool isBanned = selectedItems.size() == 1 && m_model[m_ui->listWidget->currentRow()].banned;
+	m_ui->banButton->setText(isBanned ? "Разблокировать" : "Заблокировать");
 }
 
 void ClientListEditorWidget::cleanupStatistics()
@@ -265,4 +271,14 @@ void ClientListEditorWidget::cleanupStatistics()
 	const Core::Client& client = *it;
 
 	m_cleanupStatisticsQueryId = m_backendConnection->cleanupClientStatistics(client.databaseName);
+}
+
+void ClientListEditorWidget::processBanSelected()
+{
+	const int selectedIndex = m_ui->listWidget->currentRow();
+	Q_ASSERT(selectedIndex >= 0 && selectedIndex <= m_model.size());
+
+	Core::Client client = m_model[selectedIndex];
+	client.banned = !client.banned;
+	updateClient(selectedIndex, client);
 }

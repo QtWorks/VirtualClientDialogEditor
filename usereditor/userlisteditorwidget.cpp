@@ -31,9 +31,10 @@ UserListEditorWidget::UserListEditorWidget(IBackendConnectionSharedPtr backendCo
 	connect(m_backendConnection.get(), &Core::IBackendConnection::statisticsCleanupSuccess, this, &UserListEditorWidget::onCleanupStatisticsSuccess);
 	connect(m_backendConnection.get(), &Core::IBackendConnection::statisticsCleanupFailure, this, &UserListEditorWidget::onCleanupStatisticsFailure);
 
-	m_cleanupStatisticsButton = new QPushButton("Очистить статистику", this);
-	connect(m_cleanupStatisticsButton, &QPushButton::clicked, this, &UserListEditorWidget::cleanupStatistics);
-	m_ui->horizontalLayout->insertWidget(3, m_cleanupStatisticsButton);
+	m_ui->additionalButtonsWidget->show();
+
+	connect(m_ui->cleanupStatisticsButton, &QPushButton::clicked, this, &UserListEditorWidget::cleanupStatistics);
+	connect(m_ui->banButton, &QPushButton::clicked, this, &UserListEditorWidget::processBanSelected);
 
 	connect(m_ui->listWidget, &QListWidget::itemSelectionChanged, this, &UserListEditorWidget::onUserSelectionChanged);
 	onUserSelectionChanged();
@@ -263,16 +264,23 @@ void UserListEditorWidget::onUserSelectionChanged()
 {
 	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
 
+	m_ui->banButton->setEnabled(selectedItems.size() == 1);
+
 	if (selectedItems.size() != 1)
 	{
-		m_cleanupStatisticsButton->setEnabled(false);
+		m_ui->cleanupStatisticsButton->setEnabled(false);
 		return;
 	}
 
 	const QString username = selectedItems.first()->text();
 	const auto it = std::find_if(m_originalModel.begin(), m_originalModel.end(),
 		[&username](const Core::User& user){ return user.name == username; });
-	m_cleanupStatisticsButton->setEnabled(!it->admin);
+	const Core::User& user = *it;
+
+	m_ui->cleanupStatisticsButton->setEnabled(!user.admin);
+
+	m_ui->banButton->setEnabled(!user.admin);
+	m_ui->banButton->setText(user.banned ? "Разблокировать" : "Заблокировать");
 }
 
 void UserListEditorWidget::cleanupStatistics()
@@ -287,4 +295,17 @@ void UserListEditorWidget::cleanupStatistics()
 	const QString username = selectedItems.first()->text();
 
 	m_cleanupStatisticsQueryId = m_backendConnection->cleanupUserStatistics(clientId, username);
+}
+
+void UserListEditorWidget::processBanSelected()
+{
+	const QList<QListWidgetItem*> selectedItems = m_ui->listWidget->selectedItems();
+	const QString username = selectedItems.first()->text();
+	const auto it = std::find_if(m_originalModel.begin(), m_originalModel.end(),
+		[&username](const Core::User& user){ return user.name == username; });
+	const int userIndex = std::distance(m_originalModel.begin(), it);
+
+	Core::User user = m_originalModel[userIndex];
+	user.banned = !user.banned;
+	updateUser(userIndex, user);
 }

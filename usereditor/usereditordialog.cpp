@@ -93,6 +93,7 @@ void UserEditorDialog::saveChanges()
 	const bool admin = m_ui->adminCheckBox->isChecked();
 
 	Core::User user = Core::User(username, admin);
+	user.banned = m_user.banned;
 
 	if (m_showPasswordInputs)
 	{

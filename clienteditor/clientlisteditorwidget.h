@@ -29,6 +29,7 @@ private slots:
 
 	void onClientSelectionChanged();
 	void cleanupStatistics();
+	void processBanSelected();
 
 private:
 	void updateClient(int index, const Core::Client& client);
@@ -42,6 +43,5 @@ private:
 
 	bool m_updating;
 
-	QPushButton* m_cleanupStatisticsButton;
 	Core::IBackendConnection::QueryId m_cleanupStatisticsQueryId { -1 };
 };

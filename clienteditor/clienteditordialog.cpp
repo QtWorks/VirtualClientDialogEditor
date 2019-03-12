@@ -56,7 +56,7 @@ void ClientEditorDialog::saveChanges()
 		return;
 	}
 
-	emit clientChanged({ name, databaseName, "", m_client.groups});
+	emit clientChanged({ name, databaseName, "", m_client.groups, m_client.banned });
 	accept();
 }
 

@@ -30,6 +30,7 @@ private slots:
 
 	void onGroupSelectionChanged();
 	void cleanupStatistics();
+	void processBanSelected();
 
 private:
 	void updateGroup(int index, const Core::Group& group);
@@ -43,6 +44,5 @@ private:
 
 	bool m_updating;
 
-	QPushButton* m_cleanupStatisticsButton;
 	Core::IBackendConnection::QueryId m_cleanupStatisticsQueryId { -1 };
 };

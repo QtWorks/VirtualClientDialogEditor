@@ -35,6 +35,8 @@ ListEditorWidget::ListEditorWidget(QWidget* parent)
 	m_ui->listWidget->setItemDelegate(new CustomFontDelegate(parent));
 	connect(m_ui->listWidget, &QListWidget::itemSelectionChanged, this, &ListEditorWidget::onSelectionChanged);
 	connect(m_ui->listWidget, &QListWidget::itemDoubleClicked, this, &ListEditorWidget::onEditButtonClicked);
+
+	m_ui->additionalButtonsWidget->hide();
 }
 
 ListEditorWidget::~ListEditorWidget()

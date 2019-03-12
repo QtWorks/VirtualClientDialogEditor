@@ -29,7 +29,8 @@ QJsonObject toJson(const User& user)
 {
 	QJsonObject result = {
 		{ "Username", user.name },
-		{ "Admin", user.admin }
+		{ "Admin", user.admin },
+		{ "Banned", user.banned }
 	};
 
 	if (user.password)
@@ -51,14 +52,19 @@ QJsonObject toJson(const Client& client)
 	QJsonArray groups;
 	for (const Group& group : client.groups)
 	{
-		QJsonObject groupObject = { { "name", group.name } };
+		QJsonObject groupObject = { { "name", group.name }, { "banned", group.banned } };
+		if (!group.id.isEmpty())
+		{
+			groupObject.insert("_id", group.id);
+		}
 		groups.append(groupObject);
 	}
 
 	return QJsonObject{
 		{ "name", client.name },
 		{ "databaseName", client.databaseName },
-		{ "groups", groups }
+		{ "groups", groups },
+		{ "banned", client.banned }
 	};
 }
 
@@ -218,7 +224,8 @@ IBackendConnection::QueryId BackendConnection::loadDialogs()
 {
 	const QJsonObject message = {
 		{ "queryId", generateQueryId() },
-		{ "type", "dialogs_load" }
+		{ "type", "dialogs_load" },
+		{ "force", true }
 	};
 
 	return sendMessage(message);
@@ -432,6 +439,12 @@ void BackendConnection::onClientsLoadSuccess(IBackendConnection::QueryId queryId
 			continue;
 		}
 
+		if (!clientObject.contains("Banned") || !clientObject["Banned"].isBool())
+		{
+			LOG << "Faled to parse client #" << i << " - object must have \"Banned\" boolean property";
+			continue;
+		}
+
 		QList<Group> groups;
 		QJsonArray groupsArray = clientObject["Groups"].toArray();
 
@@ -454,18 +467,24 @@ void BackendConnection::onClientsLoadSuccess(IBackendConnection::QueryId queryId
 				continue;
 			}
 
+			if (!groupObject.contains("Banned") || !groupObject["Banned"].isBool())
+			{
+				continue;
+			}
+
 			groups << Group(
 				groupObject["Name"].toString(),
-				groupObject["Id"].toString().toLatin1()
+				groupObject["Id"].toString().toLatin1(),
+				groupObject["Banned"].toBool()
 			);
 		}
-
 
 		result << Client(
 			clientObject["Name"].toString(),
 			clientObject["DatabaseName"].toString(),
 			clientObject["Id"].toString().toLatin1(),
-			groups
+			groups,
+			clientObject["Banned"].toBool()
 		);
 	}
 
@@ -536,8 +555,15 @@ void BackendConnection::onUsersLoadSuccess(IBackendConnection::QueryId queryId, 
 			continue;
 		}
 
+		if (!userObject.contains("Banned") || !userObject["Banned"].isBool())
+		{
+			LOG << "Faled to parse user #" << i << " - object must have \"Banned\" boolean property";
+			continue;
+		}
+
 		const QString username = userObject["Username"].toString();
 		const bool admin = userObject["Admin"].toBool();
+		const bool banned = userObject["Banned"].toBool();
 
 		if (admin)
 		{
@@ -564,7 +590,7 @@ void BackendConnection::onUsersLoadSuccess(IBackendConnection::QueryId queryId, 
 		}
 
 		const QString clientId = userObject["ClientId"].toString();
-		result << User(username, clientId, groups);
+		result << User(username, clientId, groups, banned);
 	}
 
 	emit usersLoaded(queryId, result);
