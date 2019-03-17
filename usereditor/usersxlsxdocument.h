@@ -10,7 +10,15 @@ public:
 	explicit UsersXlsxDocument(QString fileName);
 
 	QList<Core::User> read(bool& ok);
-	void write(QList<Core::User> users, bool& ok);
+
+	struct User
+	{
+		QString name;
+		QStringList availableGroups;
+		QStringList bannedGroups;
+	};
+
+	void write(QList<User> users, bool& ok);
 
 private:
 	QXlsx::Document m_document;

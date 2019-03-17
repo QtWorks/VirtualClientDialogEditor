@@ -34,16 +34,29 @@ bool isAdminsGroup(QString clientId)
 	return clientId.isEmpty();
 }
 
-QList<Core::User> prepareToExport(const QList<Core::User>& users, const Core::Client& client)
+QList<UsersXlsxDocument::User> prepareToExport(const QList<Core::User>& users, const Core::Client& client)
 {
-	QList<Core::User> result;
+	QList<UsersXlsxDocument::User> result;
 
 	for (const Core::User& user : users)
 	{
-		Core::User updated = user;
-		updated.groups = {};
+		UsersXlsxDocument::User updated;
+		updated.name = user.name;
 
-		for (const QString& groupId : user.groups)
+		QList<QString> groups;
+		if (user.role == Core::User::Role::ClientSupervisor)
+		{
+			for (const Core::Group& group : client.groups)
+			{
+				groups << group.id;
+			}
+		}
+		else
+		{
+			groups = user.groups;
+		}
+
+		for (const QString& groupId : groups)
 		{
 			auto groupIt = std::find_if(client.groups.begin(), client.groups.end(),
 			[&groupId](const Core::Group& group)
@@ -51,9 +64,19 @@ QList<Core::User> prepareToExport(const QList<Core::User>& users, const Core::Cl
 				return group.id == groupId;
 			});
 
-			if (groupIt != client.groups.end())
+			if (groupIt == client.groups.end())
 			{
-				updated.groups << groupIt->name;
+				continue;
+			}
+
+			const Core::Group& group = *groupIt;
+			if (group.banned)
+			{
+				updated.bannedGroups << group.name;
+			}
+			else
+			{
+				updated.availableGroups << group.name;
 			}
 		}
 
@@ -293,7 +316,7 @@ void UsersTabWidget::exportUsers()
 
 	UsersXlsxDocument document(filename);
 	bool ok = false;
-	QList<Core::User> users = prepareToExport(m_listEditorWidget.currentUsers(), currentClient());
+	QList<UsersXlsxDocument::User> users = prepareToExport(m_listEditorWidget.currentUsers(), currentClient());
 	document.write(users, ok);
 
 	if (!ok)

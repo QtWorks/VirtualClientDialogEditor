@@ -51,16 +51,18 @@ QList<Core::User> UsersXlsxDocument::read(bool& ok)
 	return result;
 }
 
-void UsersXlsxDocument::write(QList<Core::User> users, bool& ok)
+void UsersXlsxDocument::write(QList<User> users, bool& ok)
 {
 	m_document.write("A1", "Имя пользователя");
 	m_document.write("B1", "Доступные группы");
+	m_document.write("C1", "Заблокированные группы");
 
 	for (int i = 0; i < users.size(); ++i)
 	{
 		const int row = i + 2;
 		m_document.write("A" + QString::number(row), users[i].name);
-		m_document.write("B" + QString::number(row), users[i].groups.join(", "));
+		m_document.write("B" + QString::number(row), users[i].availableGroups.join(", "));
+		m_document.write("C" + QString::number(row), users[i].bannedGroups.join(", "));
 	}
 
 	ok = m_document.save();
