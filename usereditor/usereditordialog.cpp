@@ -3,7 +3,63 @@
 #include <QPushButton>
 #include <QMessageBox>
 
-UserEditorDialog::UserEditorDialog(const Core::User& user, const UniquenessValidator& validator, const QList<Core::Client>& clients,
+using namespace Core;
+
+namespace
+{
+
+const QVector<User::Role> c_roles =
+{
+	User::Role::ClientUser,
+	User::Role::ClientGroupSupervisor,
+	User::Role::ClientSupervisor,
+	User::Role::Admin
+};
+
+QString roleToString(const User::Role& role)
+{
+	switch (role)
+	{
+	case User::Role::Admin: return "Администратор";
+	case User::Role::ClientUser: return "Пользователь";
+	case User::Role::ClientGroupSupervisor: return "Супервизор групп";
+	case User::Role::ClientSupervisor: return "Супервизор клиента";
+	default: return QString("Неизвестная роль - %1").arg(static_cast<int>(role));
+	}
+}
+
+QString roleDescription(const User::Role& role)
+{
+	switch (role)
+	{
+	case User::Role::Admin:
+		return "Администратор всего продукта.\n"
+			"Имеет доступ к диалогам всех клиентов.\n"
+			"Может просматривать статистику по любому пользователю и диалогу.\n"
+			"Может пользоваться Редактором Диалогов.";
+	case User::Role::ClientUser:
+		return "Пользователь клиента.\n"
+			"Имеет доступ к диалогам выбранных групп клиента.\n"
+			"Может просматривать только свою статистику.\n"
+			"Не может пользоваться Редактором Диалогов";
+	case User::Role::ClientGroupSupervisor:
+		return "Супервизор групп.\n"
+			"Имеет доступ к диалогам выбранных групп клиента.\n"
+			"Может просматривать статистику по любому пользователю и диалогу выбранных групп.\n"
+			"Не может пользоваться Редактором Диалогов";
+	case User::Role::ClientSupervisor:
+		return "Супервизор клиента.\n"
+			"Имеет доступ к диалогам выбранного клиента.\n"
+			"Может просматривать статистику по любому пользователю и диалогу выбранного клиента.\n"
+			"Не может пользоваться Редактором Диалогов";
+	default:
+		return QString("Неизвестная роль - %1").arg(static_cast<int>(role));
+	}
+}
+
+}
+
+UserEditorDialog::UserEditorDialog(const User& user, const UniquenessValidator& validator, const QList<Client>& clients,
 	bool showPasswordInputs, QWidget* parent)
 	: QDialog(parent)
 	, m_ui(new Ui::UserEditorDialog)
@@ -20,24 +76,38 @@ UserEditorDialog::UserEditorDialog(const Core::User& user, const UniquenessValid
 	m_ui->passwordLabel->setVisible(m_showPasswordInputs);
 	m_ui->passwordLineEdit->setVisible(m_showPasswordInputs);
 
-	for (const Core::Client& client : clients)
+	for (const Client& client : clients)
 	{
 		m_ui->clientsComboBox->addItem(client.name, client.id);
 	}
 
-	m_ui->adminCheckBox->setChecked(user.admin);
+	connect(m_ui->roleComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &UserEditorDialog::onRoleChanged);
+
+	for (const User::Role& role : c_roles)
+	{
+		m_ui->roleComboBox->addItem(roleToString(role), static_cast<int>(role));
+
+		if (user.role == role)
+		{
+			m_ui->roleComboBox->setCurrentIndex(m_ui->roleComboBox->count() - 1);
+		}
+	}
+
+	QIcon infoIcon = style()->standardIcon(QStyle::SP_MessageBoxInformation);
+	QPixmap infoPixmap = infoIcon.pixmap(QSize(16, 16));
+	m_ui->roleInfoLabel->setPixmap(infoPixmap);
 
 	connect(m_ui->clientsComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &UserEditorDialog::onClientChanged);
 
-	if (!user.admin)
+	if (user.role != User::Role::Admin)
 	{
 		const auto it = std::find_if(clients.begin(), clients.end(),
-			[&user](const Core::Client& client) { return user.clientId == client.id; });
+			[&user](const Client& client) { return user.clientId == client.id; });
 
 		// "reset" index, so currentIndexChanged will be emitted after setCurrentIndex
 		m_ui->clientsComboBox->setCurrentIndex(-1);
 
-		const int index = it == clients.end() ? -1 : std::distance(clients.begin(), it);
+		const int index = it == clients.end() ? 0 : std::distance(clients.begin(), it);
 		m_ui->clientsComboBox->setCurrentIndex(index);
 	}
 
@@ -65,6 +135,22 @@ void UserEditorDialog::onClientChanged(int clientIndex)
 	m_ui->groupsListWidget->setCheckedItems(m_user.groups);
 }
 
+void UserEditorDialog::onRoleChanged(int roleIndex)
+{
+	if (roleIndex == -1)
+	{
+		return;
+	}
+
+	const User::Role& role = c_roles[roleIndex];
+
+	m_ui->roleInfoLabel->setToolTip(roleDescription(role));
+
+	m_ui->clientsComboBox->setEnabled(role == User::Role::ClientUser || role == User::Role::ClientGroupSupervisor || role == User::Role::ClientSupervisor);
+
+	m_ui->groupsListWidget->setEnabled(role == User::Role::ClientUser || role == User::Role::ClientGroupSupervisor);
+}
+
 void UserEditorDialog::saveChanges()
 {
 	const QString username = m_ui->usernameEdit->text().trimmed();
@@ -90,9 +176,9 @@ void UserEditorDialog::saveChanges()
 		}
 	}
 
-	const bool admin = m_ui->adminCheckBox->isChecked();
-
-	Core::User user = Core::User(username, admin);
+	User user;
+	user.role = static_cast<User::Role>(m_ui->roleComboBox->currentData().toInt());
+	user.name = username;
 	user.banned = m_user.banned;
 
 	if (m_showPasswordInputs)
@@ -101,7 +187,7 @@ void UserEditorDialog::saveChanges()
 		user.password = password;
 	}
 
-	if (!user.admin)
+	if (user.role == User::Role::ClientUser || user.role == User::Role::ClientGroupSupervisor || user.role == User::Role::ClientSupervisor)
 	{
 		const int clientIndex = m_ui->clientsComboBox->currentIndex();
 		if (clientIndex == -1)
@@ -113,14 +199,17 @@ void UserEditorDialog::saveChanges()
 		const QString clientId = m_clients[clientIndex].id;
 		user.clientId = clientId;
 
-		QList<QString> checkedGroups = m_ui->groupsListWidget->checkedItems();
-		if (checkedGroups.isEmpty())
+		if (user.role == User::Role::ClientUser || user.role == User::Role::ClientGroupSupervisor)
 		{
-			QMessageBox::warning(this, "Ошибка валидации", "Необходимо выбрать хотя бы одну группу или сделать пользователя администратором.");
-			return;
-		}
+			QList<QString> checkedGroups = m_ui->groupsListWidget->checkedItems();
+			if (checkedGroups.isEmpty())
+			{
+				QMessageBox::warning(this, "Ошибка валидации", "Необходимо выбрать хотя бы одну группу или сделать пользователя администратором.");
+				return;
+			}
 
-		user.groups = checkedGroups;
+			user.groups = checkedGroups;
+		}
 	}
 
 	emit userChanged(user);

@@ -277,9 +277,9 @@ void UserListEditorWidget::onUserSelectionChanged()
 		[&username](const Core::User& user){ return user.name == username; });
 	const Core::User& user = *it;
 
-	m_ui->cleanupStatisticsButton->setEnabled(!user.admin);
+	m_ui->cleanupStatisticsButton->setEnabled(user.role != Core::User::Role::Admin);
 
-	m_ui->banButton->setEnabled(!user.admin);
+	m_ui->banButton->setEnabled(user.role != Core::User::Role::Admin);
 	m_ui->banButton->setText(user.banned ? "Разблокировать" : "Заблокировать");
 }
 

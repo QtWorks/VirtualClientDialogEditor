@@ -29,7 +29,7 @@ QJsonObject toJson(const User& user)
 {
 	QJsonObject result = {
 		{ "Username", user.name },
-		{ "Admin", user.admin },
+		{ "Role", static_cast<int>(user.role) },
 		{ "Banned", user.banned }
 	};
 
@@ -38,10 +38,14 @@ QJsonObject toJson(const User& user)
 		result["Password"] = *user.password;
 	}
 
-	if (!user.admin)
+	if (user.role == User::Role::ClientUser || user.role == User::Role::ClientGroupSupervisor || user.role == User::Role::ClientSupervisor)
 	{
 		result["ClientId"] = user.clientId;
-		result["Groups"] = QJsonArray::fromStringList(user.groups);
+
+		if (user.role == User::Role::ClientUser || user.role == User::Role::ClientGroupSupervisor)
+		{
+			result["Groups"] = QJsonArray::fromStringList(user.groups);
+		}
 	}
 
 	return result;
@@ -549,9 +553,9 @@ void BackendConnection::onUsersLoadSuccess(IBackendConnection::QueryId queryId, 
 			continue;
 		}
 
-		if (!userObject.contains("Admin") || !userObject["Admin"].isBool())
+		if (!userObject.contains("Role") || !userObject["Role"].isDouble())
 		{
-			LOG << "Faled to parse user #" << i << " - object must have \"Admin\" boolean property";
+			LOG << "Faled to parse user #" << i << " - object must have \"Role\" numeric property";
 			continue;
 		}
 
@@ -562,18 +566,26 @@ void BackendConnection::onUsersLoadSuccess(IBackendConnection::QueryId queryId, 
 		}
 
 		const QString username = userObject["Username"].toString();
-		const bool admin = userObject["Admin"].toBool();
+		const User::Role role = static_cast<User::Role>(userObject["Role"].toInt());
 		const bool banned = userObject["Banned"].toBool();
 
-		if (admin)
+		if (role == User::Role::Admin)
 		{
-			result << User(username, admin);
+			result << User(username, role, banned);
 			continue;
 		}
 
 		if (!userObject.contains("ClientId") || !userObject["ClientId"].isString())
 		{
 			LOG << "Faled to parse user #" << i << " - object must have \"ClientId\" string property";
+			continue;
+		}
+
+		const QString clientId = userObject["ClientId"].toString();
+
+		if (role == User::Role::ClientSupervisor)
+		{
+			result << User(username, role, banned, clientId);
 			continue;
 		}
 
@@ -588,9 +600,7 @@ void BackendConnection::onUsersLoadSuccess(IBackendConnection::QueryId queryId, 
 		{
 			groups.append(groupValue.toString());
 		}
-
-		const QString clientId = userObject["ClientId"].toString();
-		result << User(username, clientId, groups, banned);
+		result << User(username, role, banned, clientId, groups);
 	}
 
 	emit usersLoaded(queryId, result);

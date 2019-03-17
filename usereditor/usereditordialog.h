@@ -26,6 +26,7 @@ signals:
 
 private slots:
 	void onClientChanged(int clientIndex);
+	void onRoleChanged(int roleIndex);
 	void saveChanges();
 	void discardChanges();
 

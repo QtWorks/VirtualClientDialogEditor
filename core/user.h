@@ -8,20 +8,19 @@ namespace Core
 
 struct User
 {
-	User()
-		: admin(false)
+	enum class Role
 	{
-	}
+		Admin = 0,
+		ClientUser,
+		ClientGroupSupervisor,
+		ClientSupervisor
+	};
 
-	User(const QString& name, bool admin)
-		: name(name)
-		, admin(admin)
-	{
-	}
+	User() = default;
 
-	User(const QString& name, const QString& clientId, const QList<QString>& groups, bool banned)
+	User(const QString& name, const Role& role, bool banned = false, const QString& clientId = {}, const QList<QString>& groups = {})
 		: name(name)
-		, admin(false)
+		, role(role)
 		, clientId(clientId)
 		, groups(groups)
 		, banned(banned)
@@ -30,7 +29,7 @@ struct User
 
 	QString name;
 	Optional<QString> password;
-	bool admin;
+	Role role { Role::ClientUser };
 	QString clientId;
 	QList<QString> groups;
 	bool banned { false };
@@ -43,7 +42,7 @@ inline bool operator<(const User& left, const User& right)
 
 inline bool operator==(const User& left, const User& right)
 {
-	return left.name == right.name && left.admin == right.admin && left.clientId == right.clientId && left.groups == right.groups && left.banned == right.banned;
+	return left.name == right.name && left.role == right.role && left.clientId == right.clientId && left.groups == right.groups && left.banned == right.banned;
 }
 
 inline bool operator!=(const User& left, const User& right)
