@@ -29,7 +29,7 @@ QList<QString> clientIds(const QList<Client>& clients)
 	return result;
 }
 
-bool isAdmin(QString clientId)
+bool isAdminsGroup(QString clientId)
 {
 	return clientId.isEmpty();
 }
@@ -154,13 +154,13 @@ void UsersTabWidget::updateUsersList(int clientIndex)
 	QString clientId = m_ui.clientsComboBox->itemData(clientIndex).toString();
 	m_currentClient = clientId;
 
-	enableButtons(!isAdmin(m_currentClient));
+	enableButtons(!isAdminsGroup(m_currentClient));
 	m_listEditorWidget.setClientFilter(m_currentClient);
 }
 
 void UsersTabWidget::updateUsersList(bool showAll)
 {
-	enableButtons(!showAll && !isAdmin(m_currentClient));
+	enableButtons(!showAll && !isAdminsGroup(m_currentClient));
 
 	if (showAll)
 	{
@@ -174,7 +174,7 @@ void UsersTabWidget::updateUsersList(bool showAll)
 
 QString UsersTabWidget::clientIdToName(QString clientId)
 {
-	if (isAdmin(clientId))
+	if (isAdminsGroup(clientId))
 	{
 		return "< Администраторы >";
 	}
@@ -308,7 +308,7 @@ void UsersTabWidget::exportUsers()
 
 Core::Client UsersTabWidget::currentClient() const
 {
-	Q_ASSERT(!isAdmin(m_currentClient));
+	Q_ASSERT(!isAdminsGroup(m_currentClient));
 
 	auto it = std::find_if(m_clients.begin(), m_clients.end(),
 	[this](const Core::Client& client)
