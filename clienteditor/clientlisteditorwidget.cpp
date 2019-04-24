@@ -265,12 +265,24 @@ void ClientListEditorWidget::cleanupStatistics()
 	Q_ASSERT(selectedItems.size() == 1);
 	const QString clientName = selectedItems.first()->text();
 
-	const auto it = std::find_if(m_model.begin(), m_model.end(),
-		[&clientName](const Core::Client& client){ return client.name == clientName; });
-	Q_ASSERT(it != m_model.end());
-	const Core::Client& client = *it;
+	QMessageBox messageBox(QMessageBox::Question,
+		"Очистить статистику",
+		"Вы действительно хотите очистить статистику клиента \"" + clientName + "\"?",
+		QMessageBox::Yes | QMessageBox::No,
+		this);
+	messageBox.setButtonText(QMessageBox::Yes, tr("Да"));
+	messageBox.setButtonText(QMessageBox::No, tr("Нет"));
 
-	m_cleanupStatisticsQueryId = m_backendConnection->cleanupClientStatistics(client.databaseName);
+	const int answer = messageBox.exec();
+	if (answer == QMessageBox::Yes)
+	{
+		const auto it = std::find_if(m_model.begin(), m_model.end(),
+			[&clientName](const Core::Client& client){ return client.name == clientName; });
+		Q_ASSERT(it != m_model.end());
+		const Core::Client& client = *it;
+
+		m_cleanupStatisticsQueryId = m_backendConnection->cleanupClientStatistics(client.databaseName);
+	}
 }
 
 void ClientListEditorWidget::processBanSelected()

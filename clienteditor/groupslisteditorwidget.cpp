@@ -245,11 +245,23 @@ void GroupsListEditorWidget::cleanupStatistics()
 	Q_ASSERT(selectedItems.size() == 1);
 	const QString groupName = selectedItems.first()->text();
 
-	const auto it = std::find_if(m_currentClient.groups.begin(), m_currentClient.groups.end(),
-		[&groupName](const Core::Group& group){ return group.name == groupName; });
-	Q_ASSERT(it != m_currentClient.groups.end());
+	QMessageBox messageBox(QMessageBox::Question,
+		"Очистить статистику",
+		"Вы действительно хотите очистить статистику группы \"" + groupName + "\"?",
+		QMessageBox::Yes | QMessageBox::No,
+		this);
+	messageBox.setButtonText(QMessageBox::Yes, tr("Да"));
+	messageBox.setButtonText(QMessageBox::No, tr("Нет"));
 
-	m_cleanupStatisticsQueryId = m_backendConnection->cleanupGroupStatistics(m_currentClient.databaseName, it->id);
+	const int answer = messageBox.exec();
+	if (answer == QMessageBox::Yes)
+	{
+		const auto it = std::find_if(m_currentClient.groups.begin(), m_currentClient.groups.end(),
+			[&groupName](const Core::Group& group){ return group.name == groupName; });
+		Q_ASSERT(it != m_currentClient.groups.end());
+
+		m_cleanupStatisticsQueryId = m_backendConnection->cleanupGroupStatistics(m_currentClient.databaseName, it->id);
+	}
 }
 
 void GroupsListEditorWidget::processBanSelected()

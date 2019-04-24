@@ -294,7 +294,19 @@ void UserListEditorWidget::cleanupStatistics()
 	Q_ASSERT(selectedItems.size() == 1);
 	const QString username = selectedItems.first()->text();
 
-	m_cleanupStatisticsQueryId = m_backendConnection->cleanupUserStatistics(clientId, username);
+	QMessageBox messageBox(QMessageBox::Question,
+		"Очистить статистику",
+		"Вы действительно хотите очистить статистику пользователя \"" + username + "\"?",
+		QMessageBox::Yes | QMessageBox::No,
+		this);
+	messageBox.setButtonText(QMessageBox::Yes, tr("Да"));
+	messageBox.setButtonText(QMessageBox::No, tr("Нет"));
+
+	const int answer = messageBox.exec();
+	if (answer == QMessageBox::Yes)
+	{
+		m_cleanupStatisticsQueryId = m_backendConnection->cleanupUserStatistics(clientId, username);
+	}
 }
 
 void UserListEditorWidget::processBanSelected()
